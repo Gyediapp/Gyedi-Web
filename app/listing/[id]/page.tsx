@@ -39,7 +39,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 </div>
                 {listing.images.length > 1 && (
                   <div className="grid grid-cols-4 gap-2">
-                    {listing.images.slice(1, 5).map((img, i) => (
+                    {listing.images.slice(1, 5).map((img: string, i: number) => (
                       <div key={i} className="aspect-square rounded-xl overflow-hidden bg-white border border-gray-100">
                         <img src={img} alt={`${listing.title} ${i + 2}`} className="w-full h-full object-cover" />
                       </div>
