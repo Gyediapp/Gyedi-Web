@@ -102,7 +102,7 @@ export default async function MarketplacePage({
 
         {listings.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {listings.map(l => (
+            {listings.map((l: any) => (
               <ListingCard
                 key={l.id}
                 id={l.id}

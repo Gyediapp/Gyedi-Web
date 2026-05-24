@@ -79,7 +79,7 @@ export default async function StorePage({ params }: { params: Promise<{ username
               All Listings <span className="text-gray-400 font-normal text-base">({seller.listings.length})</span>
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-              {seller.listings.map(l => (
+              {seller.listings.map((l: any) => (
                 <ListingCard
                   key={l.id}
                   id={l.id}
