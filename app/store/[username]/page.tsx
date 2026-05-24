@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import ListingCard from '@/components/ListingCard';
 
 const COUNTRY_FLAG: Record<string, string> = {

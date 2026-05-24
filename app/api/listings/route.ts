@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import { z } from 'zod';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 const CreateListingSchema = z.object({
   title:       z.string().min(3).max(200).trim(),
