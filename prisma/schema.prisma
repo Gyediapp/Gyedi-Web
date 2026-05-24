@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  firstName     String
+  lastName      String
+  phone         String    @unique
+  country       String    @default("GH")
+  kycStatus     String    @default("PENDING")
+  averageRating Decimal?  @db.Decimal(3, 2)
+  totalRatings  Int       @default(0)
+  isSuspended   Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  listings      Listing[]
+
+  @@map("users")
+}
+
+model Listing {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  price       Decimal  @db.Decimal(10, 2)
+  category    String
+  images      String[]
+  sellerId    String
+  country     String   @default("GH")
+  status      String   @default("ACTIVE")
+  storeType   String   @default("BASIC")
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  seller      User     @relation(fields: [sellerId], references: [id])
+
+  @@map("listings")
+}
