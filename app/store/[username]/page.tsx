@@ -28,7 +28,7 @@ export default async function StorePage({ params }: { params: Promise<{ username
 
   if (!seller) notFound();
 
-  const topStoreType = seller.listings.reduce<string>((top: string, l) => {
+  const topStoreType = seller.listings.reduce<string>((top: string, l: { storeType: string }) => {
     const rank = { BASIC: 0, PRO: 1, BUSINESS: 2 };
     return (rank[l.storeType as keyof typeof rank] ?? 0) > (rank[top as keyof typeof rank] ?? 0) ? l.storeType : top;
   }, 'BASIC');
