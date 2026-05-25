@@ -10,8 +10,8 @@ type Wallet = { balance: string; inEscrow: string; pending: string };
 type Escrow = {
   id: string; code: string; title: string; amount: string; status: string;
   createdAt: string;
-  buyer:  { firstName: string; lastName: string };
-  seller: { firstName: string; lastName: string };
+  buyer:  { id: string; firstName: string; lastName: string };
+  seller: { id: string; firstName: string; lastName: string };
 };
 type User = { id: string; firstName: string; lastName: string; phone: string };
 
@@ -187,7 +187,7 @@ export default function DashboardPage() {
               {recent.map(e => {
                 const stored = typeof window !== 'undefined' ? localStorage.getItem('gyedi_user') : null;
                 const me = stored ? JSON.parse(stored) as any : null;
-                const isBuyer = me?.id === (e.buyer as any)?.id;
+                const isBuyer = me?.id === e.buyer.id;
                 const other = isBuyer
                   ? `${e.seller.firstName} ${e.seller.lastName}`
                   : `${e.buyer.firstName} ${e.buyer.lastName}`;
