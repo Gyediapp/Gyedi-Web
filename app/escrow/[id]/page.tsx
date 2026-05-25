@@ -171,16 +171,24 @@ function ActionPanel({
 
   if (status === 'COMPLETED') {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-2xl p-5 flex gap-3 items-center">
-        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
+      <div className="space-y-3">
+        <div className="bg-green-50 border border-green-200 rounded-2xl p-5 flex gap-3 items-center">
+          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-green-800 font-bold text-sm">Transaction Complete</p>
+            <p className="text-green-600 text-xs mt-0.5">Funds released to seller</p>
+          </div>
         </div>
-        <div>
-          <p className="text-green-800 font-bold text-sm">Transaction Complete</p>
-          <p className="text-green-600 text-xs mt-0.5">Funds released to seller</p>
-        </div>
+        <Link
+          href="/marketplace"
+          className="block w-full text-center bg-[#1B4332] text-white font-bold py-3 rounded-2xl text-sm transition-colors hover:bg-[#0F2B1F]"
+        >
+          Continue Shopping →
+        </Link>
       </div>
     );
   }
@@ -523,6 +531,26 @@ export default function EscrowDetailPage() {
               ))}
             </div>
           )}
+          {/* Browse Marketplace */}
+          <Link
+            href="/marketplace"
+            className="flex items-center justify-between bg-white border border-gray-100 rounded-2xl px-5 py-4 shadow-sm hover:shadow-md transition-shadow group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-[#1B4332]/8 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-[#1B4332]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-gray-900">Browse Marketplace</p>
+                <p className="text-xs text-gray-400">Find more escrow-protected listings</p>
+              </div>
+            </div>
+            <svg className="w-4 h-4 text-gray-300 group-hover:text-[#1B4332] transition-colors" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
         </div>
       )}
 

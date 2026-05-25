@@ -75,11 +75,11 @@ export default function ListingCard({
             <span className="text-xs text-gray-400">{views}v</span>
           </div>
         </div>
-        <div className="mt-2 flex items-center gap-1 text-[10px] sm:text-xs text-[#1B4332]/50 font-semibold">
-          <svg className="w-3 h-3 text-[#1B4332]/40 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <div className="mt-3 w-full bg-[#1B4332] hover:bg-[#0F2B1F] group-hover:bg-[#0F2B1F] text-white text-[11px] sm:text-xs font-bold py-2 rounded-xl flex items-center justify-center gap-1.5 transition-colors">
+          <svg className="w-3 h-3 text-[#F5A623] shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
           </svg>
-          Escrow Protected
+          Buy Safely with Gyedi →
         </div>
       </div>
     </Link>

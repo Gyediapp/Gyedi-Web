@@ -24,8 +24,21 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   const sellerName = `${listing.seller.firstName} ${listing.seller.lastName}`;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10">
+    <div className="min-h-screen bg-gray-50 py-10 pb-28">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-6 flex-wrap">
+          <Link href="/marketplace" className="hover:text-[#1B4332] font-medium transition-colors">Marketplace</Link>
+          <svg className="w-3 h-3 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+          <Link href={`/marketplace?category=${encodeURIComponent(listing.category)}`} className="hover:text-[#1B4332] font-medium transition-colors">{listing.category}</Link>
+          <svg className="w-3 h-3 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+          <span className="text-gray-600 font-medium truncate max-w-[200px] sm:max-w-xs">{listing.title}</span>
+        </nav>
+
         <div className="grid lg:grid-cols-2 gap-10">
           {/* Image Gallery */}
           <div>

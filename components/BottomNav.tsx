@@ -16,7 +16,11 @@ export default function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-[#1B4332] border-t border-[#0D2B1E] flex z-50">
       {TABS.map(({ href, label, icon: Icon }) => {
-        const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
+        const isMarket = href === '/marketplace';
+      const active =
+        pathname === href ||
+        (href !== '/dashboard' && pathname.startsWith(href)) ||
+        (isMarket && (pathname.startsWith('/listing') || pathname === '/sell'));
         return (
           <Link
             key={href}
