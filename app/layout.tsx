@@ -3,6 +3,8 @@ import { Geist } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import LayoutShell from '@/components/LayoutShell';
+import SiteBanner from '@/components/SiteBanner';
+import { getSiteSettings } from '@/lib/site-settings';
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
 
@@ -25,13 +27,37 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const { maintenance, banner } = await getSiteSettings();
+
+  if (maintenance.enabled) {
+    return (
+      <html lang="en" className={geist.variable}>
+        <head><link rel="apple-touch-icon" href="/icon-192.png" /></head>
+        <body className="min-h-screen bg-[#F4F6F8] flex items-center justify-center p-6">
+          <div className="max-w-md w-full text-center">
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-10">
+              <div className="text-6xl mb-6">🔧</div>
+              <h1 className="text-2xl font-black text-[#1B4332] mb-2">Under Maintenance</h1>
+              <p className="text-gray-500 text-sm leading-relaxed mb-8">
+                {maintenance.message || 'We are performing scheduled maintenance. Please check back soon.'}
+              </p>
+              <span className="text-2xl font-black text-[#F5A623]">Gyedi</span>
+              <p className="text-xs text-gray-400 mt-1">Secure Escrow Platform</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    );
+  }
+
   return (
     <html lang="en" className={geist.variable}>
       <head>
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className="min-h-screen flex flex-col bg-white text-gray-900 overflow-x-hidden">
+        <SiteBanner banner={banner} />
         <LayoutShell>{children}</LayoutShell>
         <Script id="sw-register" strategy="afterInteractive">{`
           if ('serviceWorker' in navigator) {

@@ -22,6 +22,15 @@ model User {
   @@map("users")
 }
 
+model FeeConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("fee_configs")
+}
+
 model Listing {
   id          String   @id @default(uuid())
   title       String

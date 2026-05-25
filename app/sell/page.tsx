@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 
-const CATEGORIES = ['Electronics', 'Fashion', 'Vehicles', 'Furniture', 'Services', 'Agriculture', 'Real Estate', 'Other'];
+const DEFAULT_CATEGORIES = ['Electronics', 'Fashion', 'Vehicles', 'Furniture', 'Services', 'Agriculture', 'Real Estate', 'Other'];
 const BUCKET = 'listings';
 const MAX_IMAGES = 5;
 const MAX_SIZE_MB = 5;
@@ -14,16 +14,20 @@ const ALLOWED_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/we
 type Preview = { file: File; objectUrl: string; publicUrl?: string };
 
 export default function SellPage() {
-  const [token,     setToken]     = useState<string | null>(null);
-  const [previews,  setPreviews]  = useState<Preview[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [loading,   setLoading]   = useState(false);
-  const [error,     setError]     = useState('');
-  const [success,   setSuccess]   = useState('');
+  const [token,      setToken]      = useState<string | null>(null);
+  const [previews,   setPreviews]   = useState<Preview[]>([]);
+  const [uploading,  setUploading]  = useState(false);
+  const [loading,    setLoading]    = useState(false);
+  const [error,      setError]      = useState('');
+  const [success,    setSuccess]    = useState('');
+  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setToken(localStorage.getItem('gyedi_token'));
+    fetch('/api/categories').then(r => r.json()).then(d => {
+      if (Array.isArray(d.categories) && d.categories.length > 0) setCategories(d.categories);
+    }).catch(() => {});
     return () => { previews.forEach(p => URL.revokeObjectURL(p.objectUrl)); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -349,7 +353,7 @@ export default function SellPage() {
               className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] transition-colors"
             >
               <option value="" disabled>Select a category</option>
-              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
 
