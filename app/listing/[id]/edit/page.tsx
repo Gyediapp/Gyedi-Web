@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
+import { use, useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
 const CATEGORIES = ['Electronics', 'Fashion', 'Vehicles', 'Furniture', 'Services', 'Agriculture', 'Real Estate', 'Other'];
@@ -11,22 +12,68 @@ const MAX_IMAGES = 5;
 const MAX_SIZE_MB = 5;
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
 
-type Preview = { file: File; objectUrl: string; publicUrl?: string };
+type ImageItem =
+  | { kind: 'existing'; url: string }
+  | { kind: 'new'; file: File; objectUrl: string };
 
-export default function SellPage() {
+interface Listing {
+  id: string;
+  title: string;
+  description: string;
+  price: number | string;
+  category: string;
+  images: string[];
+  sellerId: string;
+  status: string;
+}
+
+export default function EditListingPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const router = useRouter();
+
   const [token,     setToken]     = useState<string | null>(null);
-  const [previews,  setPreviews]  = useState<Preview[]>([]);
+  const [listing,   setListing]   = useState<Listing | null>(null);
+  const [images,    setImages]    = useState<ImageItem[]>([]);
+  const [loading,   setLoading]   = useState(true);
+  const [saving,    setSaving]    = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState('');
   const [success,   setSuccess]   = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setToken(localStorage.getItem('gyedi_token'));
-    return () => { previews.forEach(p => URL.revokeObjectURL(p.objectUrl)); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const tok     = localStorage.getItem('gyedi_token');
+    const userStr = localStorage.getItem('gyedi_user');
+    setToken(tok);
+
+    if (!tok) { setLoading(false); return; }
+
+    fetch(`/api/listings/${id}`, { headers: { Authorization: `Bearer ${tok}` } })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.listing) { setError('Listing not found.'); setLoading(false); return; }
+
+        const user = userStr ? (() => { try { return JSON.parse(userStr); } catch { return null; } })() : null;
+        if (user?.id && data.listing.sellerId !== user.id) {
+          setError('You can only edit your own listings.');
+          setLoading(false);
+          return;
+        }
+
+        setListing(data.listing);
+        setImages(data.listing.images.map((url: string) => ({ kind: 'existing' as const, url })));
+        setLoading(false);
+      })
+      .catch(() => { setError('Failed to load listing.'); setLoading(false); });
+
+    return () => {
+      setImages(prev => {
+        prev.forEach(img => { if (img.kind === 'new') URL.revokeObjectURL(img.objectUrl); });
+        return prev;
+      });
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -42,27 +89,23 @@ export default function SellPage() {
     }
     if (errs.length) setError(errs.join(' · '));
 
-    const slots = MAX_IMAGES - previews.length;
-    const toAdd = valid.slice(0, slots).map(f => ({ file: f, objectUrl: URL.createObjectURL(f) }));
-    if (toAdd.length) setPreviews(prev => [...prev, ...toAdd]);
+    const slots = MAX_IMAGES - images.length;
+    const toAdd: ImageItem[] = valid.slice(0, slots).map(f => ({ kind: 'new', file: f, objectUrl: URL.createObjectURL(f) }));
+    if (toAdd.length) setImages(prev => [...prev, ...toAdd]);
     e.target.value = '';
   }
 
-  function removePreview(idx: number) {
-    setPreviews(prev => {
-      URL.revokeObjectURL(prev[idx].objectUrl);
+  function removeImage(idx: number) {
+    setImages(prev => {
+      const item = prev[idx];
+      if (item.kind === 'new') URL.revokeObjectURL(item.objectUrl);
       return prev.filter((_, i) => i !== idx);
     });
   }
 
-  function clearAll() {
-    previews.forEach(p => URL.revokeObjectURL(p.objectUrl));
-    setPreviews([]);
-  }
-
   function setAsMain(idx: number) {
     if (idx === 0) return;
-    setPreviews(prev => {
+    setImages(prev => {
       const next = [...prev];
       const [item] = next.splice(idx, 1);
       return [item, ...next];
@@ -71,7 +114,7 @@ export default function SellPage() {
 
   function moveLeft(idx: number) {
     if (idx === 0) return;
-    setPreviews(prev => {
+    setImages(prev => {
       const next = [...prev];
       [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
       return next;
@@ -79,7 +122,7 @@ export default function SellPage() {
   }
 
   function moveRight(idx: number) {
-    setPreviews(prev => {
+    setImages(prev => {
       if (idx >= prev.length - 1) return prev;
       const next = [...prev];
       [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
@@ -87,46 +130,52 @@ export default function SellPage() {
     });
   }
 
-  async function uploadAll(currentPreviews: Preview[]): Promise<string[]> {
-    setUploading(true);
-    const urls: string[] = [];
+  function getImageSrc(img: ImageItem): string {
+    return img.kind === 'existing' ? img.url : img.objectUrl;
+  }
 
-    for (const p of currentPreviews) {
-      if (p.publicUrl) { urls.push(p.publicUrl); continue; }
-      const ext  = p.file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+  async function uploadAndCollectUrls(currentImages: ImageItem[]): Promise<string[]> {
+    const urls: string[] = [];
+    for (const img of currentImages) {
+      if (img.kind === 'existing') { urls.push(img.url); continue; }
+      const ext  = img.file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
       const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
       const { error: upErr } = await supabase.storage
         .from(BUCKET)
-        .upload(path, p.file, { contentType: p.file.type, upsert: false });
+        .upload(path, img.file, { contentType: img.file.type, upsert: false });
 
-      if (upErr) {
-        setUploading(false);
-        throw new Error(`Could not upload ${p.file.name}: ${upErr.message}`);
-      }
+      if (upErr) throw new Error(`Could not upload ${img.file.name}: ${upErr.message}`);
 
       const { data: { publicUrl } } = supabase.storage.from(BUCKET).getPublicUrl(path);
       urls.push(publicUrl);
     }
-
-    setUploading(false);
     return urls;
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!token) { setError('Please log in first.'); return; }
+    if (!token || !listing) return;
 
-    setLoading(true);
+    setSaving(true);
     setError('');
 
+    const hasNew = images.some(img => img.kind === 'new');
     let imageUrls: string[] = [];
-    try {
-      imageUrls = await uploadAll(previews);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Image upload failed');
-      setLoading(false);
-      return;
+
+    if (hasNew) {
+      setUploading(true);
+      try {
+        imageUrls = await uploadAndCollectUrls(images);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Image upload failed');
+        setSaving(false);
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    } else {
+      imageUrls = images.map(img => img.kind === 'existing' ? img.url : '').filter(Boolean);
     }
 
     const fd = new FormData(e.currentTarget);
@@ -139,24 +188,24 @@ export default function SellPage() {
     };
 
     try {
-      const res = await fetch('/api/listings', {
-        method: 'POST',
+      const res = await fetch(`/api/listings/${listing.id}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Failed to create listing');
-      setSuccess('Your listing is now live on the marketplace!');
-      setPreviews([]);
-      (e.target as HTMLFormElement).reset();
+      if (!res.ok) throw new Error(data.error ?? 'Failed to save changes');
+      setSuccess('Listing updated!');
+      setTimeout(() => router.push(`/listing/${listing.id}`), 1500);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   }
 
-  if (token === null) {
+  /* ── Loading / error states ── */
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#1B4332] border-t-transparent rounded-full animate-spin" />
@@ -168,29 +217,43 @@ export default function SellPage() {
     return (
       <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center py-12 px-4">
         <div className="text-center max-w-sm">
-          <div className="w-16 h-16 bg-[#1B4332]/8 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-[#1B4332]/50" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
           <h2 className="text-2xl font-black text-gray-900 mb-2">Login Required</h2>
-          <p className="text-gray-500 mb-8 text-sm">You need an account to list items on Gyedi.</p>
-          <Link href="/login" className="block bg-[#1B4332] hover:bg-[#0F2B1F] text-white font-bold px-8 py-4 rounded-xl transition-colors text-base">
-            Log In or Create Account
+          <p className="text-gray-500 mb-6 text-sm">You need to be logged in to edit a listing.</p>
+          <Link href="/login" className="block bg-[#1B4332] text-white font-bold px-8 py-4 rounded-xl text-base">
+            Log In
           </Link>
         </div>
       </div>
     );
   }
 
+  if (error && !listing) {
+    return (
+      <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center py-12 px-4">
+        <div className="text-center max-w-sm">
+          <p className="text-gray-600 mb-6">{error}</p>
+          <Link href="/dashboard" className="text-[#1B4332] font-semibold hover:underline">← Back to dashboard</Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!listing) return null;
+
   return (
     <div className="min-h-screen bg-[#F4F6F8] py-10 pb-28">
       <div className="max-w-2xl mx-auto px-4 sm:px-6">
 
-        <div className="mb-7">
-          <p className="text-[#F5A623] text-xs font-bold uppercase tracking-widest mb-1">Sell on Gyedi</p>
-          <h1 className="text-3xl font-black text-gray-900">Create a Listing</h1>
-          <p className="text-gray-400 mt-1.5">Goes live on the marketplace immediately</p>
+        <div className="flex items-center gap-3 mb-7">
+          <Link href={`/listing/${listing.id}`} className="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors flex-shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </Link>
+          <div>
+            <p className="text-[#F5A623] text-xs font-bold uppercase tracking-widest">Edit Listing</p>
+            <h1 className="text-2xl font-black text-gray-900 truncate">{listing.title}</h1>
+          </div>
         </div>
 
         {error && (
@@ -206,8 +269,7 @@ export default function SellPage() {
             <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
             </svg>
-            {success}{' '}
-            <Link href="/marketplace" className="font-bold underline">View marketplace →</Link>
+            {success} Redirecting…
           </div>
         )}
 
@@ -219,15 +281,18 @@ export default function SellPage() {
               <label className="block text-sm font-bold text-gray-700">
                 Photos{' '}
                 <span className="text-gray-400 font-normal">
-                  {previews.length > 0
-                    ? `${previews.length}/${MAX_IMAGES} · first is cover`
+                  {images.length > 0
+                    ? `${images.length}/${MAX_IMAGES} · first is cover`
                     : `(up to ${MAX_IMAGES})`}
                 </span>
               </label>
-              {previews.length > 1 && (
+              {images.length > 1 && (
                 <button
                   type="button"
-                  onClick={clearAll}
+                  onClick={() => {
+                    images.forEach(img => { if (img.kind === 'new') URL.revokeObjectURL(img.objectUrl); });
+                    setImages([]);
+                  }}
                   className="text-xs text-red-400 hover:text-red-600 font-semibold transition-colors"
                 >
                   Clear all
@@ -235,31 +300,33 @@ export default function SellPage() {
               )}
             </div>
 
-            {previews.length > 0 ? (
+            {images.length > 0 ? (
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
-                {previews.map((p, i) => (
+                {images.map((img, i) => (
                   <div key={i} className="relative aspect-square rounded-xl overflow-hidden border-2 border-gray-100 bg-gray-50 shadow-sm">
-                    {/* Full-area button to set as main cover */}
+                    {/* Click to set as main */}
                     <button
                       type="button"
                       onClick={() => setAsMain(i)}
                       title={i === 0 ? 'Cover photo' : 'Tap to set as cover'}
                       className="absolute inset-0 w-full h-full z-0"
                     >
-                      <Image src={p.objectUrl} alt="" fill className="object-cover" unoptimized />
+                      <Image src={getImageSrc(img)} alt="" fill className="object-cover" unoptimized />
                     </button>
 
-                    {/* MAIN badge */}
-                    {i === 0 && (
-                      <span className="absolute top-1.5 left-1.5 bg-[#F5A623] text-[#1B4332] text-[9px] font-black px-1.5 py-0.5 rounded-full shadow z-10 pointer-events-none">
-                        MAIN
+                    {/* MAIN / NEW badge */}
+                    {(i === 0 || img.kind === 'new') && (
+                      <span className={`absolute top-1.5 left-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full shadow z-10 pointer-events-none ${
+                        i === 0 ? 'bg-[#F5A623] text-[#1B4332]' : 'bg-[#1B4332] text-white'
+                      }`}>
+                        {i === 0 ? 'MAIN' : 'NEW'}
                       </span>
                     )}
 
                     {/* X remove */}
                     <button
                       type="button"
-                      onClick={() => removePreview(i)}
+                      onClick={() => removeImage(i)}
                       className="absolute top-1.5 right-1.5 w-5 h-5 bg-black/70 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs leading-none z-10 transition-colors"
                     >
                       ×
@@ -278,7 +345,7 @@ export default function SellPage() {
                       <button
                         type="button"
                         onClick={() => moveRight(i)}
-                        disabled={i === previews.length - 1}
+                        disabled={i === images.length - 1}
                         className="w-5 h-5 bg-black/60 hover:bg-black/80 text-white rounded flex items-center justify-center text-[11px] transition-colors disabled:opacity-0"
                       >
                         ›
@@ -287,7 +354,7 @@ export default function SellPage() {
                   </div>
                 ))}
 
-                {previews.length < MAX_IMAGES && (
+                {images.length < MAX_IMAGES && (
                   <button
                     type="button"
                     onClick={() => fileRef.current?.click()}
@@ -311,7 +378,7 @@ export default function SellPage() {
                   </svg>
                 </div>
                 <div className="text-center">
-                  <p className="font-bold text-sm">Click to add photos</p>
+                  <p className="font-bold text-sm">Add photos</p>
                   <p className="text-xs mt-0.5">JPG, PNG or WebP · Max {MAX_SIZE_MB} MB each</p>
                 </div>
               </button>
@@ -334,7 +401,7 @@ export default function SellPage() {
               name="title"
               required
               maxLength={200}
-              placeholder="e.g. iPhone 14 Pro Max 256GB"
+              defaultValue={listing.title}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] transition-colors"
             />
           </div>
@@ -345,7 +412,7 @@ export default function SellPage() {
             <select
               name="category"
               required
-              defaultValue=""
+              defaultValue={listing.category}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] transition-colors"
             >
               <option value="" disabled>Select a category</option>
@@ -364,7 +431,7 @@ export default function SellPage() {
                 required
                 min="1"
                 step="0.01"
-                placeholder="0.00"
+                defaultValue={parseFloat(listing.price.toString())}
                 className="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] transition-colors"
               />
             </div>
@@ -377,42 +444,39 @@ export default function SellPage() {
               name="description"
               required
               rows={5}
-              placeholder="Describe your item — condition, what's included, any defects…"
+              defaultValue={listing.description}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] transition-colors"
             />
           </div>
 
-          {/* ── Escrow notice ── */}
-          <div className="bg-[#F5A623]/10 rounded-xl p-4 border border-[#F5A623]/20 flex items-start gap-3">
-            <svg className="w-5 h-5 text-[#1B4332] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
-            </svg>
-            <div>
-              <p className="text-sm font-bold text-[#1B4332]">Escrow Protected Sale</p>
-              <p className="text-xs text-[#1B4332]/70 mt-0.5">Buyers pay into escrow. You get paid when they confirm receipt. Zero chargeback risk.</p>
-            </div>
-          </div>
-
           {/* ── Submit ── */}
-          <button
-            type="submit"
-            disabled={loading || uploading}
-            className="w-full bg-[#1B4332] hover:bg-[#0F2B1F] disabled:opacity-50 text-white font-black py-4 rounded-xl transition-colors text-base flex items-center justify-center gap-2"
-          >
-            {uploading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Uploading photos…
-              </>
-            ) : loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Publishing…
-              </>
-            ) : (
-              'Publish Listing'
-            )}
-          </button>
+          <div className="flex gap-3">
+            <Link
+              href={`/listing/${listing.id}`}
+              className="flex-1 border border-gray-200 text-gray-600 font-bold py-4 rounded-xl text-base text-center hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </Link>
+            <button
+              type="submit"
+              disabled={saving || uploading}
+              className="flex-1 bg-[#1B4332] hover:bg-[#0F2B1F] disabled:opacity-50 text-white font-black py-4 rounded-xl transition-colors text-base flex items-center justify-center gap-2"
+            >
+              {uploading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Uploading…
+                </>
+              ) : saving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Saving…
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </div>
