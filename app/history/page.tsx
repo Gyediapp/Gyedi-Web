@@ -23,8 +23,8 @@ const FILTER_TABS: { key: Filter; label: string }[] = [
 ];
 
 const STATUS_STYLE: Record<string, string> = {
-  FUNDED:     'bg-blue-100 text-blue-700',
-  IN_TRANSIT: 'bg-[#FEF3C7] text-[#92400E]',
+  FUNDED:     'bg-green-100 text-green-700',
+  IN_TRANSIT: 'bg-blue-100 text-blue-700',
   COMPLETED:  'bg-green-100 text-green-700',
   DISPUTED:   'bg-blue-100 text-blue-700',
   CANCELLED:  'bg-gray-100 text-gray-500',
@@ -32,8 +32,8 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 const STATUS_BORDER: Record<string, string> = {
-  FUNDED:     'border-l-blue-500',
-  IN_TRANSIT: 'border-l-[#F5A623]',
+  FUNDED:     'border-l-green-500',
+  IN_TRANSIT: 'border-l-blue-500',
   COMPLETED:  'border-l-green-500',
   DISPUTED:   'border-l-blue-400',
   CANCELLED:  'border-l-gray-300',

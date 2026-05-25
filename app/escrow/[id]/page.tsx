@@ -21,12 +21,22 @@ type Escrow = {
 };
 
 const STATUS_PILL: Record<string, string> = {
-  FUNDED:     'bg-blue-500/20 text-blue-200',
-  IN_TRANSIT: 'bg-[#F5A623]/30 text-[#F5A623]',
+  FUNDED:     'bg-green-500/20 text-green-300',
+  IN_TRANSIT: 'bg-blue-500/20 text-blue-200',
   COMPLETED:  'bg-green-500/20 text-green-300',
   DISPUTED:   'bg-blue-500/20 text-blue-200',
   PENDING:    'bg-white/20 text-white/70',
   CANCELLED:  'bg-white/10 text-white/50',
+};
+
+// Solid pills for use on the gold card (needs contrast against #F5A623)
+const STATUS_PILL_CARD: Record<string, string> = {
+  FUNDED:     'bg-green-600 text-white',
+  IN_TRANSIT: 'bg-blue-600 text-white',
+  COMPLETED:  'bg-[#1B4332] text-white',
+  DISPUTED:   'bg-blue-700 text-white',
+  PENDING:    'bg-[#1B4332]/30 text-[#1B4332]',
+  CANCELLED:  'bg-[#1B4332]/20 text-[#1B4332]/60',
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -360,7 +370,12 @@ export default function EscrowDetailPage() {
       {escrow && !loading && (
         <div className="bg-[#1B4332] px-5 pb-6">
           <div className="bg-[#F5A623] rounded-2xl p-5 shadow-lg">
-            <p className="text-[#1B4332]/70 text-xs font-semibold mb-1">Escrow Amount</p>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-[#1B4332]/70 text-[10px] font-bold uppercase tracking-widest">Escrow Amount</p>
+              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${STATUS_PILL_CARD[escrow.status] ?? 'bg-[#1B4332]/20 text-[#1B4332]'}`}>
+                {STATUS_LABEL[escrow.status] ?? escrow.status}
+              </span>
+            </div>
             <p className="text-[#1B4332] font-black text-4xl">{fmt(escrow.amount)}</p>
             <p className="text-[#1B4332]/60 text-xs mt-1">
               {isBuyer ? `You pay GHS ${(parseFloat(escrow.amount) + fee).toLocaleString('en-GH', { minimumFractionDigits: 2 })} incl. 1.5% fee` : `You receive ${fmt(escrow.amount)}`}
@@ -408,7 +423,7 @@ export default function EscrowDetailPage() {
           )}
 
           {/* Amount breakdown */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3 border-l-4 border-l-[#F5A623]">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fee Breakdown</h3>
             <div className="flex justify-between">
               <span className="text-sm text-gray-500">Escrow amount</span>

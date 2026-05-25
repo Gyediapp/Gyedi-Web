@@ -134,19 +134,19 @@ export default function WalletPage() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
+              <Link
+                href="/send"
+                className="bg-[#1B4332] hover:bg-[#0F2B1F] text-white font-bold py-3 rounded-xl transition-colors text-sm text-center"
+              >
+                Pay / Receive
+              </Link>
               <button
                 onClick={() => { setShowWithdraw(true); setActionError(''); }}
                 disabled={balance <= 0 || !wallet.accounts.length}
-                className="bg-[#1B4332] hover:bg-[#0F2B1F] disabled:opacity-40 text-white font-bold py-3 rounded-xl transition-colors text-sm"
+                className="bg-[#F5A623] hover:bg-[#D4881A] disabled:opacity-40 text-[#1B4332] font-bold py-3 rounded-xl transition-colors text-sm"
               >
-                Withdraw
+                Withdraw to MoMo
               </button>
-              <Link
-                href="/send"
-                className="bg-[#1B4332]/80 hover:bg-[#0F2B1F] text-white font-bold py-3 rounded-xl transition-colors text-sm text-center"
-              >
-                Send Money
-              </Link>
             </div>
           </div>
         ) : (
