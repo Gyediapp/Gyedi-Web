@@ -1,0 +1,289 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import BottomNav from '@/components/BottomNav';
+
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
+
+type MomoAccount = { id: string; network: 'MTN' | 'VODAFONE' | 'AIRTELTIGO'; phone: string; name: string; isDefault: boolean };
+type Wallet = { balance: string; inEscrow: string; pending: string; accounts: MomoAccount[] };
+
+const NETWORK_STYLE: Record<string, { bg: string; text: string; label: string }> = {
+  MTN:        { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'MTN MoMo' },
+  VODAFONE:   { bg: 'bg-red-100',    text: 'text-red-700',    label: 'Vodafone Cash' },
+  AIRTELTIGO: { bg: 'bg-blue-100',   text: 'text-blue-700',   label: 'AirtelTigo Money' },
+};
+
+function fmt(v: string | number) {
+  const n = typeof v === 'string' ? parseFloat(v) : v;
+  return `GHS ${n.toLocaleString('en-GH', { minimumFractionDigits: 2 })}`;
+}
+
+export default function WalletPage() {
+  const [wallet, setWallet]       = useState<Wallet | null>(null);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState('');
+  const [showAdd, setShowAdd]     = useState(false);
+  const [showWithdraw, setShowWithdraw] = useState(false);
+  const [actionError, setActionError]   = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+  const [withdrawAccountId, setWithdrawAccountId] = useState('');
+  const [withdrawAmount, setWithdrawAmount]       = useState('');
+
+  function getToken() {
+    const t = localStorage.getItem('gyedi_token');
+    if (!t) { window.location.href = '/login'; return null; }
+    return t;
+  }
+
+  async function load() {
+    const token = getToken();
+    if (!token) return;
+    setLoading(true);
+    try {
+      const res  = await fetch(`${API}/wallet`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.status === 401) { localStorage.removeItem('gyedi_token'); window.location.href = '/login'; return; }
+      const data = await res.json();
+      setWallet(data);
+      if (data.accounts?.length) setWithdrawAccountId(data.accounts.find((a: MomoAccount) => a.isDefault)?.id ?? data.accounts[0].id);
+    } catch { setError('Could not load wallet'); }
+    finally { setLoading(false); }
+  }
+
+  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleAddAccount(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const token = getToken(); if (!token) return;
+    setActionLoading(true); setActionError('');
+    const fd = new FormData(e.currentTarget);
+    try {
+      const res  = await fetch(`${API}/momo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          network:   fd.get('network'),
+          phone:     fd.get('phone'),
+          name:      fd.get('name'),
+          isDefault: fd.get('isDefault') === 'on',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Failed to add account');
+      setShowAdd(false);
+      (e.target as HTMLFormElement).reset();
+      await load();
+    } catch (err: unknown) { setActionError(err instanceof Error ? err.message : 'Error'); }
+    finally { setActionLoading(false); }
+  }
+
+  async function handleDelete(id: string) {
+    const token = getToken(); if (!token) return;
+    setActionError('');
+    try {
+      const res = await fetch(`${API}/momo/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error('Failed to remove account');
+      await load();
+    } catch (err: unknown) { setActionError(err instanceof Error ? err.message : 'Error'); }
+  }
+
+  async function handleWithdraw(e: React.FormEvent) {
+    e.preventDefault();
+    const token = getToken(); if (!token) return;
+    setActionLoading(true); setActionError('');
+    try {
+      const res  = await fetch(`${API}/payouts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ momoAccountId: withdrawAccountId, amount: parseFloat(withdrawAmount) }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Withdrawal failed');
+      setShowWithdraw(false);
+      setWithdrawAmount('');
+      await load();
+    } catch (err: unknown) { setActionError(err instanceof Error ? err.message : 'Error'); }
+    finally { setActionLoading(false); }
+  }
+
+  const balance = parseFloat(wallet?.balance ?? '0');
+
+  return (
+    <div className="min-h-screen bg-[#F4F6F8] pb-28">
+      {/* Header */}
+      <div className="bg-[#1B4332] px-5 pt-12 pb-8">
+        <h1 className="text-white font-bold text-xl mb-6">Wallet</h1>
+
+        {loading ? (
+          <div className="bg-white/10 rounded-2xl p-5 h-32 animate-pulse" />
+        ) : wallet ? (
+          <div className="bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/20">
+            <p className="text-green-300 text-xs font-medium mb-1">Available Balance</p>
+            <p className="text-white font-black text-3xl mb-4">{fmt(wallet.balance)}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white/10 rounded-xl p-3">
+                <p className="text-green-300 text-xs mb-0.5">In Escrow</p>
+                <p className="text-white font-bold text-sm">{fmt(wallet.inEscrow)}</p>
+              </div>
+              <div className="bg-white/10 rounded-xl p-3">
+                <p className="text-green-300 text-xs mb-0.5">Pending</p>
+                <p className="text-white font-bold text-sm">{fmt(wallet.pending)}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => { setShowWithdraw(true); setActionError(''); }}
+              disabled={balance <= 0 || !wallet.accounts.length}
+              className="mt-4 w-full bg-[#F5A623] hover:bg-[#D4881A] disabled:opacity-40 text-white font-bold py-3 rounded-xl transition-colors text-sm"
+            >
+              Withdraw to MoMo
+            </button>
+          </div>
+        ) : (
+          <p className="text-red-300 text-sm">{error}</p>
+        )}
+      </div>
+
+      <div className="px-4 py-5 space-y-4">
+        {actionError && (
+          <div className="bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl px-4 py-3">{actionError}</div>
+        )}
+
+        {/* Withdraw modal */}
+        {showWithdraw && wallet && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-gray-900">Withdraw Funds</h3>
+              <button onClick={() => setShowWithdraw(false)} className="text-gray-400 text-xl leading-none">×</button>
+            </div>
+            <form onSubmit={handleWithdraw} className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Pay to</label>
+                <select
+                  value={withdrawAccountId}
+                  onChange={e => setWithdrawAccountId(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
+                >
+                  {wallet.accounts.map(a => (
+                    <option key={a.id} value={a.id}>
+                      {NETWORK_STYLE[a.network]?.label ?? a.network} — {a.phone} ({a.name})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Amount (GHS)</label>
+                <input
+                  type="number" min="1" step="0.01" max={balance} required
+                  value={withdrawAmount} onChange={e => setWithdrawAmount(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
+                />
+                <p className="mt-1 text-xs text-gray-400">Available: {fmt(wallet.balance)}</p>
+              </div>
+              <button
+                type="submit" disabled={actionLoading || !withdrawAmount}
+                className="w-full bg-[#1B4332] hover:bg-[#0F2B1F] disabled:opacity-50 text-white font-bold py-3 rounded-xl text-sm"
+              >
+                {actionLoading ? 'Processing…' : 'Confirm Withdrawal'}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* MoMo accounts */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">MoMo Accounts</h2>
+            <button
+              onClick={() => { setShowAdd(!showAdd); setActionError(''); }}
+              className="text-xs text-[#1B4332] font-bold flex items-center gap-1"
+            >
+              <span className="text-base leading-none">+</span> Add
+            </button>
+          </div>
+
+          {/* Add account form */}
+          {showAdd && (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-3">
+              <h3 className="font-bold text-gray-900 text-sm mb-4">Add MoMo Account</h3>
+              <form onSubmit={handleAddAccount} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Network</label>
+                  <select name="network" required className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
+                    <option value="MTN">MTN MoMo</option>
+                    <option value="VODAFONE">Vodafone Cash</option>
+                    <option value="AIRTELTIGO">AirtelTigo Money</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Phone Number</label>
+                  <input name="phone" type="tel" required placeholder="0241234567"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]" />
+                  <p className="mt-1 text-xs text-gray-400">Ghana local format: 0XXXXXXXXX</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Account Name</label>
+                  <input name="name" required placeholder="Name on account"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]" />
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input name="isDefault" type="checkbox" className="w-4 h-4 accent-[#1B4332]" />
+                  <span className="text-sm text-gray-600">Set as default account</span>
+                </label>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setShowAdd(false)}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-500 bg-gray-100">Cancel</button>
+                  <button type="submit" disabled={actionLoading}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white bg-[#1B4332] disabled:opacity-50">
+                    {actionLoading ? 'Saving…' : 'Save Account'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="space-y-3">
+              {[1,2].map(i => <div key={i} className="bg-white rounded-2xl h-16 animate-pulse" />)}
+            </div>
+          ) : wallet?.accounts.length === 0 ? (
+            <div className="bg-white rounded-2xl p-6 text-center border border-gray-100">
+              <p className="text-gray-400 text-sm">No MoMo accounts yet</p>
+              <button onClick={() => setShowAdd(true)} className="mt-2 text-[#1B4332] font-semibold text-sm">Add one now →</button>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {wallet?.accounts.map(account => {
+                const style = NETWORK_STYLE[account.network] ?? { bg: 'bg-gray-100', text: 'text-gray-600', label: account.network };
+                return (
+                  <div key={account.id} className="bg-white rounded-2xl p-4 flex items-center gap-3 border border-gray-100 shadow-sm">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${style.bg}`}>
+                      <span className={`text-xs font-black ${style.text}`}>{account.network.slice(0, 3)}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900">{account.name}</p>
+                      <p className="text-xs text-gray-400">{style.label} · {account.phone}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {account.isDefault && (
+                        <span className="text-[10px] font-bold bg-[#1B4332]/10 text-[#1B4332] px-2 py-0.5 rounded-full">Default</span>
+                      )}
+                      <button onClick={() => handleDelete(account.id)}
+                        className="w-7 h-7 rounded-full bg-red-50 flex items-center justify-center text-red-400 hover:bg-red-100 transition-colors">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <BottomNav />
+    </div>
+  );
+}
