@@ -90,50 +90,64 @@ export default async function HomePage() {
       <section className="relative bg-[#1B4332] overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div
-            className="absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full opacity-10"
-            style={{ background: 'radial-gradient(circle, #F5A623 0%, transparent 70%)' }}
+            className="absolute -top-32 -right-32 w-[500px] h-[500px] lg:w-[700px] lg:h-[700px] rounded-full opacity-[0.12]"
+            style={{ background: 'radial-gradient(circle, #F5A623 0%, transparent 65%)' }}
           />
           <div
-            className="absolute -bottom-40 -left-20 w-[400px] h-[400px] rounded-full opacity-5"
+            className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full opacity-[0.06]"
             style={{ background: 'radial-gradient(circle, #F5A623 0%, transparent 70%)' }}
           />
+          {/* Grid pattern overlay */}
+          <div className="absolute inset-0 opacity-[0.03]"
+            style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '60px 60px' }}
+          />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 md:py-32">
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 lg:py-36">
           <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 bg-[#F5A623]/20 text-[#F5A623] text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full mb-5 sm:mb-6 border border-[#F5A623]/30">
-              🔒 Escrow-Protected Trading
-            </span>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight">
+            {/* Trust badge */}
+            <div className="inline-flex items-center gap-2 bg-[#F5A623]/15 border border-[#F5A623]/25 text-[#F5A623] text-xs font-bold px-3.5 py-1.5 rounded-full mb-6 tracking-wide uppercase">
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
+              </svg>
+              Escrow-Protected Trading
+            </div>
+
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.04] tracking-tight">
               Buy &amp; Sell<br />
               <span className="text-[#F5A623]">with Confidence</span>
             </h1>
-            <p className="mt-5 sm:mt-6 text-base sm:text-lg md:text-xl text-white/70 max-w-xl leading-relaxed">
+
+            <p className="mt-5 sm:mt-7 text-base sm:text-lg md:text-xl text-white/65 max-w-xl leading-relaxed">
               Gyedi holds your money safely until you confirm the deal is done.
-              No scams. No chargebacks. Just trusted trades — across Ghana and beyond.
+              No scams, no chargebacks — just trusted trades across Ghana and beyond.
             </p>
-            <div className="mt-7 sm:mt-10 flex flex-wrap gap-3 sm:gap-4">
+
+            <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3">
               <Link
                 href="/marketplace"
-                className="bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-sm sm:text-base transition-colors shadow-lg"
+                className="bg-[#F5A623] hover:bg-[#D4881A] active:bg-[#B87315] text-[#1B4332] font-bold px-7 py-3.5 rounded-xl text-sm sm:text-base transition-all shadow-lg shadow-[#F5A623]/20 text-center"
               >
                 Browse Marketplace →
               </Link>
               <Link
                 href="/sell"
-                className="bg-white/10 hover:bg-white/20 text-white font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-sm sm:text-base transition-colors border border-white/20"
+                className="bg-white/10 hover:bg-white/20 text-white font-semibold px-7 py-3.5 rounded-xl text-sm sm:text-base transition-all border border-white/20 text-center"
               >
                 Start Selling Free
               </Link>
             </div>
-            <div className="mt-10 sm:mt-14 flex flex-wrap gap-6 sm:gap-8">
+
+            {/* Stats */}
+            <div className="mt-12 sm:mt-14 flex flex-wrap gap-x-8 gap-y-5 sm:gap-x-10">
               {[
                 { value: '10,000+', label: 'Verified Users' },
                 { value: 'GHS 2M+', label: 'Securely Traded' },
                 { value: '50,000+', label: 'Safe Transactions' },
-              ].map(s => (
-                <div key={s.label}>
-                  <p className="text-xl sm:text-2xl font-black text-white">{s.value}</p>
-                  <p className="text-white/50 text-xs sm:text-sm">{s.label}</p>
+              ].map((s, i) => (
+                <div key={s.label} className={`${i > 0 ? 'sm:border-l sm:border-white/10 sm:pl-8' : ''}`}>
+                  <p className="text-2xl sm:text-3xl font-black text-white">{s.value}</p>
+                  <p className="text-white/45 text-xs sm:text-sm mt-0.5">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -141,12 +155,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Countries bar */}
-      <section className="bg-[#0F2B1F] py-3.5">
+      {/* Trust bar */}
+      <section className="bg-[#0F2B1F] py-4 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-xs text-white/40 font-medium">
-            {['🇬🇭 Ghana', '🇳🇬 Nigeria', '🇬🇧 United Kingdom', '🇩🇪 Germany', '🇫🇷 France', '🇺🇸 United States'].map(c => (
-              <span key={c}>{c}</span>
+          <div className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-10 gap-y-2">
+            <span className="text-white/30 text-[10px] sm:text-xs font-semibold uppercase tracking-widest">Available in</span>
+            {['🇬🇭 Ghana', '🇳🇬 Nigeria', '🇬🇧 UK', '🇩🇪 Germany', '🇺🇸 USA'].map(c => (
+              <span key={c} className="text-white/50 text-xs sm:text-sm font-medium">{c}</span>
             ))}
           </div>
         </div>
@@ -161,15 +176,21 @@ export default async function HomePage() {
               Three simple steps to trade safely with anyone, anywhere.
             </p>
           </div>
-          <div className="grid sm:grid-cols-3 gap-5 md:gap-8">
-            {STEPS.map(step => (
+          <div className="grid sm:grid-cols-3 gap-5 md:gap-8 relative">
+            {/* connector line on desktop */}
+            <div className="hidden sm:block absolute top-[52px] left-[calc(16.67%+24px)] right-[calc(16.67%+24px)] h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+            {STEPS.map((step, i) => (
               <div
                 key={step.num}
-                className="bg-white rounded-2xl p-5 sm:p-6 md:p-8 border border-gray-100 shadow-sm hover:shadow-md transition-shadow text-center"
+                className="bg-white rounded-2xl p-5 sm:p-6 md:p-8 border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 text-center"
               >
-                <div className="text-4xl md:text-5xl mb-3 md:mb-4">{step.icon}</div>
-                <span className="text-[#F5A623] font-black text-xs tracking-widest">{step.num}</span>
-                <h3 className="text-base sm:text-lg md:text-xl font-black text-gray-900 mt-2 mb-2">{step.title}</h3>
+                <div className="relative inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#1B4332]/8 mb-4 mx-auto">
+                  <span className="text-2xl">{step.icon}</span>
+                  <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#F5A623] text-[#1B4332] text-[10px] font-black flex items-center justify-center">
+                    {i + 1}
+                  </span>
+                </div>
+                <h3 className="text-base sm:text-lg font-black text-gray-900 mb-2">{step.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{step.desc}</p>
               </div>
             ))}
@@ -234,10 +255,10 @@ export default async function HomePage() {
             {PLANS.map(plan => (
               <div
                 key={plan.name}
-                className={`rounded-2xl p-5 sm:p-6 md:p-8 border relative ${
+                className={`rounded-2xl p-5 sm:p-6 md:p-8 border relative transition-all ${
                   plan.highlight
-                    ? 'bg-[#1B4332] text-white border-[#1B4332] shadow-2xl'
-                    : 'bg-white border-gray-200'
+                    ? 'bg-[#1B4332] text-white border-[#1B4332] shadow-2xl shadow-[#1B4332]/25 scale-[1.02] sm:scale-[1.03]'
+                    : 'bg-white border-gray-200 hover:shadow-md hover:-translate-y-0.5'
                 }`}
               >
                 {plan.highlight && (
@@ -283,17 +304,17 @@ export default async function HomePage() {
           </div>
           <div className="grid sm:grid-cols-3 gap-4 md:gap-6">
             {TESTIMONIALS.map(t => (
-              <div key={t.name} className="bg-white rounded-2xl p-5 sm:p-6 md:p-8 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div key={t.name} className="bg-white rounded-2xl p-5 sm:p-6 md:p-8 border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
                 <div className="flex items-center gap-0.5 mb-4">
-                  {[1,2,3,4,5].map(s => <span key={s} className="text-[#F5A623] text-sm">★</span>)}
+                  {[1,2,3,4,5].map(s => <span key={s} className="text-[#F5A623]">★</span>)}
                 </div>
-                <p className="text-gray-600 text-sm leading-relaxed mb-6">&ldquo;{t.quote}&rdquo;</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#1B4332] flex items-center justify-center text-white font-bold text-sm shrink-0">
+                <p className="text-gray-600 text-sm leading-relaxed mb-6 italic">&ldquo;{t.quote}&rdquo;</p>
+                <div className="flex items-center gap-3 pt-4 border-t border-gray-50">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1B4332] to-[#2D6A4F] flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
                     {t.avatar}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 text-sm">{t.name}</p>
+                    <p className="font-bold text-gray-900 text-sm">{t.name}</p>
                     <p className="text-gray-400 text-xs">{t.role}</p>
                   </div>
                 </div>
@@ -304,23 +325,38 @@ export default async function HomePage() {
       </section>
 
       {/* Download CTA */}
-      <section className="py-12 md:py-20 bg-[#1B4332]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="py-14 md:py-24 bg-[#1B4332] relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-20 right-0 w-96 h-96 rounded-full opacity-[0.07]"
+            style={{ background: 'radial-gradient(circle, #F5A623 0%, transparent 70%)' }} />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <span className="inline-block bg-[#F5A623]/15 border border-[#F5A623]/20 text-[#F5A623] text-xs font-bold px-3 py-1 rounded-full mb-5 uppercase tracking-widest">
+            Mobile App
+          </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-3 md:mb-4">Trade Anywhere, Anytime</h2>
-          <p className="text-white/60 text-sm sm:text-base md:text-lg mb-7 md:mb-10 max-w-xl mx-auto">
-            Download the Gyedi app and manage your listings, escrows, and payments on the go.
+          <p className="text-white/55 text-sm sm:text-base md:text-lg mb-8 md:mb-10 max-w-lg mx-auto leading-relaxed">
+            Download the Gyedi app to manage escrows, get paid, and track your transactions on the go.
           </p>
-          <a
-            href="https://play.google.com/store"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 bg-white text-[#1B4332] font-bold px-8 py-4 rounded-xl hover:bg-gray-100 transition-colors shadow-xl text-base"
-          >
-            <svg className="w-6 h-6 text-[#F5A623]" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M3 20.5v-17c0-.83.94-1.3 1.6-.8l15 8.5c.6.34.6 1.26 0 1.6l-15 8.5c-.66.5-1.6.03-1.6-.8z"/>
-            </svg>
-            Download on Google Play
-          </a>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a
+              href="https://play.google.com/store"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 bg-white text-[#1B4332] font-bold px-7 py-4 rounded-xl hover:bg-gray-50 transition-colors shadow-xl text-sm sm:text-base w-full sm:w-auto justify-center"
+            >
+              <svg className="w-5 h-5 text-[#F5A623] flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 20.5v-17c0-.83.94-1.3 1.6-.8l15 8.5c.6.34.6 1.26 0 1.6l-15 8.5c-.66.5-1.6.03-1.6-.8z"/>
+              </svg>
+              Download on Google Play
+            </a>
+            <Link
+              href="/marketplace"
+              className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-7 py-4 rounded-xl transition-colors text-sm sm:text-base w-full sm:w-auto justify-center"
+            >
+              Browse on Web →
+            </Link>
+          </div>
         </div>
       </section>
     </div>

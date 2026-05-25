@@ -13,13 +13,15 @@ type Escrow = {
   buyer: Party; seller: Party;
 };
 
-type Filter = 'ALL' | 'ACTIVE' | 'COMPLETED' | 'DISPUTED';
+type Filter = 'ALL' | 'ACTIVE' | 'FUNDED' | 'IN_TRANSIT' | 'COMPLETED' | 'DISPUTED';
 
 const FILTER_TABS: { key: Filter; label: string }[] = [
-  { key: 'ALL',       label: 'All' },
-  { key: 'ACTIVE',    label: 'Active' },
-  { key: 'COMPLETED', label: 'Completed' },
-  { key: 'DISPUTED',  label: 'Disputed' },
+  { key: 'ALL',        label: 'All' },
+  { key: 'ACTIVE',     label: 'Active' },
+  { key: 'FUNDED',     label: 'Funded' },
+  { key: 'IN_TRANSIT', label: 'In Transit' },
+  { key: 'COMPLETED',  label: 'Completed' },
+  { key: 'DISPUTED',   label: 'Disputed' },
 ];
 
 const STATUS_STYLE: Record<string, string> = {
@@ -81,9 +83,11 @@ export default function HistoryPage() {
 
   const filtered = useMemo(() => {
     let list = escrows;
-    if (filter === 'ACTIVE')    list = list.filter(e => ACTIVE_STATUSES.has(e.status));
-    if (filter === 'COMPLETED') list = list.filter(e => e.status === 'COMPLETED');
-    if (filter === 'DISPUTED')  list = list.filter(e => e.status === 'DISPUTED');
+    if (filter === 'ACTIVE')     list = list.filter(e => ACTIVE_STATUSES.has(e.status));
+    if (filter === 'FUNDED')     list = list.filter(e => e.status === 'FUNDED');
+    if (filter === 'IN_TRANSIT') list = list.filter(e => e.status === 'IN_TRANSIT');
+    if (filter === 'COMPLETED')  list = list.filter(e => e.status === 'COMPLETED');
+    if (filter === 'DISPUTED')   list = list.filter(e => e.status === 'DISPUTED');
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(e =>
@@ -130,11 +134,13 @@ export default function HistoryPage() {
             {label}
             {key !== 'ALL' && !loading && (
               <span className="ml-1.5 opacity-60">
-                ({key === 'ACTIVE'
-                  ? escrows.filter(e => ACTIVE_STATUSES.has(e.status)).length
-                  : key === 'COMPLETED'
-                  ? escrows.filter(e => e.status === 'COMPLETED').length
-                  : escrows.filter(e => e.status === 'DISPUTED').length})
+                ({
+                  key === 'ACTIVE'     ? escrows.filter(e => ACTIVE_STATUSES.has(e.status)).length :
+                  key === 'FUNDED'     ? escrows.filter(e => e.status === 'FUNDED').length :
+                  key === 'IN_TRANSIT' ? escrows.filter(e => e.status === 'IN_TRANSIT').length :
+                  key === 'COMPLETED'  ? escrows.filter(e => e.status === 'COMPLETED').length :
+                  escrows.filter(e => e.status === 'DISPUTED').length
+                })
               </span>
             )}
           </button>

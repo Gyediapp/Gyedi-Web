@@ -27,7 +27,7 @@ export default function ListingCard({
   return (
     <Link
       href={`/listing/${id}`}
-      className="group block bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
+      className="group block bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 overflow-hidden"
     >
       <div className="aspect-square bg-gray-50 relative overflow-hidden">
         {thumb ? (
@@ -65,11 +65,21 @@ export default function ListingCard({
           GHS {parseFloat(price.toString()).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
-          <span className="text-xs text-gray-500 font-medium truncate max-w-[120px]">{sellerName}</span>
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            {sellerRating && <span>⭐ {parseFloat(sellerRating.toString()).toFixed(1)}</span>}
-            <span>{views} {views === 1 ? 'view' : 'views'}</span>
+          <span className="text-xs text-gray-500 font-medium truncate max-w-[100px]">{sellerName}</span>
+          <div className="flex items-center gap-2 text-xs text-gray-400 shrink-0">
+            {sellerRating && (
+              <span className="flex items-center gap-0.5 text-amber-500 font-semibold">
+                ★ {parseFloat(sellerRating.toString()).toFixed(1)}
+              </span>
+            )}
+            <span>{views}v</span>
           </div>
+        </div>
+        <div className="mt-2.5 flex items-center gap-1 text-[10px] text-[#1B4332]/50 font-semibold">
+          <svg className="w-3 h-3 text-[#1B4332]/40 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
+          </svg>
+          Escrow Protected
         </div>
       </div>
     </Link>
