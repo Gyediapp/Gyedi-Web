@@ -98,42 +98,42 @@ export default async function HomePage() {
             style={{ background: 'radial-gradient(circle, #F5A623 0%, transparent 70%)' }}
           />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 md:py-32">
           <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 bg-[#F5A623]/20 text-[#F5A623] text-sm font-semibold px-4 py-1.5 rounded-full mb-6 border border-[#F5A623]/30">
+            <span className="inline-flex items-center gap-2 bg-[#F5A623]/20 text-[#F5A623] text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full mb-5 sm:mb-6 border border-[#F5A623]/30">
               🔒 Escrow-Protected Trading
             </span>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight">
               Buy &amp; Sell<br />
               <span className="text-[#F5A623]">with Confidence</span>
             </h1>
-            <p className="mt-6 text-lg md:text-xl text-white/70 max-w-xl leading-relaxed">
+            <p className="mt-5 sm:mt-6 text-base sm:text-lg md:text-xl text-white/70 max-w-xl leading-relaxed">
               Gyedi holds your money safely until you confirm the deal is done.
               No scams. No chargebacks. Just trusted trades — across Ghana and beyond.
             </p>
-            <div className="mt-10 flex flex-wrap gap-4">
+            <div className="mt-7 sm:mt-10 flex flex-wrap gap-3 sm:gap-4">
               <Link
                 href="/marketplace"
-                className="bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-bold px-8 py-4 rounded-xl text-base transition-colors shadow-lg"
+                className="bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-sm sm:text-base transition-colors shadow-lg"
               >
                 Browse Marketplace →
               </Link>
               <Link
                 href="/sell"
-                className="bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-4 rounded-xl text-base transition-colors border border-white/20"
+                className="bg-white/10 hover:bg-white/20 text-white font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-sm sm:text-base transition-colors border border-white/20"
               >
                 Start Selling Free
               </Link>
             </div>
-            <div className="mt-14 flex flex-wrap gap-8">
+            <div className="mt-10 sm:mt-14 flex flex-wrap gap-6 sm:gap-8">
               {[
                 { value: '10,000+', label: 'Verified Users' },
                 { value: 'GHS 2M+', label: 'Securely Traded' },
                 { value: '50,000+', label: 'Safe Transactions' },
               ].map(s => (
                 <div key={s.label}>
-                  <p className="text-2xl font-black text-white">{s.value}</p>
-                  <p className="text-white/50 text-sm">{s.label}</p>
+                  <p className="text-xl sm:text-2xl font-black text-white">{s.value}</p>
+                  <p className="text-white/50 text-xs sm:text-sm">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -153,23 +153,23 @@ export default async function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-24 bg-white">
+      <section id="how-it-works" className="py-12 md:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-black text-gray-900">How Gyedi Works</h2>
-            <p className="text-gray-500 mt-4 text-lg max-w-xl mx-auto">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">How Gyedi Works</h2>
+            <p className="text-gray-500 mt-3 text-sm sm:text-base md:text-lg max-w-xl mx-auto">
               Three simple steps to trade safely with anyone, anywhere.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-3 gap-5 md:gap-8">
             {STEPS.map(step => (
               <div
                 key={step.num}
-                className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-md transition-shadow text-center"
+                className="bg-white rounded-2xl p-5 sm:p-6 md:p-8 border border-gray-100 shadow-sm hover:shadow-md transition-shadow text-center"
               >
-                <div className="text-5xl mb-4">{step.icon}</div>
+                <div className="text-4xl md:text-5xl mb-3 md:mb-4">{step.icon}</div>
                 <span className="text-[#F5A623] font-black text-xs tracking-widest">{step.num}</span>
-                <h3 className="text-xl font-black text-gray-900 mt-2 mb-3">{step.title}</h3>
+                <h3 className="text-base sm:text-lg md:text-xl font-black text-gray-900 mt-2 mb-2">{step.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{step.desc}</p>
               </div>
             ))}
@@ -178,19 +178,19 @@ export default async function HomePage() {
       </section>
 
       {/* Featured Listings */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-12 md:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center justify-between mb-6 md:mb-10">
             <div>
-              <h2 className="text-4xl font-black text-gray-900">Featured Listings</h2>
-              <p className="text-gray-500 mt-2">Hot items from verified sellers</p>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">Featured Listings</h2>
+              <p className="text-gray-500 mt-1 md:mt-2 text-sm md:text-base">Hot items from verified sellers</p>
             </div>
-            <Link href="/marketplace" className="text-[#1B4332] font-semibold text-sm hover:underline">
+            <Link href="/marketplace" className="text-[#1B4332] font-semibold text-sm hover:underline flex-shrink-0 ml-4">
               View all →
             </Link>
           </div>
           {listings.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
               {listings.map((l: any) => (
                 <ListingCard
                   key={l.id}
@@ -224,17 +224,17 @@ export default async function HomePage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-24 bg-white">
+      <section id="pricing" className="py-12 md:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-black text-gray-900">Simple Pricing</h2>
-            <p className="text-gray-500 mt-4 text-lg">Start free. Upgrade when you&apos;re ready to grow.</p>
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">Simple Pricing</h2>
+            <p className="text-gray-500 mt-3 text-sm sm:text-base md:text-lg">Start free. Upgrade when you&apos;re ready to grow.</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto items-start">
+          <div className="grid sm:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto items-start">
             {PLANS.map(plan => (
               <div
                 key={plan.name}
-                className={`rounded-2xl p-8 border relative ${
+                className={`rounded-2xl p-5 sm:p-6 md:p-8 border relative ${
                   plan.highlight
                     ? 'bg-[#1B4332] text-white border-[#1B4332] shadow-2xl'
                     : 'bg-white border-gray-200'
@@ -275,15 +275,15 @@ export default async function HomePage() {
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="py-24 bg-gray-50">
+      <section id="testimonials" className="py-12 md:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-black text-gray-900">Loved by Traders</h2>
-            <p className="text-gray-500 mt-4">Real stories from the Gyedi community</p>
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">Loved by Traders</h2>
+            <p className="text-gray-500 mt-3 text-sm md:text-base">Real stories from the Gyedi community</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-3 gap-4 md:gap-6">
             {TESTIMONIALS.map(t => (
-              <div key={t.name} className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div key={t.name} className="bg-white rounded-2xl p-5 sm:p-6 md:p-8 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-0.5 mb-4">
                   {[1,2,3,4,5].map(s => <span key={s} className="text-[#F5A623] text-sm">★</span>)}
                 </div>
@@ -304,10 +304,10 @@ export default async function HomePage() {
       </section>
 
       {/* Download CTA */}
-      <section className="py-20 bg-[#1B4332]">
+      <section className="py-12 md:py-20 bg-[#1B4332]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-black text-white mb-4">Trade Anywhere, Anytime</h2>
-          <p className="text-white/60 text-lg mb-10 max-w-xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-3 md:mb-4">Trade Anywhere, Anytime</h2>
+          <p className="text-white/60 text-sm sm:text-base md:text-lg mb-7 md:mb-10 max-w-xl mx-auto">
             Download the Gyedi app and manage your listings, escrows, and payments on the go.
           </p>
           <a

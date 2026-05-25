@@ -3,9 +3,9 @@ import Link from 'next/link';
 export default function Footer() {
   return (
     <footer className="bg-[#0F2B1F] text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-          <div className="col-span-2 md:col-span-1">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8 md:mb-10">
+          <div className="sm:col-span-2 md:col-span-1">
             <span className="text-[#F5A623] font-black text-2xl tracking-tight">Gyedi</span>
             <p className="text-white/50 text-sm mt-3 leading-relaxed max-w-xs">
               Ghana&apos;s trusted escrow marketplace. Every deal is protected until you confirm you&apos;re happy.
