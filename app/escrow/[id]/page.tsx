@@ -364,6 +364,16 @@ export default function EscrowDetailPage() {
             </div>
           )}
         </div>
+        {escrow && (
+          <Link
+            href={`/escrow/${escrow.id}/chat`}
+            className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0"
+          >
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a1 1 0 00-1 1v14a1 1 0 001 1h3v3l4-3h11a1 1 0 001-1V4a1 1 0 00-1-1z" />
+            </svg>
+          </Link>
+        )}
       </div>
 
       {/* Gold amount hero */}
