@@ -186,7 +186,7 @@ export default function DashboardPage() {
             <div className="space-y-2.5">
               {recent.map(e => {
                 const stored = typeof window !== 'undefined' ? localStorage.getItem('gyedi_user') : null;
-                const me = stored ? JSON.parse(stored) : null;
+                const me = stored ? JSON.parse(stored) as any : null;
                 const isBuyer = me?.id === e.buyer?.id;
                 const other = isBuyer
                   ? `${e.seller.firstName} ${e.seller.lastName}`
