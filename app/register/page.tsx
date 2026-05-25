@@ -2,24 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { COUNTRIES, normalizePhone, validatePhone } from '@/lib/phone';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
-
-const COUNTRIES = [
-  { code: '+233', flag: '🇬🇭', label: '+233' },
-  { code: '+234', flag: '🇳🇬', label: '+234' },
-  { code: '+44',  flag: '🇬🇧', label: '+44' },
-  { code: '+49',  flag: '🇩🇪', label: '+49' },
-  { code: '+1',   flag: '🇺🇸', label: '+1' },
-];
-
-function normalizePhone(countryCode: string, local: string): string {
-  const num = local.trim();
-  if (num.startsWith('00'))  return '+' + num.slice(2);
-  if (num.startsWith('+'))   return num;
-  if (num.startsWith('0'))   return countryCode + num.slice(1);
-  return countryCode + num;
-}
 
 export default function RegisterPage() {
   const [loading, setLoading]     = useState(false);
@@ -38,7 +23,10 @@ export default function RegisterPage() {
       setLoading(false);
       return;
     }
-    const phone = normalizePhone(countryCode, fd.get('localPhone') as string);
+    const localPhone = fd.get('localPhone') as string;
+    const phoneErr = validatePhone(countryCode, localPhone);
+    if (phoneErr) { setError(phoneErr); setLoading(false); return; }
+    const phone = normalizePhone(countryCode, localPhone);
     try {
       const res = await fetch(`${API}/auth/register`, {
         method: 'POST',

@@ -2,22 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-
-const COUNTRIES = [
-  { code: '+233', flag: '🇬🇭', label: '+233' },
-  { code: '+234', flag: '🇳🇬', label: '+234' },
-  { code: '+44',  flag: '🇬🇧', label: '+44' },
-  { code: '+49',  flag: '🇩🇪', label: '+49' },
-  { code: '+1',   flag: '🇺🇸', label: '+1' },
-];
-
-function normalizePhone(countryCode: string, local: string): string {
-  const num = local.trim();
-  if (num.startsWith('00'))  return '+' + num.slice(2);
-  if (num.startsWith('+'))   return num;
-  if (num.startsWith('0'))   return countryCode + num.slice(1);
-  return countryCode + num;
-}
+import { COUNTRIES, normalizePhone, validatePhone } from '@/lib/phone';
 
 export default function LoginPage() {
   const [tab, setTab] = useState<'login' | 'register'>('login');
@@ -32,8 +17,11 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const fd    = new FormData(e.currentTarget);
-    const phone = normalizePhone(countryCode, fd.get('localPhone') as string);
+    const fd         = new FormData(e.currentTarget);
+    const localPhone = fd.get('localPhone') as string;
+    const phoneErr   = validatePhone(countryCode, localPhone);
+    if (phoneErr) { setError(phoneErr); setLoading(false); return; }
+    const phone = normalizePhone(countryCode, localPhone);
     const pin   = fd.get('pin') as string;
 
     try {
@@ -58,11 +46,14 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const fd    = new FormData(e.currentTarget);
+    const fd         = new FormData(e.currentTarget);
+    const localPhone = fd.get('localPhone') as string;
+    const phoneErr   = validatePhone(countryCode, localPhone);
+    if (phoneErr) { setError(phoneErr); setLoading(false); return; }
     const body = {
       firstName: fd.get('firstName'),
       lastName:  fd.get('lastName'),
-      phone:     normalizePhone(countryCode, fd.get('localPhone') as string),
+      phone:     normalizePhone(countryCode, localPhone),
       pin:       fd.get('pin'),
       language:  'en',
     };
