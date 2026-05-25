@@ -60,12 +60,15 @@ export default function DashboardPage() {
     if (stored) setUser(JSON.parse(stored));
 
     async function load() {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 9000);
       try {
         const headers = { Authorization: `Bearer ${token}` };
         const [wRes, eRes] = await Promise.all([
-          fetch(`${API}/wallet`, { headers }),
-          fetch(`${API}/escrows`, { headers }),
+          fetch(`${API}/wallet`,  { headers, signal: controller.signal }),
+          fetch(`${API}/escrows`, { headers, signal: controller.signal }),
         ]);
+        clearTimeout(timer);
         if (wRes.status === 401 || eRes.status === 401) {
           localStorage.removeItem('gyedi_token');
           window.location.href = '/login';
@@ -74,9 +77,11 @@ export default function DashboardPage() {
         const [wData, eData] = await Promise.all([wRes.json(), eRes.json()]);
         setWallet(wData);
         setEscrows(eData.escrows ?? []);
-      } catch {
-        setError('Could not load dashboard. Check your connection.');
+      } catch (err: any) {
+        const isTimeout = err?.name === 'AbortError';
+        setError(isTimeout ? 'Request timed out — tap to retry.' : 'Could not connect. Check your internet.');
       } finally {
+        clearTimeout(timer);
         setLoading(false);
       }
     }
@@ -122,9 +127,13 @@ export default function DashboardPage() {
             </div>
           </div>
         ) : (
-          <div className="bg-[#F5A623]/20 rounded-2xl p-5">
-            <p className="text-red-300 text-sm">{error || 'Failed to load balance'}</p>
-          </div>
+          <button
+            onClick={() => { setLoading(true); setError(''); window.location.reload(); }}
+            className="w-full bg-[#F5A623]/20 border border-[#F5A623]/30 rounded-2xl p-5 text-left"
+          >
+            <p className="text-white/70 text-sm">{error || 'Could not load balance'}</p>
+            <p className="text-[#F5A623] text-xs font-semibold mt-1">Tap to retry →</p>
+          </button>
         )}
       </div>
 
