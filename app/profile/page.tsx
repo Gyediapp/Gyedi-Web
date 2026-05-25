@@ -9,6 +9,8 @@ type User = {
   id: string; firstName: string; lastName: string; phone: string;
   kycStatus: string; language: string;
   averageRating: number | null; totalRatings: number;
+  showPhone: boolean; showEmail: boolean; showWhatsapp: boolean;
+  businessPhone: string | null; businessEmail: string | null;
 };
 
 const KYC_STYLE: Record<string, { bg: string; text: string; label: string; icon: string }> = {
@@ -41,10 +43,44 @@ function StarRating({ rating, total }: { rating: number | null; total: number })
   );
 }
 
+function Toggle({ checked, onChange, label, description }: {
+  checked: boolean; onChange: (v: boolean) => void; label: string; description?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between py-3.5 border-b border-gray-50 last:border-0">
+      <div className="flex-1 min-w-0 pr-4">
+        <p className="text-sm font-medium text-gray-800">{label}</p>
+        {description && <p className="text-xs text-gray-400 mt-0.5">{description}</p>}
+      </div>
+      <button
+        type="button"
+        onClick={() => onChange(!checked)}
+        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none flex-shrink-0 ${
+          checked ? 'bg-[#1B4332]' : 'bg-gray-200'
+        }`}
+      >
+        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+          checked ? 'translate-x-6' : 'translate-x-1'
+        }`} />
+      </button>
+    </div>
+  );
+}
+
 export default function ProfilePage() {
-  const [user, setUser]       = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState('');
+  const [user,          setUser]          = useState<User | null>(null);
+  const [loading,       setLoading]       = useState(true);
+  const [error,         setError]         = useState('');
+  const [saving,        setSaving]        = useState(false);
+  const [saveSuccess,   setSaveSuccess]   = useState('');
+  const [saveError,     setSaveError]     = useState('');
+
+  // contact privacy state
+  const [showPhone,     setShowPhone]     = useState(false);
+  const [showEmail,     setShowEmail]     = useState(false);
+  const [showWhatsapp,  setShowWhatsapp]  = useState(false);
+  const [bizPhone,      setBizPhone]      = useState('');
+  const [bizEmail,      setBizEmail]      = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('gyedi_token');
@@ -58,6 +94,11 @@ export default function ProfilePage() {
       .then(d => {
         if (d.user) {
           setUser(d.user);
+          setShowPhone(d.user.showPhone ?? false);
+          setShowEmail(d.user.showEmail ?? false);
+          setShowWhatsapp(d.user.showWhatsapp ?? false);
+          setBizPhone(d.user.businessPhone ?? '');
+          setBizEmail(d.user.businessEmail ?? '');
           localStorage.setItem('gyedi_user', JSON.stringify(d.user));
         } else {
           setError('Could not load profile');
@@ -66,6 +107,36 @@ export default function ProfilePage() {
       .catch(() => setError('Could not load profile'))
       .finally(() => setLoading(false));
   }, []);
+
+  async function saveContactSettings() {
+    const token = localStorage.getItem('gyedi_token');
+    if (!token) return;
+    setSaving(true);
+    setSaveError('');
+    setSaveSuccess('');
+    try {
+      const res = await fetch(`${API}/users`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          showPhone,
+          showEmail,
+          showWhatsapp,
+          businessPhone: bizPhone.trim() || null,
+          businessEmail: bizEmail.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Failed to save');
+      setUser(data.user);
+      setSaveSuccess('Saved');
+      setTimeout(() => setSaveSuccess(''), 2500);
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   function logout() {
     localStorage.removeItem('gyedi_token');
@@ -145,6 +216,69 @@ export default function ProfilePage() {
                   <span className="text-sm font-semibold text-gray-900">{value}</span>
                 </div>
               ))}
+            </div>
+
+            {/* Contact Visibility */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-5 py-3 border-b border-gray-50">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Contact Visibility</p>
+                <p className="text-xs text-gray-400 mt-0.5">Choose what buyers can see on your listings</p>
+              </div>
+              <div className="px-5">
+                <Toggle
+                  checked={showPhone}
+                  onChange={setShowPhone}
+                  label="Show business phone"
+                  description="Buyers can call or WhatsApp your business number"
+                />
+                <Toggle
+                  checked={showEmail}
+                  onChange={setShowEmail}
+                  label="Show business email"
+                  description="Buyers can email you directly"
+                />
+                <Toggle
+                  checked={showWhatsapp}
+                  onChange={setShowWhatsapp}
+                  label="Show WhatsApp link"
+                  description="Buyers can start a WhatsApp chat"
+                />
+              </div>
+
+              {/* Business contact fields */}
+              <div className="px-5 pb-5 space-y-3 pt-3 border-t border-gray-50">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Business Contact Details</p>
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">Business Phone</label>
+                  <input
+                    value={bizPhone}
+                    onChange={e => setBizPhone(e.target.value)}
+                    placeholder="e.g. +233 XX XXX XXXX"
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">Business Email</label>
+                  <input
+                    value={bizEmail}
+                    onChange={e => setBizEmail(e.target.value)}
+                    placeholder="e.g. hello@yourbusiness.com"
+                    type="email"
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332]"
+                  />
+                </div>
+
+                {saveError   && <p className="text-xs text-red-500">{saveError}</p>}
+                {saveSuccess && <p className="text-xs text-green-600">✓ {saveSuccess}</p>}
+
+                <button
+                  onClick={saveContactSettings}
+                  disabled={saving}
+                  className="w-full bg-[#1B4332] text-white font-bold py-3 rounded-xl text-sm hover:bg-[#0F2B1F] transition-colors disabled:opacity-50 active:scale-[0.98]"
+                >
+                  {saving ? 'Saving…' : 'Save Contact Settings'}
+                </button>
+              </div>
             </div>
 
             {/* Quick links */}

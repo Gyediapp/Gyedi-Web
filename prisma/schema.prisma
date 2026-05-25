@@ -16,6 +16,11 @@ model User {
   averageRating Decimal?  @db.Decimal(3, 2)
   totalRatings  Int       @default(0)
   isSuspended   Boolean   @default(false)
+  showPhone     Boolean   @default(false)
+  showEmail     Boolean   @default(false)
+  showWhatsapp  Boolean   @default(false)
+  businessPhone String?
+  businessEmail String?
   createdAt     DateTime  @default(now())
   listings      Listing[]
 

@@ -6,11 +6,11 @@ import Link from 'next/link';
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
 export default function BuyNowButton({
-  sellerPhone,
+  sellerId,
   listingTitle,
   amount,
 }: {
-  sellerPhone: string;
+  sellerId: string;
   listingTitle: string;
   amount: number;
 }) {
@@ -30,7 +30,7 @@ export default function BuyNowButton({
       const res  = await fetch(`${API}/escrows`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body:    JSON.stringify({ title: listingTitle, sellerPhone, amount }),
+        body:    JSON.stringify({ title: listingTitle, sellerId, amount }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? 'Failed to create escrow');
