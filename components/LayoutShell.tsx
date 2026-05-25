@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import Navbar from './Navbar';
 import Footer from './Footer';
 
-const PWA_PREFIXES = ['/dashboard', '/escrow', '/wallet', '/history', '/profile', '/login', '/register'];
+const PWA_PREFIXES = ['/dashboard', '/escrow', '/wallet', '/history', '/profile', '/login', '/register', '/send'];
 
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

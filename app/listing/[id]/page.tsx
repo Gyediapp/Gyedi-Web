@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
+import BuyNowButton from '@/components/BuyNowButton';
 
 const COUNTRY_FLAG: Record<string, string> = {
   GH: '🇬🇭', NG: '🇳🇬', GB: '🇬🇧', DE: '🇩🇪',
@@ -12,7 +13,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
 
   const listing = await prisma.listing.findUnique({
     where: { id },
-    include: { seller: { select: { id: true, firstName: true, lastName: true, averageRating: true, totalRatings: true, country: true, kycStatus: true } } },
+    include: { seller: { select: { id: true, firstName: true, lastName: true, phone: true, averageRating: true, totalRatings: true, country: true, kycStatus: true } } },
   });
 
   if (!listing || listing.status !== 'ACTIVE') notFound();
@@ -79,16 +80,13 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 <span className="font-bold text-sm">Protected by Gyedi Escrow</span>
               </div>
               <p className="text-white/70 text-sm mb-5 leading-relaxed">
-                Your payment is held safely until you confirm receipt. Download the app to buy securely.
+                Your payment is held safely until you confirm receipt. Funds release only when you&apos;re satisfied.
               </p>
-              <a
-                href="https://play.google.com/store"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block text-center bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-black py-3.5 rounded-xl transition-colors text-base"
-              >
-                Buy with Gyedi Escrow →
-              </a>
+              <BuyNowButton
+                sellerPhone={listing.seller.phone}
+                listingTitle={listing.title}
+                amount={parseFloat(listing.price.toString())}
+              />
             </div>
 
             {/* Description */}

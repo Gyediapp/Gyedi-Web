@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import BottomNav from '@/components/BottomNav';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
@@ -130,13 +131,21 @@ export default function WalletPage() {
                 <p className="text-white font-bold text-sm">{fmt(wallet.pending)}</p>
               </div>
             </div>
-            <button
-              onClick={() => { setShowWithdraw(true); setActionError(''); }}
-              disabled={balance <= 0 || !wallet.accounts.length}
-              className="mt-4 w-full bg-[#F5A623] hover:bg-[#D4881A] disabled:opacity-40 text-white font-bold py-3 rounded-xl transition-colors text-sm"
-            >
-              Withdraw to MoMo
-            </button>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <button
+                onClick={() => { setShowWithdraw(true); setActionError(''); }}
+                disabled={balance <= 0 || !wallet.accounts.length}
+                className="bg-[#F5A623] hover:bg-[#D4881A] disabled:opacity-40 text-white font-bold py-3 rounded-xl transition-colors text-sm"
+              >
+                Withdraw
+              </button>
+              <Link
+                href="/send"
+                className="bg-white/20 hover:bg-white/30 text-white font-bold py-3 rounded-xl transition-colors text-sm text-center"
+              >
+                Send Money
+              </Link>
+            </div>
           </div>
         ) : (
           <p className="text-red-300 text-sm">{error}</p>
