@@ -193,7 +193,12 @@ export default function LoginPage() {
               </form>
             )}
 
-            <p className="mt-6 text-center text-xs text-gray-400">
+            <p className="mt-5 text-center text-sm text-gray-500">
+              Don&apos;t have an account?{' '}
+              <Link href="/register" className="text-[#1B4332] font-semibold">Register</Link>
+            </p>
+
+            <p className="mt-3 text-center text-xs text-gray-400">
               By continuing, you agree to Gyedi&apos;s terms. Existing users with the mobile app can log in here too.
             </p>
           </div>
