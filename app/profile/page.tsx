@@ -79,7 +79,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-[#F4F6F8] pb-28">
       {/* Header */}
-      <div className="bg-[#1B4332] px-5 pt-12 pb-10">
+      <div className="bg-[#1B4332] px-5 pt-12 pb-8">
         <h1 className="text-white font-bold text-xl mb-6">Profile</h1>
 
         {loading ? (
@@ -106,7 +106,7 @@ export default function ProfilePage() {
         ) : null}
       </div>
 
-      <div className="px-4 -mt-5 space-y-4">
+      <div className="px-4 py-5 space-y-4">
         {error && (
           <div className="bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl px-4 py-3">{error}</div>
         )}
@@ -128,7 +128,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Account info */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden border-l-4 border-l-[#F5A623]">
               <div className="px-5 py-3 border-b border-gray-50">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Account Info</p>
               </div>

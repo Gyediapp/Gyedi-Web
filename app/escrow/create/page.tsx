@@ -284,7 +284,7 @@ export default function CreateEscrowPage() {
             <button
               type="submit"
               disabled={loading || numAmount <= 0}
-              className="w-full bg-[#F5A623] hover:bg-[#D4881A] disabled:opacity-50 text-white font-bold py-4 rounded-2xl transition-colors shadow-sm text-sm"
+              className="w-full bg-[#F5A623] hover:bg-[#D4881A] disabled:opacity-50 text-[#1B4332] font-bold py-4 rounded-2xl transition-colors shadow-sm text-sm"
             >
               {loading ? 'Creating Escrow…' : `Create Escrow · GHS ${numAmount > 0 ? fmt(totalPaid) : '0.00'}`}
             </button>

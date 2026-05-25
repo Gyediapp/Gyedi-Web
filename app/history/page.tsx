@@ -24,11 +24,11 @@ const FILTER_TABS: { key: Filter; label: string }[] = [
 
 const STATUS_STYLE: Record<string, string> = {
   FUNDED:     'bg-blue-100 text-blue-700',
-  IN_TRANSIT: 'bg-orange-100 text-orange-700',
+  IN_TRANSIT: 'bg-[#FEF3C7] text-[#92400E]',
   COMPLETED:  'bg-green-100 text-green-700',
   DISPUTED:   'bg-red-100 text-red-700',
   CANCELLED:  'bg-gray-100 text-gray-500',
-  PENDING:    'bg-amber-100 text-amber-700',
+  PENDING:    'bg-amber-100 text-amber-800',
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -92,9 +92,8 @@ export default function HistoryPage() {
       {/* Header */}
       <div className="bg-[#1B4332] px-5 pt-12 pb-5">
         <h1 className="text-white font-bold text-xl mb-4">History</h1>
-        {/* Search */}
         <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -102,7 +101,7 @@ export default function HistoryPage() {
             placeholder="Search by title, code, or name…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-white/10 text-white placeholder-white/40 pl-9 pr-4 py-2.5 rounded-xl text-sm border border-white/20 focus:outline-none focus:border-white/40"
+            className="w-full bg-white/10 text-white placeholder-white/40 pl-9 pr-4 py-2.5 rounded-xl text-sm border border-white/20 focus:outline-none focus:border-[#F5A623]/60"
           />
         </div>
       </div>
@@ -115,7 +114,7 @@ export default function HistoryPage() {
             onClick={() => setFilter(key)}
             className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all ${
               filter === key
-                ? 'bg-[#1B4332] text-white shadow-sm'
+                ? 'bg-[#F5A623] text-[#1B4332] shadow-sm'
                 : 'bg-white text-gray-500 border border-gray-100'
             }`}
           >
@@ -166,17 +165,19 @@ export default function HistoryPage() {
                 className="bg-white rounded-2xl p-4 flex items-center gap-3 border border-gray-100 shadow-sm active:scale-[0.98] transition-transform"
               >
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                  isBuyer ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'
+                  isBuyer ? 'bg-blue-100 text-blue-700' : 'bg-[#F5A623]/20 text-[#92400E]'
                 }`}>
                   {isBuyer ? 'B' : 'S'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-900 truncate">{e.title}</p>
-                  <p className="text-xs text-gray-400 truncate">{other} · {fmtDate(e.createdAt)}</p>
+                  <p className="text-xs text-gray-400 truncate">
+                    {other} · <span className="text-[#F5A623] font-bold">{e.code}</span> · {fmtDate(e.createdAt)}
+                  </p>
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-sm font-bold text-gray-900 mb-1">{fmt(e.amount)}</p>
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_STYLE[e.status] ?? 'bg-gray-100 text-gray-500'}`}>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${STATUS_STYLE[e.status] ?? 'bg-gray-100 text-gray-500'}`}>
                     {STATUS_LABEL[e.status] ?? e.status}
                   </span>
                 </div>

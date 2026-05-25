@@ -226,7 +226,7 @@ export default function SendPage() {
             <button
               onClick={sendMoney}
               disabled={loading || !amount || parseFloat(amount) <= 0}
-              className="w-full bg-[#F5A623] hover:bg-[#D4881A] disabled:opacity-50 text-white font-bold py-4 rounded-2xl transition-colors text-sm shadow-sm"
+              className="w-full bg-[#F5A623] hover:bg-[#D4881A] disabled:opacity-50 text-[#1B4332] font-bold py-4 rounded-2xl transition-colors text-sm shadow-sm"
             >
               {loading ? 'Sending…' : `Send ${parseFloat(amount) > 0 ? fmt(parseFloat(amount)) : ''} →`}
             </button>

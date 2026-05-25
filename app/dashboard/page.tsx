@@ -16,9 +16,9 @@ type Escrow = {
 type User = { id: string; firstName: string; lastName: string; phone: string };
 
 const STATUS_STYLE: Record<string, string> = {
-  PENDING:    'bg-amber-100 text-amber-700',
+  PENDING:    'bg-amber-100 text-amber-800',
   FUNDED:     'bg-blue-100 text-blue-700',
-  IN_TRANSIT: 'bg-orange-100 text-orange-700',
+  IN_TRANSIT: 'bg-[#FEF3C7] text-[#92400E]',
   COMPLETED:  'bg-green-100 text-green-700',
   DISPUTED:   'bg-red-100 text-red-700',
   CANCELLED:  'bg-gray-100 text-gray-500',
@@ -94,29 +94,29 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {/* Balance card */}
-        <div className="bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/20">
-          {loading ? (
-            <div className="h-16 animate-pulse bg-white/10 rounded-xl" />
-          ) : wallet ? (
-            <>
-              <p className="text-green-300 text-xs font-medium mb-1">Available Balance</p>
-              <p className="text-white font-black text-3xl mb-4">{fmt(wallet.balance)}</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white/10 rounded-xl p-3">
-                  <p className="text-green-300 text-xs mb-0.5">In Escrow</p>
-                  <p className="text-white font-bold text-sm">{fmt(wallet.inEscrow)}</p>
-                </div>
-                <div className="bg-white/10 rounded-xl p-3">
-                  <p className="text-green-300 text-xs mb-0.5">Pending</p>
-                  <p className="text-white font-bold text-sm">{fmt(wallet.pending)}</p>
-                </div>
+        {/* Gold balance card */}
+        {loading ? (
+          <div className="bg-[#F5A623]/40 rounded-2xl p-5 h-32 animate-pulse" />
+        ) : wallet ? (
+          <div className="bg-[#F5A623] rounded-2xl p-5 shadow-lg">
+            <p className="text-[#1B4332]/70 text-xs font-semibold mb-1">Available Balance</p>
+            <p className="text-[#1B4332] font-black text-3xl mb-4">{fmt(wallet.balance)}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-[#1B4332]/10 rounded-xl p-3">
+                <p className="text-[#1B4332]/60 text-xs mb-0.5">In Escrow</p>
+                <p className="text-[#1B4332] font-bold text-sm">{fmt(wallet.inEscrow)}</p>
               </div>
-            </>
-          ) : (
+              <div className="bg-[#1B4332]/10 rounded-xl p-3">
+                <p className="text-[#1B4332]/60 text-xs mb-0.5">Pending</p>
+                <p className="text-[#1B4332] font-bold text-sm">{fmt(wallet.pending)}</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-[#F5A623]/20 rounded-2xl p-5">
             <p className="text-red-300 text-sm">{error || 'Failed to load balance'}</p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <div className="px-4 py-5 space-y-5">
@@ -128,12 +128,12 @@ export default function DashboardPage() {
               href="/escrow/create"
               className="bg-[#F5A623] rounded-2xl p-4 flex flex-col items-center gap-2 shadow-sm active:scale-95 transition-transform"
             >
-              <div className="w-10 h-10 bg-white/30 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <div className="w-10 h-10 bg-[#1B4332]/20 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5 text-[#1B4332]" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
               </div>
-              <span className="text-white font-bold text-xs text-center leading-tight">Create Escrow</span>
+              <span className="text-[#1B4332] font-bold text-xs text-center leading-tight">Create Escrow</span>
             </Link>
 
             <Link
@@ -165,14 +165,14 @@ export default function DashboardPage() {
         {/* Marketplace banner */}
         <Link
           href="/marketplace"
-          className="bg-[#F5A623] rounded-2xl p-5 flex items-center justify-between shadow-sm active:scale-[0.98] transition-transform"
+          className="bg-[#1B4332] rounded-2xl p-5 flex items-center justify-between shadow-sm active:scale-[0.98] transition-transform border-l-4 border-[#F5A623]"
         >
           <div>
             <p className="text-white font-bold text-base leading-tight">Browse Marketplace</p>
-            <p className="text-white/80 text-xs mt-1">Discover listings from verified sellers</p>
+            <p className="text-white/60 text-xs mt-1">Discover listings from verified sellers</p>
           </div>
-          <div className="w-11 h-11 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <div className="w-11 h-11 bg-[#F5A623]/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-6 h-6 text-[#F5A623]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
           </div>
@@ -211,20 +211,20 @@ export default function DashboardPage() {
                   <Link
                     key={e.id}
                     href={`/escrow/${e.id}`}
-                    className="bg-white rounded-2xl p-4 flex items-center gap-3 border border-gray-100 active:scale-[0.98] transition-transform"
+                    className="bg-white rounded-2xl p-4 flex items-center gap-3 border border-gray-100 shadow-sm active:scale-[0.98] transition-transform"
                   >
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                      isBuyer ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'
+                      isBuyer ? 'bg-blue-100 text-blue-700' : 'bg-[#F5A623]/20 text-[#92400E]'
                     }`}>
                       {isBuyer ? 'B' : 'S'}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-900 truncate">{e.title}</p>
-                      <p className="text-xs text-gray-400 truncate">{other} · {e.code}</p>
+                      <p className="text-xs text-gray-400 truncate">{other} · <span className="text-[#F5A623] font-bold">{e.code}</span></p>
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="text-sm font-bold text-gray-900">{fmt(e.amount)}</p>
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_STYLE[e.status] ?? 'bg-gray-100 text-gray-500'}`}>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${STATUS_STYLE[e.status] ?? 'bg-gray-100 text-gray-500'}`}>
                         {STATUS_LABEL[e.status] ?? e.status}
                       </span>
                     </div>

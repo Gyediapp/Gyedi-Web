@@ -20,6 +20,20 @@ type Escrow = {
   disputes: Dispute[];
 };
 
+const STATUS_PILL: Record<string, string> = {
+  FUNDED:     'bg-blue-500/20 text-blue-200',
+  IN_TRANSIT: 'bg-[#F5A623]/30 text-[#F5A623]',
+  COMPLETED:  'bg-green-500/20 text-green-300',
+  DISPUTED:   'bg-red-500/20 text-red-300',
+  PENDING:    'bg-white/20 text-white/70',
+  CANCELLED:  'bg-white/10 text-white/50',
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  FUNDED: 'Funded', IN_TRANSIT: 'In Transit', COMPLETED: 'Completed',
+  DISPUTED: 'Disputed', CANCELLED: 'Cancelled', PENDING: 'Pending',
+};
+
 function fmt(amount: string | number) {
   const n = typeof amount === 'string' ? parseFloat(amount) : amount;
   return `GHS ${n.toLocaleString('en-GH', { minimumFractionDigits: 2 })}`;
@@ -29,7 +43,7 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GH', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-// ── Status tracker config ──────────────────────────────────────────────────
+// ── Status tracker ─────────────────────────────────────────────────────────
 
 const STEPS = [
   { key: 'FUNDED',      label: 'Funded',    desc: 'Funds held in escrow' },
@@ -64,7 +78,6 @@ function StatusTracker({ status }: { status: string }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
       <div className="flex items-center justify-between relative">
-        {/* connector line */}
         <div className="absolute left-5 right-5 top-5 h-0.5 bg-gray-100 -z-0" />
         <div
           className="absolute left-5 top-5 h-0.5 bg-[#1B4332] -z-0 transition-all duration-500"
@@ -72,14 +85,14 @@ function StatusTracker({ status }: { status: string }) {
         />
 
         {STEPS.map((step, i) => {
-          const done    = i < current;
-          const active  = i === current;
-          const locked  = i > current;
+          const done   = i < current;
+          const active = i === current;
+          const locked = i > current;
           return (
             <div key={step.key} className="flex flex-col items-center gap-1.5 z-10">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                 done   ? 'bg-[#1B4332]' :
-                active ? 'bg-[#F5A623] ring-4 ring-[#F5A623]/20' :
+                active ? 'bg-[#F5A623] ring-4 ring-[#F5A623]/25' :
                          'bg-gray-100'
               }`}>
                 {done ? (
@@ -87,7 +100,7 @@ function StatusTracker({ status }: { status: string }) {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 ) : (
-                  <span className={`text-xs font-bold ${active ? 'text-white' : locked ? 'text-gray-300' : 'text-gray-500'}`}>{i + 1}</span>
+                  <span className={`text-xs font-bold ${active ? 'text-[#1B4332]' : locked ? 'text-gray-300' : 'text-gray-500'}`}>{i + 1}</span>
                 )}
               </div>
               <div className="text-center">
@@ -111,8 +124,8 @@ function ActionPanel({
 }) {
   const [loading, setLoading] = useState('');
   const [error, setError]     = useState('');
-  const [showDispute, setShowDispute]           = useState(false);
-  const [disputeReason, setDisputeReason]       = useState('');
+  const [showDispute, setShowDispute]               = useState(false);
+  const [disputeReason, setDisputeReason]           = useState('');
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
 
   const isBuyer  = myId === escrow.buyerId;
@@ -170,12 +183,12 @@ function ActionPanel({
         <div className="bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl px-4 py-3">{error}</div>
       )}
 
-      {/* Seller actions */}
+      {/* Seller: mark shipped */}
       {isSeller && status === 'FUNDED' && (
         <button
           onClick={() => action('ship', 'PATCH', {})}
           disabled={!!loading}
-          className={`${btnBase} bg-[#F5A623] text-white shadow-sm`}
+          className={`${btnBase} bg-[#F5A623] text-[#1B4332] shadow-sm`}
         >
           {loading === 'ship' ? 'Updating…' : '📦 Mark as Shipped'}
         </button>
@@ -192,12 +205,12 @@ function ActionPanel({
         <p className="text-center text-xs text-gray-400">Ship the item and mark it above once dispatched</p>
       )}
 
-      {/* Buyer actions */}
+      {/* Buyer: release early */}
       {isBuyer && status === 'FUNDED' && !showReleaseConfirm && (
         <button
           onClick={() => setShowReleaseConfirm(true)}
           disabled={!!loading}
-          className={`${btnBase} bg-white border-2 border-[#1B4332] text-[#1B4332]`}
+          className={`${btnBase} bg-[#1B4332] text-white`}
         >
           Release to Seller Early
         </button>
@@ -227,12 +240,13 @@ function ActionPanel({
         </div>
       )}
 
+      {/* Buyer: confirm receipt */}
       {isBuyer && status === 'IN_TRANSIT' && (
         <>
           <button
             onClick={() => action('confirm-receipt')}
             disabled={!!loading}
-            className={`${btnBase} bg-[#1B4332] text-white shadow-sm`}
+            className={`${btnBase} bg-[#F5A623] text-[#1B4332] shadow-sm`}
           >
             {loading === 'confirm-receipt' ? 'Confirming…' : '✅ Confirm Receipt & Release Funds'}
           </button>
@@ -317,8 +331,8 @@ export default function EscrowDetailPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
-  const isBuyer  = escrow ? myId === escrow.buyerId  : false;
-  const fee      = escrow ? parseFloat(escrow.amount) * FEE_RATE : 0;
+  const isBuyer = escrow ? myId === escrow.buyerId : false;
+  const fee     = escrow ? parseFloat(escrow.amount) * FEE_RATE : 0;
 
   return (
     <div className="min-h-screen bg-[#F4F6F8] pb-28">
@@ -329,11 +343,31 @@ export default function EscrowDetailPage() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <div>
-          <h1 className="text-white font-bold text-lg">{escrow?.title ?? 'Transaction'}</h1>
-          {escrow && <p className="text-green-300 text-xs">{escrow.code}</p>}
+        <div className="flex-1 min-w-0">
+          <h1 className="text-white font-bold text-lg truncate">{escrow?.title ?? 'Transaction'}</h1>
+          {escrow && (
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-[#F5A623] font-black text-sm tracking-widest">{escrow.code}</span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${STATUS_PILL[escrow.status] ?? 'bg-white/20 text-white/70'}`}>
+                {STATUS_LABEL[escrow.status] ?? escrow.status}
+              </span>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Gold amount hero */}
+      {escrow && !loading && (
+        <div className="bg-[#1B4332] px-5 pb-6">
+          <div className="bg-[#F5A623] rounded-2xl p-5 shadow-lg">
+            <p className="text-[#1B4332]/70 text-xs font-semibold mb-1">Escrow Amount</p>
+            <p className="text-[#1B4332] font-black text-4xl">{fmt(escrow.amount)}</p>
+            <p className="text-[#1B4332]/60 text-xs mt-1">
+              {isBuyer ? `You pay GHS ${(parseFloat(escrow.amount) + fee).toLocaleString('en-GH', { minimumFractionDigits: 2 })} incl. 1.5% fee` : `You receive ${fmt(escrow.amount)}`}
+            </p>
+          </div>
+        </div>
+      )}
 
       {loading && (
         <div className="px-4 py-8 space-y-4">
@@ -366,8 +400,8 @@ export default function EscrowDetailPage() {
           )}
 
           {/* Amount breakdown */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Amount</h3>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3 border-l-4 border-l-[#F5A623]">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fee Breakdown</h3>
             <div className="flex justify-between">
               <span className="text-sm text-gray-500">Escrow amount</span>
               <span className="text-sm font-semibold text-gray-900">{fmt(escrow.amount)}</span>
@@ -403,14 +437,14 @@ export default function EscrowDetailPage() {
             ].map(({ label, party, isMe }) => (
               <div key={label} className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                  label === 'Buyer' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'
+                  label === 'Buyer' ? 'bg-blue-100 text-blue-700' : 'bg-[#F5A623]/20 text-[#92400E]'
                 }`}>
                   {party.firstName[0]}{party.lastName[0]}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-900">
                     {party.firstName} {party.lastName}
-                    {isMe && <span className="ml-1.5 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">You</span>}
+                    {isMe && <span className="ml-1.5 text-xs bg-[#F5A623]/20 text-[#92400E] px-1.5 py-0.5 rounded-full font-bold">You</span>}
                   </p>
                   <p className="text-xs text-gray-400">{party.phone}</p>
                 </div>
@@ -419,7 +453,7 @@ export default function EscrowDetailPage() {
             ))}
           </div>
 
-          {/* Description */}
+          {/* Details */}
           {(escrow.description || escrow.buyerNote || escrow.sharedNote) && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Details</h3>
