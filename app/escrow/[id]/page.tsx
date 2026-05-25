@@ -111,27 +111,28 @@ function ActionPanel({
 }) {
   const [loading, setLoading] = useState('');
   const [error, setError]     = useState('');
-  const [showDispute, setShowDispute] = useState(false);
-  const [disputeReason, setDisputeReason] = useState('');
+  const [showDispute, setShowDispute]           = useState(false);
+  const [disputeReason, setDisputeReason]       = useState('');
+  const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
 
   const isBuyer  = myId === escrow.buyerId;
   const isSeller = myId === escrow.sellerId;
   const { status } = escrow;
 
-  async function action(path: string, method = 'PATCH', body?: object) {
+  async function action(path: string, method = 'PATCH', body: object = {}) {
     setLoading(path);
     setError('');
     try {
       const res  = await fetch(`${API}/escrows/${escrow.id}/${path}`, {
         method,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: body ? JSON.stringify(body) : undefined,
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? data.error ?? 'Action failed');
       onRefresh();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } catch {
+      setError('Something went wrong, please try again.');
     } finally {
       setLoading('');
     }
@@ -172,7 +173,7 @@ function ActionPanel({
       {/* Seller actions */}
       {isSeller && status === 'FUNDED' && (
         <button
-          onClick={() => action('ship')}
+          onClick={() => action('ship', 'PATCH', {})}
           disabled={!!loading}
           className={`${btnBase} bg-[#F5A623] text-white shadow-sm`}
         >
@@ -192,14 +193,38 @@ function ActionPanel({
       )}
 
       {/* Buyer actions */}
-      {isBuyer && status === 'FUNDED' && (
+      {isBuyer && status === 'FUNDED' && !showReleaseConfirm && (
         <button
-          onClick={() => action('release')}
+          onClick={() => setShowReleaseConfirm(true)}
           disabled={!!loading}
           className={`${btnBase} bg-white border-2 border-[#1B4332] text-[#1B4332]`}
         >
-          {loading === 'release' ? 'Updating…' : 'Release to Seller Early'}
+          Release to Seller Early
         </button>
+      )}
+
+      {isBuyer && status === 'FUNDED' && showReleaseConfirm && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3">
+          <p className="text-amber-800 font-semibold text-sm">Release funds early?</p>
+          <p className="text-amber-700 text-xs leading-relaxed">
+            This skips shipping verification and immediately releases funds to the seller. Only do this if you trust the seller and have already received your item.
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowReleaseConfirm(false)}
+              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-600 bg-white border border-gray-200"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => { setShowReleaseConfirm(false); action('release', 'PATCH', {}); }}
+              disabled={!!loading}
+              className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white bg-[#1B4332] disabled:opacity-50"
+            >
+              {loading === 'release' ? 'Releasing…' : 'Yes, Release'}
+            </button>
+          </div>
+        </div>
       )}
 
       {isBuyer && status === 'IN_TRANSIT' && (

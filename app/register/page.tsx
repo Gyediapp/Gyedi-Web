@@ -5,30 +5,48 @@ import Link from 'next/link';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
+const COUNTRIES = [
+  { code: '+233', flag: '🇬🇭', label: '+233' },
+  { code: '+234', flag: '🇳🇬', label: '+234' },
+  { code: '+44',  flag: '🇬🇧', label: '+44' },
+  { code: '+49',  flag: '🇩🇪', label: '+49' },
+  { code: '+1',   flag: '🇺🇸', label: '+1' },
+];
+
+function normalizePhone(countryCode: string, local: string): string {
+  const num = local.trim();
+  if (num.startsWith('00'))  return '+' + num.slice(2);
+  if (num.startsWith('+'))   return num;
+  if (num.startsWith('0'))   return countryCode + num.slice(1);
+  return countryCode + num;
+}
+
 export default function RegisterPage() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState('');
+  const [countryCode, setCountryCode] = useState('+233');
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError('');
     const fd = new FormData(e.currentTarget);
-    const pin = fd.get('pin') as string;
+    const pin        = fd.get('pin') as string;
     const confirmPin = fd.get('confirmPin') as string;
     if (pin !== confirmPin) {
       setError('PINs do not match');
       setLoading(false);
       return;
     }
+    const phone = normalizePhone(countryCode, fd.get('localPhone') as string);
     try {
       const res = await fetch(`${API}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           firstName: fd.get('firstName'),
-          lastName: fd.get('lastName'),
-          phone: fd.get('phone'),
+          lastName:  fd.get('lastName'),
+          phone,
           pin,
           language: 'en',
         }),
@@ -86,14 +104,25 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5">Phone Number</label>
-              <input
-                name="phone"
-                type="tel"
-                required
-                placeholder="+233241234567"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
-              />
-              <p className="mt-1 text-xs text-gray-400">Include country code, e.g. +233 for Ghana</p>
+              <div className="flex gap-2">
+                <select
+                  value={countryCode}
+                  onChange={e => setCountryCode(e.target.value)}
+                  className="px-2 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332] bg-white"
+                >
+                  {COUNTRIES.map(c => (
+                    <option key={c.code} value={c.code}>{c.flag} {c.label}</option>
+                  ))}
+                </select>
+                <input
+                  name="localPhone"
+                  type="tel"
+                  required
+                  placeholder="0551234567"
+                  className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
+                />
+              </div>
+              <p className="mt-1 text-xs text-gray-400">Leading 0 is removed automatically</p>
             </div>
 
             <div>

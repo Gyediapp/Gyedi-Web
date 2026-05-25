@@ -3,11 +3,28 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
+const COUNTRIES = [
+  { code: '+233', flag: '🇬🇭', label: '+233' },
+  { code: '+234', flag: '🇳🇬', label: '+234' },
+  { code: '+44',  flag: '🇬🇧', label: '+44' },
+  { code: '+49',  flag: '🇩🇪', label: '+49' },
+  { code: '+1',   flag: '🇺🇸', label: '+1' },
+];
+
+function normalizePhone(countryCode: string, local: string): string {
+  const num = local.trim();
+  if (num.startsWith('00'))  return '+' + num.slice(2);
+  if (num.startsWith('+'))   return num;
+  if (num.startsWith('0'))   return countryCode + num.slice(1);
+  return countryCode + num;
+}
+
 export default function LoginPage() {
   const [tab, setTab] = useState<'login' | 'register'>('login');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState('');
+  const [success, setSuccess]   = useState('');
+  const [countryCode, setCountryCode] = useState('+233');
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
 
@@ -15,9 +32,9 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const fd = new FormData(e.currentTarget);
-    const phone = fd.get('phone') as string;
-    const pin   = fd.get('pin')   as string;
+    const fd    = new FormData(e.currentTarget);
+    const phone = normalizePhone(countryCode, fd.get('localPhone') as string);
+    const pin   = fd.get('pin') as string;
 
     try {
       const res = await fetch(`${apiUrl}/auth/login`, {
@@ -41,11 +58,11 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const fd = new FormData(e.currentTarget);
+    const fd    = new FormData(e.currentTarget);
     const body = {
       firstName: fd.get('firstName'),
       lastName:  fd.get('lastName'),
-      phone:     fd.get('phone'),
+      phone:     normalizePhone(countryCode, fd.get('localPhone') as string),
       pin:       fd.get('pin'),
       language:  'en',
     };
@@ -113,13 +130,24 @@ export default function LoginPage() {
               <form onSubmit={handleLogin} className="space-y-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number</label>
-                  <input
-                    name="phone"
-                    type="tel"
-                    required
-                    placeholder="+233241234567"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
-                  />
+                  <div className="flex gap-2">
+                    <select
+                      value={countryCode}
+                      onChange={e => setCountryCode(e.target.value)}
+                      className="px-2 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332] bg-white"
+                    >
+                      {COUNTRIES.map(c => (
+                        <option key={c.code} value={c.code}>{c.flag} {c.label}</option>
+                      ))}
+                    </select>
+                    <input
+                      name="localPhone"
+                      type="tel"
+                      required
+                      placeholder="0551234567"
+                      className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">PIN</label>
@@ -162,14 +190,25 @@ export default function LoginPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number (E.164)</label>
-                  <input
-                    name="phone"
-                    type="tel"
-                    required
-                    placeholder="+233241234567"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
-                  />
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number</label>
+                  <div className="flex gap-2">
+                    <select
+                      value={countryCode}
+                      onChange={e => setCountryCode(e.target.value)}
+                      className="px-2 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332] bg-white"
+                    >
+                      {COUNTRIES.map(c => (
+                        <option key={c.code} value={c.code}>{c.flag} {c.label}</option>
+                      ))}
+                    </select>
+                    <input
+                      name="localPhone"
+                      type="tel"
+                      required
+                      placeholder="0551234567"
+                      className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">PIN</label>
