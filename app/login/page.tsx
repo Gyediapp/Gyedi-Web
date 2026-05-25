@@ -29,7 +29,7 @@ export default function LoginPage() {
       if (!res.ok) throw new Error(data.message ?? 'Login failed');
       localStorage.setItem('gyedi_token', data.token);
       localStorage.setItem('gyedi_user', JSON.stringify(data.user));
-      window.location.href = '/sell';
+      window.location.href = '/dashboard';
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
@@ -61,7 +61,7 @@ export default function LoginPage() {
       localStorage.setItem('gyedi_token', data.token);
       localStorage.setItem('gyedi_user', JSON.stringify(data.user));
       setSuccess('Account created! Redirecting…');
-      setTimeout(() => { window.location.href = '/sell'; }, 1000);
+      setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
