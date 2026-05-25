@@ -162,6 +162,22 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Marketplace banner */}
+        <Link
+          href="/marketplace"
+          className="bg-[#F5A623] rounded-2xl p-5 flex items-center justify-between shadow-sm active:scale-[0.98] transition-transform"
+        >
+          <div>
+            <p className="text-white font-bold text-base leading-tight">Browse Marketplace</p>
+            <p className="text-white/80 text-xs mt-1">Discover listings from verified sellers</p>
+          </div>
+          <div className="w-11 h-11 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+          </div>
+        </Link>
+
         {/* Recent transactions */}
         <div>
           <div className="flex items-center justify-between mb-3">

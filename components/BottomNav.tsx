@@ -4,17 +4,17 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const TABS = [
-  { href: '/dashboard', label: 'Home',    icon: HomeIcon },
-  { href: '/history',   label: 'History', icon: HistoryIcon },
-  { href: '/escrow/create', label: 'Escrow', icon: EscrowIcon },
-  { href: '/wallet',    label: 'Wallet',  icon: WalletIcon },
-  { href: '/profile',   label: 'Profile', icon: ProfileIcon },
+  { href: '/dashboard',     label: 'Home',        icon: HomeIcon },
+  { href: '/marketplace',   label: 'Market',      icon: MarketIcon },
+  { href: '/escrow/create', label: 'Escrow',      icon: EscrowIcon },
+  { href: '/wallet',        label: 'Wallet',      icon: WalletIcon },
+  { href: '/profile',       label: 'Profile',     icon: ProfileIcon },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex z-50 safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex z-50">
       {TABS.map(({ href, label, icon: Icon }) => {
         const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
         return (
@@ -42,10 +42,10 @@ function HomeIcon({ active }: { active: boolean }) {
   );
 }
 
-function HistoryIcon({ active }: { active: boolean }) {
+function MarketIcon({ active }: { active: boolean }) {
   return (
     <svg className="w-5 h-5" fill="none" stroke={active ? '#1B4332' : 'currentColor'} strokeWidth={2} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
     </svg>
   );
 }
