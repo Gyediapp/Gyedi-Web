@@ -187,7 +187,7 @@ export default function DashboardPage() {
               {recent.map(e => {
                 const stored = typeof window !== 'undefined' ? localStorage.getItem('gyedi_user') : null;
                 const me = stored ? JSON.parse(stored) as any : null;
-                const isBuyer = me?.id === e.buyer?.id;
+                const isBuyer = me?.id === (e.buyer as any)?.id;
                 const other = isBuyer
                   ? `${e.seller.firstName} ${e.seller.lastName}`
                   : `${e.buyer.firstName} ${e.buyer.lastName}`;
