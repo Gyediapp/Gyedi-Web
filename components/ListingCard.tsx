@@ -55,28 +55,28 @@ export default function ListingCard({
       </div>
 
       <div className="p-3 sm:p-4">
-        <p className="text-[10px] sm:text-xs text-gray-400 font-medium mb-1">
+        <p className="text-xs text-gray-400 font-medium mb-1">
           {category} · {COUNTRY_FLAG[country] ?? '🌍'}
         </p>
-        <h3 className="font-semibold text-gray-900 text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-[#1B4332] transition-colors">
+        <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-[#1B4332] transition-colors">
           {title}
         </h3>
-        <p className="text-[#1B4332] font-black text-sm sm:text-base mt-1.5 sm:mt-2">
+        <p className="text-[#1B4332] font-black text-base sm:text-lg mt-1.5 sm:mt-2">
           GHS {parseFloat(price.toString()).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
         <div className="flex items-center justify-between mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-gray-100">
-          <span className="text-[10px] sm:text-xs text-gray-500 font-medium truncate max-w-[80px] sm:max-w-[100px]">{sellerName}</span>
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <span className="text-xs text-gray-500 font-medium truncate max-w-[90px] sm:max-w-[110px]">{sellerName}</span>
+          <div className="flex items-center gap-1.5 shrink-0">
             {sellerRating && (
-              <span className="flex items-center gap-0.5 text-amber-500 font-bold text-[10px] sm:text-xs">
+              <span className="flex items-center gap-0.5 text-amber-500 font-bold text-xs sm:text-sm">
                 ★ {parseFloat(sellerRating.toString()).toFixed(1)}
               </span>
             )}
-            <span className="text-[10px] sm:text-xs text-gray-400">{views}v</span>
+            <span className="text-xs text-gray-400">{views}v</span>
           </div>
         </div>
-        <div className="mt-2 flex items-center gap-1 text-[9px] sm:text-[10px] text-[#1B4332]/50 font-semibold">
-          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#1B4332]/40 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <div className="mt-2 flex items-center gap-1 text-[10px] sm:text-xs text-[#1B4332]/50 font-semibold">
+          <svg className="w-3 h-3 text-[#1B4332]/40 shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
           </svg>
           Escrow Protected

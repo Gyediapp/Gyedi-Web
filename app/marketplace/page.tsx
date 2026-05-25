@@ -90,7 +90,7 @@ export default async function MarketplacePage({
             </div>
             <Link
               href="/sell"
-              className="inline-flex items-center gap-2 bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-black px-5 py-2.5 rounded-xl text-sm transition-colors shadow-lg shadow-[#F5A623]/20 self-start sm:self-auto whitespace-nowrap"
+              className="inline-flex items-center gap-2 bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-black px-6 py-3 rounded-xl text-base transition-colors shadow-lg shadow-[#F5A623]/20 self-start sm:self-auto whitespace-nowrap"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -112,7 +112,7 @@ export default async function MarketplacePage({
                 name="q"
                 defaultValue={q}
                 placeholder="Search phones, shoes, cars…"
-                className="w-full pl-12 pr-4 py-3.5 bg-white/12 border border-white/25 rounded-2xl text-white placeholder-white/40 text-sm focus:outline-none focus:border-[#F5A623]/60 focus:bg-white/18 transition-colors"
+                className="w-full pl-12 pr-4 py-4 bg-white/12 border border-white/25 rounded-2xl text-white placeholder-white/40 text-base focus:outline-none focus:border-[#F5A623]/60 focus:bg-white/18 transition-colors"
               />
             </div>
 
@@ -146,7 +146,7 @@ export default async function MarketplacePage({
               </select>
               <button
                 type="submit"
-                className="bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-black px-6 py-2.5 rounded-xl text-sm transition-colors shadow-md shadow-[#F5A623]/20"
+                className="bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-black px-7 py-3 rounded-xl text-base transition-colors shadow-md shadow-[#F5A623]/20"
               >
                 Search
               </button>
@@ -168,7 +168,7 @@ export default async function MarketplacePage({
                 <Link
                   key={cat.value}
                   href={href}
-                  className={`flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${
                     isActive
                       ? 'bg-[#1B4332] text-white shadow-sm'
                       : 'bg-gray-100 text-gray-600 hover:bg-[#F5A623]/15 hover:text-[#1B4332]'
@@ -228,10 +228,10 @@ export default async function MarketplacePage({
             <h3 className="text-xl font-bold text-gray-900">No listings found</h3>
             <p className="text-gray-500 mt-2 text-sm">Try different keywords or browse all categories</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
-              <Link href="/marketplace" className="bg-[#1B4332] hover:bg-[#0F2B1F] text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-colors">
+              <Link href="/marketplace" className="bg-[#1B4332] hover:bg-[#0F2B1F] text-white font-bold px-7 py-3 rounded-xl text-base transition-colors">
                 Browse All
               </Link>
-              <Link href="/sell" className="bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-bold px-6 py-2.5 rounded-xl text-sm transition-colors">
+              <Link href="/sell" className="bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-bold px-7 py-3 rounded-xl text-base transition-colors">
                 Sell Something
               </Link>
             </div>
@@ -250,7 +250,7 @@ export default async function MarketplacePage({
             </div>
             <Link
               href="/sell"
-              className="bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-black px-8 py-3.5 rounded-xl text-sm transition-colors shadow-lg shadow-[#F5A623]/20 whitespace-nowrap flex-shrink-0"
+              className="bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-black px-8 py-4 rounded-xl text-base transition-colors shadow-lg shadow-[#F5A623]/20 whitespace-nowrap flex-shrink-0"
             >
               Start Selling Free →
             </Link>

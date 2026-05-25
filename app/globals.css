@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Explicit content sources so Tailwind v4 scans all components */
+@source "./**/*.{ts,tsx}";
+@source "../components/**/*.{ts,tsx}";
+@source "../lib/**/*.{ts,tsx}";
+
 @theme inline {
   --color-gold: #F5A623;
   --color-gold-dark: #D4881A;
@@ -7,12 +12,27 @@
   --color-green-dark: #0F2B1F;
   --color-green-light: #D1FAE5;
   --font-sans: var(--font-geist-sans);
+  --font-size-base: 1rem; /* 16px */
+}
+
+html {
+  font-size: 16px;
 }
 
 body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   background: #ffffff;
   color: #111827;
+  font-size: 1rem;
+}
+
+/* scrollbar-hide utility — used in horizontal scroll pill rows */
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .line-clamp-2 {

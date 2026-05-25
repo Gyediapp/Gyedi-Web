@@ -16,18 +16,18 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center gap-7">
-            <Link href="/marketplace" className="text-white/75 hover:text-white text-sm font-medium transition-colors">Marketplace</Link>
-            <Link href="/#how-it-works" className="text-white/75 hover:text-white text-sm font-medium transition-colors">How It Works</Link>
-            <Link href="/#pricing" className="text-white/75 hover:text-white text-sm font-medium transition-colors">Pricing</Link>
+            <Link href="/marketplace" className="text-white/75 hover:text-white text-base font-medium transition-colors">Marketplace</Link>
+            <Link href="/#how-it-works" className="text-white/75 hover:text-white text-base font-medium transition-colors">How It Works</Link>
+            <Link href="/#pricing" className="text-white/75 hover:text-white text-base font-medium transition-colors">Pricing</Link>
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/login" className="text-white/75 hover:text-white text-sm font-medium transition-colors px-3 py-1.5">
+            <Link href="/login" className="text-white/75 hover:text-white text-base font-medium transition-colors px-4 py-2">
               Log In
             </Link>
             <Link
               href="/sell"
-              className="bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-bold text-sm px-4 py-2 rounded-lg transition-colors"
+              className="bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-bold text-base px-6 py-2.5 rounded-xl transition-colors"
             >
               Start Selling
             </Link>
@@ -45,12 +45,14 @@ export default function Navbar() {
 
         {open && (
           <div className="md:hidden py-4 space-y-1 border-t border-white/10">
-            <Link href="/marketplace" onClick={() => setOpen(false)} className="block px-3 py-2.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg text-sm transition-colors">Marketplace</Link>
-            <Link href="/#how-it-works" onClick={() => setOpen(false)} className="block px-3 py-2.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg text-sm transition-colors">How It Works</Link>
-            <Link href="/#pricing" onClick={() => setOpen(false)} className="block px-3 py-2.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg text-sm transition-colors">Pricing</Link>
-            <Link href="/sell" onClick={() => setOpen(false)} className="block px-3 py-2.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg text-sm transition-colors">Sell</Link>
-            <div className="pt-2 border-t border-white/10 mt-2">
-              <Link href="/login" onClick={() => setOpen(false)} className="block px-3 py-2.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg text-sm transition-colors">Log In</Link>
+            <Link href="/marketplace" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">Marketplace</Link>
+            <Link href="/#how-it-works" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">How It Works</Link>
+            <Link href="/#pricing" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">Pricing</Link>
+            <Link href="/sell" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">Sell an Item</Link>
+            <div className="pt-3 border-t border-white/10 mt-2 px-2">
+              <Link href="/login" onClick={() => setOpen(false)} className="block w-full text-center bg-[#F5A623] text-[#1B4332] font-bold py-3 rounded-xl text-base transition-colors">
+                Log In
+              </Link>
             </div>
           </div>
         )}

@@ -156,7 +156,7 @@ export default async function HomePage() {
             </div>
             <button
               type="submit"
-              className="bg-[#F5A623] hover:bg-[#D4881A] active:bg-[#B87315] text-[#1B4332] font-black px-8 py-4 rounded-2xl text-sm sm:text-base transition-all shadow-lg shadow-[#F5A623]/20 whitespace-nowrap"
+              className="bg-[#F5A623] hover:bg-[#D4881A] active:bg-[#B87315] text-[#1B4332] font-black px-8 py-4 rounded-2xl text-base sm:text-lg transition-all shadow-lg shadow-[#F5A623]/20 whitespace-nowrap"
             >
               Search →
             </button>
@@ -181,10 +181,10 @@ export default async function HomePage() {
       {/* ── CATEGORY PILLS ── */}
       <section className="bg-white border-b border-gray-100 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto scrollbar-hide py-3.5">
+          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto scrollbar-hide py-4">
             <Link
               href="/marketplace"
-              className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-bold bg-[#1B4332] text-white shadow-sm transition-all"
+              className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full text-sm sm:text-base font-bold bg-[#1B4332] text-white shadow-sm transition-all"
             >
               All Items
             </Link>
@@ -192,7 +192,7 @@ export default async function HomePage() {
               <Link
                 key={cat.value}
                 href={`/marketplace?category=${encodeURIComponent(cat.value)}`}
-                className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold bg-gray-100 hover:bg-[#F5A623]/15 hover:text-[#1B4332] text-gray-600 transition-all"
+                className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full text-sm sm:text-base font-semibold bg-gray-100 hover:bg-[#F5A623]/15 hover:text-[#1B4332] text-gray-600 transition-all"
               >
                 <span>{cat.icon}</span>
                 <span>{cat.label}</span>
@@ -222,7 +222,7 @@ export default async function HomePage() {
               <p className="text-[#F5A623] text-xs font-bold uppercase tracking-widest mb-1">Trending Now</p>
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">Featured Listings</h2>
             </div>
-            <Link href="/marketplace" className="text-[#1B4332] font-bold text-sm hover:underline flex-shrink-0 ml-4">
+            <Link href="/marketplace" className="text-[#1B4332] font-bold text-base hover:underline flex-shrink-0 ml-4">
               View all →
             </Link>
           </div>
@@ -254,7 +254,7 @@ export default async function HomePage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900">Be the First Seller</h3>
               <p className="text-gray-500 mt-2 mb-6 text-sm max-w-xs mx-auto">No listings yet. Create yours and reach thousands of buyers across Africa.</p>
-              <Link href="/sell" className="bg-[#1B4332] hover:bg-[#0F2B1F] text-white font-bold px-8 py-3 rounded-xl transition-colors text-sm">
+              <Link href="/sell" className="bg-[#1B4332] hover:bg-[#0F2B1F] text-white font-bold px-8 py-3.5 rounded-xl transition-colors text-base">
                 Create a Listing
               </Link>
             </div>
@@ -283,8 +283,8 @@ export default async function HomePage() {
                     {i + 1}
                   </span>
                 </div>
-                <h3 className="text-base sm:text-lg font-black text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{step.desc}</p>
+                <h3 className="text-lg sm:text-xl font-black text-gray-900 mb-2">{step.title}</h3>
+                <p className="text-gray-500 text-base leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -341,8 +341,8 @@ export default async function HomePage() {
                 <div className="w-14 h-14 bg-[#F5A623]/15 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
                   {b.icon}
                 </div>
-                <h3 className="font-black text-gray-900 text-sm md:text-base">{b.title}</h3>
-                <p className="text-gray-500 text-xs md:text-sm mt-1.5 leading-relaxed">{b.desc}</p>
+                <h3 className="font-black text-gray-900 text-base md:text-lg">{b.title}</h3>
+                <p className="text-gray-500 text-sm md:text-base mt-1.5 leading-relaxed">{b.desc}</p>
               </div>
             ))}
           </div>
@@ -387,7 +387,7 @@ export default async function HomePage() {
                 </ul>
                 <Link
                   href="/sell"
-                  className={`block text-center font-bold py-3 rounded-xl transition-colors text-sm ${
+                  className={`block text-center font-bold py-4 rounded-xl transition-colors text-base ${
                     plan.highlight
                       ? 'bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332]'
                       : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
@@ -415,7 +415,7 @@ export default async function HomePage() {
                 <div className="flex items-center gap-0.5 mb-4">
                   {[1,2,3,4,5].map(s => <span key={s} className="text-[#F5A623] text-sm">★</span>)}
                 </div>
-                <p className="text-gray-600 text-sm leading-relaxed mb-6 italic">&ldquo;{t.quote}&rdquo;</p>
+                <p className="text-gray-600 text-base leading-relaxed mb-6 italic">&ldquo;{t.quote}&rdquo;</p>
                 <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1B4332] to-[#2D6A4F] flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
                     {t.avatar}
@@ -452,7 +452,7 @@ export default async function HomePage() {
               href="https://play.google.com/store"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 bg-white text-[#1B4332] font-bold px-7 py-4 rounded-xl hover:bg-gray-50 transition-colors shadow-xl text-sm sm:text-base w-full sm:w-auto justify-center"
+              className="inline-flex items-center gap-3 bg-white text-[#1B4332] font-bold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors shadow-xl text-base sm:text-lg w-full sm:w-auto justify-center"
             >
               <svg className="w-5 h-5 text-[#F5A623] flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M3 20.5v-17c0-.83.94-1.3 1.6-.8l15 8.5c.6.34.6 1.26 0 1.6l-15 8.5c-.66.5-1.6.03-1.6-.8z"/>
@@ -461,7 +461,7 @@ export default async function HomePage() {
             </a>
             <Link
               href="/marketplace"
-              className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/18 border border-white/20 text-white font-semibold px-7 py-4 rounded-xl transition-colors text-sm sm:text-base w-full sm:w-auto justify-center"
+              className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/18 border border-white/20 text-white font-semibold px-8 py-4 rounded-xl transition-colors text-base sm:text-lg w-full sm:w-auto justify-center"
             >
               Browse on Web →
             </Link>
