@@ -26,9 +26,18 @@ const STATUS_STYLE: Record<string, string> = {
   FUNDED:     'bg-blue-100 text-blue-700',
   IN_TRANSIT: 'bg-[#FEF3C7] text-[#92400E]',
   COMPLETED:  'bg-green-100 text-green-700',
-  DISPUTED:   'bg-red-100 text-red-700',
+  DISPUTED:   'bg-blue-100 text-blue-700',
   CANCELLED:  'bg-gray-100 text-gray-500',
   PENDING:    'bg-amber-100 text-amber-800',
+};
+
+const STATUS_BORDER: Record<string, string> = {
+  FUNDED:     'border-l-blue-500',
+  IN_TRANSIT: 'border-l-[#F5A623]',
+  COMPLETED:  'border-l-green-500',
+  DISPUTED:   'border-l-blue-400',
+  CANCELLED:  'border-l-gray-300',
+  PENDING:    'border-l-amber-400',
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -134,7 +143,7 @@ export default function HistoryPage() {
 
       <div className="px-4 py-3 space-y-2.5">
         {error && (
-          <div className="bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl px-4 py-3">{error}</div>
+          <div className="bg-blue-50 border border-blue-100 text-blue-700 text-sm rounded-xl px-4 py-3">{error}</div>
         )}
 
         {loading ? (
@@ -162,7 +171,7 @@ export default function HistoryPage() {
               <Link
                 key={e.id}
                 href={`/escrow/${e.id}`}
-                className="bg-white rounded-2xl p-4 flex items-center gap-3 border border-gray-100 shadow-sm active:scale-[0.98] transition-transform"
+                className={`bg-white rounded-2xl p-4 flex items-center gap-3 border border-gray-100 shadow-sm active:scale-[0.98] transition-transform border-l-4 ${STATUS_BORDER[e.status] ?? 'border-l-gray-300'}`}
               >
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                   isBuyer ? 'bg-blue-100 text-blue-700' : 'bg-[#F5A623]/20 text-[#92400E]'

@@ -24,7 +24,7 @@ const STATUS_PILL: Record<string, string> = {
   FUNDED:     'bg-blue-500/20 text-blue-200',
   IN_TRANSIT: 'bg-[#F5A623]/30 text-[#F5A623]',
   COMPLETED:  'bg-green-500/20 text-green-300',
-  DISPUTED:   'bg-red-500/20 text-red-300',
+  DISPUTED:   'bg-blue-500/20 text-blue-200',
   PENDING:    'bg-white/20 text-white/70',
   CANCELLED:  'bg-white/10 text-white/50',
 };
@@ -61,15 +61,15 @@ function StatusTracker({ status }: { status: string }) {
 
   if (isDisputed) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-2xl p-5 flex gap-3 items-center">
-        <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-          <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 flex gap-3 items-center">
+        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+          <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
         <div>
-          <p className="text-red-700 font-bold text-sm">Dispute Opened</p>
-          <p className="text-red-500 text-xs mt-0.5">Under review by Gyedi support</p>
+          <p className="text-blue-700 font-bold text-sm">Dispute Opened</p>
+          <p className="text-blue-500 text-xs mt-0.5">Under review by Gyedi support</p>
         </div>
       </div>
     );
@@ -180,7 +180,7 @@ function ActionPanel({
   return (
     <div className="space-y-3">
       {error && (
-        <div className="bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl px-4 py-3">{error}</div>
+        <div className="bg-blue-50 border border-blue-100 text-blue-700 text-sm rounded-xl px-4 py-3">{error}</div>
       )}
 
       {/* Seller: mark shipped */}
@@ -254,19 +254,19 @@ function ActionPanel({
           {!showDispute ? (
             <button
               onClick={() => setShowDispute(true)}
-              className={`${btnBase} bg-white border border-gray-200 text-red-500`}
+              className={`${btnBase} bg-white border border-gray-200 text-blue-500`}
             >
               Open Dispute
             </button>
           ) : (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-4 space-y-3">
-              <p className="text-red-700 font-semibold text-sm">Describe the issue</p>
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-3">
+              <p className="text-blue-700 font-semibold text-sm">Describe the issue</p>
               <textarea
                 value={disputeReason}
                 onChange={e => setDisputeReason(e.target.value)}
                 placeholder="What went wrong? Please provide details (min 10 characters)…"
                 rows={3}
-                className="w-full text-sm bg-white border border-red-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+                className="w-full text-sm bg-white border border-blue-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
               />
               <div className="flex gap-2">
                 <button
@@ -278,7 +278,7 @@ function ActionPanel({
                 <button
                   onClick={submitDispute}
                   disabled={!!loading}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white bg-red-500 disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-500 disabled:opacity-50"
                 >
                   {loading === 'dispute' ? 'Submitting…' : 'Submit Dispute'}
                 </button>
@@ -365,6 +365,14 @@ export default function EscrowDetailPage() {
             <p className="text-[#1B4332]/60 text-xs mt-1">
               {isBuyer ? `You pay GHS ${(parseFloat(escrow.amount) + fee).toLocaleString('en-GH', { minimumFractionDigits: 2 })} incl. 1.5% fee` : `You receive ${fmt(escrow.amount)}`}
             </p>
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#1B4332]/10">
+              <p className="text-[#1B4332]/80 text-xs font-semibold">
+                {isBuyer
+                  ? `To: ${escrow.seller.firstName} ${escrow.seller.lastName}`
+                  : `From: ${escrow.buyer.firstName} ${escrow.buyer.lastName}`}
+              </p>
+              <p className="text-[#1B4332]/60 text-xs">{fmtDate(escrow.createdAt)}</p>
+            </div>
           </div>
         </div>
       )}
@@ -377,7 +385,7 @@ export default function EscrowDetailPage() {
 
       {error && !loading && (
         <div className="px-4 py-8">
-          <div className="bg-red-50 border border-red-100 text-red-600 rounded-2xl p-5 text-center">
+          <div className="bg-blue-50 border border-blue-100 text-blue-700 rounded-2xl p-5 text-center">
             <p className="font-semibold">{error}</p>
             <Link href="/history" className="mt-3 inline-block text-sm text-[#1B4332] font-semibold">← Back to History</Link>
           </div>
@@ -480,12 +488,12 @@ export default function EscrowDetailPage() {
 
           {/* Disputes */}
           {escrow.disputes.length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-5 space-y-3">
-              <h3 className="text-xs font-semibold text-red-500 uppercase tracking-wide">Dispute</h3>
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 space-y-3">
+              <h3 className="text-xs font-semibold text-blue-500 uppercase tracking-wide">Dispute</h3>
               {escrow.disputes.map(d => (
                 <div key={d.id} className="space-y-1">
-                  <p className="text-sm text-red-800 font-medium">{d.reason}</p>
-                  <p className="text-xs text-red-400">{fmtDate(d.createdAt)} · {d.status}</p>
+                  <p className="text-sm text-blue-800 font-medium">{d.reason}</p>
+                  <p className="text-xs text-blue-400">{fmtDate(d.createdAt)} · {d.status}</p>
                 </div>
               ))}
             </div>
