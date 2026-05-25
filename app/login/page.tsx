@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { COUNTRIES, normalizePhone, validatePhone } from '@/lib/phone';
 
 export default function LoginPage() {
-  const [tab, setTab] = useState<'login' | 'register'>('login');
+  const [tab, setTab]           = useState<'login' | 'register'>('login');
+  const [loginMode, setLoginMode] = useState<'phone' | 'email'>('phone');
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
   const [success, setSuccess]   = useState('');
@@ -17,18 +18,26 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const fd         = new FormData(e.currentTarget);
-    const localPhone = fd.get('localPhone') as string;
-    const phoneErr   = validatePhone(countryCode, localPhone);
-    if (phoneErr) { setError(phoneErr); setLoading(false); return; }
-    const phone = normalizePhone(countryCode, localPhone);
-    const pin   = fd.get('pin') as string;
+    const fd  = new FormData(e.currentTarget);
+    const pin = fd.get('pin') as string;
+
+    let body: Record<string, string>;
+    if (loginMode === 'phone') {
+      const localPhone = fd.get('localPhone') as string;
+      const phoneErr   = validatePhone(countryCode, localPhone);
+      if (phoneErr) { setError(phoneErr); setLoading(false); return; }
+      body = { phone: normalizePhone(countryCode, localPhone), pin };
+    } else {
+      const email = (fd.get('email') as string).trim();
+      if (!email) { setError('Please enter your email address'); setLoading(false); return; }
+      body = { email, pin };
+    }
 
     try {
       const res = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, pin }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? 'Login failed');
@@ -77,6 +86,8 @@ export default function LoginPage() {
     }
   }
 
+  const inputCls = 'w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]';
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
@@ -119,27 +130,59 @@ export default function LoginPage() {
 
             {tab === 'login' ? (
               <form onSubmit={handleLogin} className="space-y-5">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number</label>
-                  <div className="flex gap-2">
-                    <select
-                      value={countryCode}
-                      onChange={e => setCountryCode(e.target.value)}
-                      className="px-2 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332] bg-white"
+                {/* Login mode toggle */}
+                <div className="flex bg-gray-100 rounded-xl p-1">
+                  {(['phone', 'email'] as const).map(mode => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => { setLoginMode(mode); setError(''); }}
+                      className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                        loginMode === mode
+                          ? 'bg-white text-[#1B4332] shadow-sm'
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
                     >
-                      {COUNTRIES.map(c => (
-                        <option key={c.code} value={c.code}>{c.flag} {c.label}</option>
-                      ))}
-                    </select>
+                      {mode === 'phone' ? 'Phone' : 'Email'}
+                    </button>
+                  ))}
+                </div>
+
+                {loginMode === 'phone' ? (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number</label>
+                    <div className="flex gap-2">
+                      <select
+                        value={countryCode}
+                        onChange={e => setCountryCode(e.target.value)}
+                        className="px-2 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332] bg-white"
+                      >
+                        {COUNTRIES.map(c => (
+                          <option key={c.code} value={c.code}>{c.flag} {c.label}</option>
+                        ))}
+                      </select>
+                      <input
+                        name="localPhone"
+                        type="tel"
+                        required
+                        placeholder="0551234567"
+                        className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
                     <input
-                      name="localPhone"
-                      type="tel"
+                      name="email"
+                      type="email"
                       required
-                      placeholder="0551234567"
-                      className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
+                      placeholder="you@example.com"
+                      className={inputCls}
                     />
                   </div>
-                </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">PIN</label>
                   <input
@@ -148,8 +191,9 @@ export default function LoginPage() {
                     required
                     minLength={4}
                     maxLength={6}
+                    inputMode="numeric"
                     placeholder="4–6 digit PIN"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
+                    className={inputCls}
                   />
                 </div>
                 <button
@@ -165,19 +209,11 @@ export default function LoginPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">First Name</label>
-                    <input
-                      name="firstName"
-                      required
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
-                    />
+                    <input name="firstName" required className={inputCls} />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Last Name</label>
-                    <input
-                      name="lastName"
-                      required
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
-                    />
+                    <input name="lastName" required className={inputCls} />
                   </div>
                 </div>
                 <div>
@@ -210,7 +246,7 @@ export default function LoginPage() {
                     minLength={4}
                     maxLength={6}
                     placeholder="Choose a 4–6 digit PIN"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
+                    className={inputCls}
                   />
                 </div>
                 <button

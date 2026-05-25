@@ -11,6 +11,7 @@ model User {
   firstName     String
   lastName      String
   phone         String    @unique
+  email         String?   @unique
   country       String    @default("GH")
   kycStatus     String    @default("PENDING")
   averageRating Decimal?  @db.Decimal(3, 2)

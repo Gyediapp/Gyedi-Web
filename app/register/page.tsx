@@ -7,8 +7,8 @@ import { COUNTRIES, normalizePhone, validatePhone } from '@/lib/phone';
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
 export default function RegisterPage() {
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState('');
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState('');
   const [countryCode, setCountryCode] = useState('+233');
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -16,28 +16,28 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
     const fd = new FormData(e.currentTarget);
+
     const pin        = fd.get('pin') as string;
     const confirmPin = fd.get('confirmPin') as string;
-    if (pin !== confirmPin) {
-      setError('PINs do not match');
-      setLoading(false);
-      return;
-    }
+    if (pin !== confirmPin) { setError('PINs do not match'); setLoading(false); return; }
+
     const localPhone = fd.get('localPhone') as string;
     const phoneErr = validatePhone(countryCode, localPhone);
     if (phoneErr) { setError(phoneErr); setLoading(false); return; }
     const phone = normalizePhone(countryCode, localPhone);
+
+    const email = (fd.get('email') as string).trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('Please enter a valid email address');
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(`${API}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName: fd.get('firstName'),
-          lastName:  fd.get('lastName'),
-          phone,
-          pin,
-          language: 'en',
-        }),
+        body: JSON.stringify({ firstName: fd.get('firstName'), lastName: fd.get('lastName'), phone, email, pin, language: 'en' }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? 'Registration failed');
@@ -51,6 +51,8 @@ export default function RegisterPage() {
     }
   }
 
+  const inputCls = 'w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]';
+
   return (
     <div className="min-h-screen bg-[#F4F6F8] flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
@@ -63,31 +65,31 @@ export default function RegisterPage() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
           {error && (
-            <div className="mb-5 bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl px-4 py-3">
-              {error}
-            </div>
+            <div className="mb-5 bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl px-4 py-3">{error}</div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">First Name</label>
-                <input
-                  name="firstName"
-                  required
-                  placeholder="Kwame"
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
-                />
+                <input name="firstName" required placeholder="Kwame" className={inputCls} />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">Last Name</label>
-                <input
-                  name="lastName"
-                  required
-                  placeholder="Mensah"
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
-                />
+                <input name="lastName" required placeholder="Mensah" className={inputCls} />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Email Address <span className="text-red-500">*</span></label>
+              <input
+                name="email"
+                type="email"
+                required
+                placeholder="you@example.com"
+                className={inputCls}
+              />
+              <p className="mt-1 text-xs text-gray-400">Used for receipts and account recovery</p>
             </div>
 
             <div>
@@ -114,31 +116,13 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">PIN (4–6 digits)</label>
-              <input
-                name="pin"
-                type="password"
-                required
-                minLength={4}
-                maxLength={6}
-                inputMode="numeric"
-                placeholder="••••"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
-              />
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">PIN (4 digits)</label>
+              <input name="pin" type="password" required minLength={4} maxLength={4} inputMode="numeric" placeholder="••••" className={inputCls} />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5">Confirm PIN</label>
-              <input
-                name="confirmPin"
-                type="password"
-                required
-                minLength={4}
-                maxLength={6}
-                inputMode="numeric"
-                placeholder="••••"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]"
-              />
+              <input name="confirmPin" type="password" required minLength={4} maxLength={4} inputMode="numeric" placeholder="••••" className={inputCls} />
             </div>
 
             <button

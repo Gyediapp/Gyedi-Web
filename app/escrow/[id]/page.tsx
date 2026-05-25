@@ -184,6 +184,15 @@ function ActionPanel({
           </div>
         </div>
         <Link
+          href={`/escrow/${escrow.id}/receipt`}
+          className="flex items-center justify-center gap-2 w-full bg-white border border-gray-200 text-[#1B4332] font-bold py-3 rounded-2xl text-sm transition-colors hover:bg-gray-50"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Download Receipt
+        </Link>
+        <Link
           href="/marketplace"
           className="block w-full text-center bg-[#1B4332] text-white font-bold py-3 rounded-2xl text-sm transition-colors hover:bg-[#0F2B1F]"
         >
@@ -354,8 +363,19 @@ export default function EscrowDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F6F8] pb-28">
+      {/* Breadcrumb */}
+      <div className="bg-[#1B4332] px-5 pt-12 pb-1">
+        <div className="flex items-center gap-1.5 text-white/50 text-xs">
+          <Link href="/dashboard" className="hover:text-white/80 transition-colors">Dashboard</Link>
+          <span>/</span>
+          <Link href="/history" className="hover:text-white/80 transition-colors">Transactions</Link>
+          <span>/</span>
+          <span className="text-white/70 truncate max-w-[120px]">{escrow?.code ?? '…'}</span>
+        </div>
+      </div>
+
       {/* Header */}
-      <div className="bg-[#1B4332] px-5 pt-12 pb-6 flex items-center gap-4">
+      <div className="bg-[#1B4332] px-5 pt-3 pb-6 flex items-center gap-4">
         <Link href="/history" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -372,16 +392,28 @@ export default function EscrowDetailPage() {
             </div>
           )}
         </div>
-        {escrow && (
-          <Link
-            href={`/escrow/${escrow.id}/chat`}
-            className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0"
-          >
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a1 1 0 00-1 1v14a1 1 0 001 1h3v3l4-3h11a1 1 0 001-1V4a1 1 0 00-1-1z" />
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
           </Link>
-        )}
+          {escrow && (
+            <Link
+              href={`/escrow/${escrow.id}/chat`}
+              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0"
+            >
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a1 1 0 00-1 1v14a1 1 0 001 1h3v3l4-3h11a1 1 0 001-1V4a1 1 0 00-1-1z" />
+              </svg>
+            </Link>
+          )}
+          <Link href="/profile" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </Link>
+        </div>
       </div>
 
       {/* Gold amount hero */}
