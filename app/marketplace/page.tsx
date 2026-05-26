@@ -30,19 +30,26 @@ const SORT_OPTIONS = [
   { value: 'price_desc',label: 'Price: High → Low' },
 ];
 
+const CONDITION_OPTIONS = [
+  { value: '',     label: 'All Conditions' },
+  { value: 'NEW',  label: 'New' },
+  { value: 'USED', label: 'Used' },
+];
+
 export default async function MarketplacePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string; country?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; category?: string; country?: string; sort?: string; condition?: string }>;
 }) {
-  const { q, category, country, sort } = await searchParams;
+  const { q, category, country, sort, condition } = await searchParams;
 
-  const listings = await prisma.listing.findMany({
+  const listings = await (prisma as any).listing.findMany({
     where: {
       status: 'ACTIVE',
       AND: [
-        category ? { category } : {},
-        country  ? { country }  : {},
+        category  ? { category }  : {},
+        country   ? { country }   : {},
+        condition ? { condition } : {},
         q
           ? {
               OR: [
@@ -64,7 +71,7 @@ export default async function MarketplacePage({
     take: 48,
   });
 
-  const hasFilters = !!(q || category || country || sort);
+  const hasFilters = !!(q || category || country || sort || condition);
 
   return (
     <div className="min-h-screen bg-[#F4F6F8]">
@@ -101,7 +108,6 @@ export default async function MarketplacePage({
 
           {/* Search + filters */}
           <form method="GET" className="space-y-2.5">
-            {/* preserve active category if set */}
             {category && <input type="hidden" name="category" value={category} />}
 
             <div className="relative">
@@ -120,7 +126,7 @@ export default async function MarketplacePage({
               <select
                 name="category"
                 defaultValue={category ?? ''}
-                className="flex-1 min-w-[130px] px-3 py-2.5 rounded-xl text-sm bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-[#F5A623] [&>option]:text-gray-900"
+                className="flex-1 min-w-[120px] px-3 py-2.5 rounded-xl text-sm bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-[#F5A623] [&>option]:text-gray-900"
               >
                 {CATEGORIES.map(c => (
                   <option key={c.value} value={c.value}>{c.label}</option>
@@ -129,16 +135,25 @@ export default async function MarketplacePage({
               <select
                 name="country"
                 defaultValue={country ?? ''}
-                className="flex-1 min-w-[130px] px-3 py-2.5 rounded-xl text-sm bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-[#F5A623] [&>option]:text-gray-900"
+                className="flex-1 min-w-[120px] px-3 py-2.5 rounded-xl text-sm bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-[#F5A623] [&>option]:text-gray-900"
               >
                 {COUNTRIES.map(c => (
                   <option key={c.code} value={c.code}>{c.label}</option>
                 ))}
               </select>
               <select
+                name="condition"
+                defaultValue={condition ?? ''}
+                className="flex-1 min-w-[120px] px-3 py-2.5 rounded-xl text-sm bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-[#F5A623] [&>option]:text-gray-900"
+              >
+                {CONDITION_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+              <select
                 name="sort"
                 defaultValue={sort ?? ''}
-                className="flex-1 min-w-[130px] px-3 py-2.5 rounded-xl text-sm bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-[#F5A623] [&>option]:text-gray-900"
+                className="flex-1 min-w-[120px] px-3 py-2.5 rounded-xl text-sm bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-[#F5A623] [&>option]:text-gray-900"
               >
                 {SORT_OPTIONS.map(o => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -192,6 +207,7 @@ export default async function MarketplacePage({
             {listings.length === 1 ? 'listing' : 'listings'}
             {q && <> for <span className="font-semibold text-[#1B4332]">&ldquo;{q}&rdquo;</span></>}
             {category && !q && <> in <span className="font-semibold text-[#1B4332]">{category}</span></>}
+            {condition && <> · <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${condition === 'USED' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>{condition}</span></>}
           </p>
           {hasFilters && (
             <Link href="/marketplace" className="text-xs text-gray-400 hover:text-[#1B4332] font-semibold transition-colors">
@@ -215,6 +231,7 @@ export default async function MarketplacePage({
                 views={l.views}
                 sellerName={`${l.seller.firstName} ${l.seller.lastName}`}
                 sellerRating={l.seller.averageRating ? parseFloat(l.seller.averageRating.toString()) : null}
+                condition={l.condition}
               />
             ))}
           </div>

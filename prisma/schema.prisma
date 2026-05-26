@@ -29,10 +29,73 @@ model User {
   storeTheme    String    @default("Minimal")
   storeLinks    Json      @default("[]")
   storeActive   Boolean   @default(true)
+  isOnline      Boolean   @default(false)
+  lastSeen      DateTime?
   createdAt     DateTime  @default(now())
   listings      Listing[]
+  storeFollowers     StoreFollow[]  @relation("SellerFollows")
+  storeFollowing     StoreFollow[]  @relation("FollowerFollows")
+  receivedReviews    StoreReview[]  @relation("ReceivedStoreReviews")
+  givenReviews       StoreReview[]  @relation("GivenStoreReviews")
+  listingLikes       ListingLike[]
+  listingComments    ListingComment[]
 
   @@map("users")
+}
+
+model StoreFollow {
+  id         String   @id @default(uuid())
+  followerId String
+  sellerId   String
+  createdAt  DateTime @default(now())
+
+  follower User @relation("FollowerFollows", fields: [followerId], references: [id], onDelete: Cascade)
+  seller   User @relation("SellerFollows",   fields: [sellerId],   references: [id], onDelete: Cascade)
+
+  @@unique([followerId, sellerId])
+  @@map("store_follows")
+}
+
+model ListingLike {
+  id        String   @id @default(uuid())
+  userId    String
+  listingId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId],    references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+  @@map("listing_likes")
+}
+
+model ListingComment {
+  id        String   @id @default(uuid())
+  listingId String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  author  User    @relation(fields: [authorId],  references: [id], onDelete: Cascade)
+
+  @@map("listing_comments")
+}
+
+model StoreReview {
+  id          String   @id @default(uuid())
+  reviewerId  String
+  sellerId    String
+  stars       Int
+  body        String?
+  sellerReply String?
+  createdAt   DateTime @default(now())
+
+  reviewer User @relation("GivenStoreReviews",    fields: [reviewerId], references: [id], onDelete: Cascade)
+  seller   User @relation("ReceivedStoreReviews", fields: [sellerId],   references: [id], onDelete: Cascade)
+
+  @@unique([reviewerId, sellerId])
+  @@map("store_reviews")
 }
 
 model FeeConfig {
@@ -56,9 +119,13 @@ model Listing {
   status      String   @default("ACTIVE")
   storeType   String   @default("BASIC")
   views       Int      @default(0)
+  condition   String   @default("NEW")
+  featured    Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   seller      User     @relation(fields: [sellerId], references: [id])
+  likes       ListingLike[]
+  comments    ListingComment[]
 
   @@map("listings")
 }

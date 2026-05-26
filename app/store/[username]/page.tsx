@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import ListingCard from '@/components/ListingCard';
+import FollowButton from '@/components/FollowButton';
+import ReviewsSection from '@/components/ReviewsSection';
 
 const COUNTRY_FLAG: Record<string, string> = {
   GH: '🇬🇭', NG: '🇳🇬', GB: '🇬🇧', DE: '🇩🇪',
@@ -66,9 +68,14 @@ export default async function StorePage({ params }: { params: Promise<{ username
       averageRating: true, totalRatings: true,
       storeType: true, storeName: true, storeBanner: true, storeBio: true,
       storeTheme: true, storeLinks: true, storeActive: true,
+      isOnline: true, lastSeen: true,
       listings: {
         where: { status: 'ACTIVE' },
         orderBy: { createdAt: 'desc' },
+        select: {
+          id: true, title: true, price: true, images: true, category: true,
+          country: true, storeType: true, views: true, condition: true,
+        },
       },
     },
   });
@@ -80,6 +87,17 @@ export default async function StorePage({ params }: { params: Promise<{ username
   const name     = (seller.storeName as string | null) || `${seller.firstName} ${seller.lastName}`;
   const links    = Array.isArray(seller.storeLinks) ? seller.storeLinks as { label: string; url: string }[] : [];
   const initials = `${seller.firstName[0]}${seller.lastName[0]}`;
+  const isOnline = seller.isOnline as boolean;
+  const lastSeen = seller.lastSeen as Date | null;
+
+  function fmtLastSeen(d: Date | null) {
+    if (!d) return 'Offline';
+    const mins = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
+    if (mins < 60) return `Active ${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `Active ${hrs}h ago`;
+    return `Active ${Math.floor(hrs / 24)}d ago`;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -108,6 +126,12 @@ export default async function StorePage({ params }: { params: Promise<{ username
                     ✓ KYC Verified
                   </span>
                 )}
+                <span className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${
+                  isOnline ? 'bg-green-500/20 text-green-300' : theme.dark ? 'bg-white/10 text-white/50' : 'bg-gray-100 text-gray-400'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-400' : 'bg-gray-400'}`} />
+                  {isOnline ? 'Online now' : fmtLastSeen(lastSeen)}
+                </span>
               </div>
 
               {seller.storeBio && (
@@ -122,26 +146,25 @@ export default async function StorePage({ params }: { params: Promise<{ username
                 <span>{(seller.listings as any[]).length} listing{(seller.listings as any[]).length !== 1 ? 's' : ''}</span>
               </div>
 
-              {/* Social links */}
-              {links.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-4">
-                  {links.map((link, i) => (
-                    <a
-                      key={i}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-opacity hover:opacity-80 ${
-                        theme.dark
-                          ? 'border-white/30 text-white bg-white/10'
-                          : 'border-gray-300 text-gray-700 bg-white'
-                      }`}
-                    >
-                      🔗 {link.label}
-                    </a>
-                  ))}
-                </div>
-              )}
+              {/* Social links + Follow */}
+              <div className="flex flex-wrap items-center gap-2 mt-4">
+                {links.map((link, i) => (
+                  <a
+                    key={i}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-opacity hover:opacity-80 ${
+                      theme.dark
+                        ? 'border-white/30 text-white bg-white/10'
+                        : 'border-gray-300 text-gray-700 bg-white'
+                    }`}
+                  >
+                    🔗 {link.label}
+                  </a>
+                ))}
+                <FollowButton sellerId={seller.id as string} />
+              </div>
             </div>
           </div>
         </div>
@@ -169,6 +192,7 @@ export default async function StorePage({ params }: { params: Promise<{ username
                   country={l.country}
                   storeType={l.storeType}
                   views={l.views}
+                  condition={l.condition}
                   sellerName={`${seller.firstName} ${seller.lastName}`}
                   sellerRating={seller.averageRating ? parseFloat((seller.averageRating as any).toString()) : null}
                 />
@@ -182,6 +206,11 @@ export default async function StorePage({ params }: { params: Promise<{ username
             <p className="text-gray-500 mt-2">This seller hasn&apos;t listed anything yet</p>
           </div>
         )}
+
+        {/* Reviews */}
+        <div className="mt-10 pt-10 border-t border-gray-200">
+          <ReviewsSection sellerId={seller.id as string} sellerName={name} />
+        </div>
 
         <Link href="/marketplace" className="flex items-center justify-between bg-white border border-gray-100 rounded-2xl px-5 py-4 shadow-sm hover:shadow-md transition-shadow group mt-10">
           <div className="flex items-center gap-3">

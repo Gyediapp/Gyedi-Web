@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import BuyNowButton from '@/components/BuyNowButton';
 import MessageSellerButton from '@/components/MessageSellerButton';
+import LikeButton from '@/components/LikeButton';
+import CommentsSection from '@/components/CommentsSection';
 
 const COUNTRY_FLAG: Record<string, string> = {
   GH: '🇬🇭', NG: '🇳🇬', GB: '🇬🇧', DE: '🇩🇪',
@@ -83,17 +85,30 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           {/* Details */}
           <div className="space-y-6">
             <div>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{listing.category}</span>
                 <span className="text-gray-300">·</span>
                 <span className="text-xs text-gray-400">{COUNTRY_FLAG[listing.country] ?? '🌍'} {listing.country}</span>
                 <span className="text-gray-300">·</span>
                 <span className="text-xs text-gray-400">{listing.views} views</span>
+                {listing.condition && (
+                  <>
+                    <span className="text-gray-300">·</span>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                      listing.condition === 'USED' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+                    }`}>
+                      {listing.condition}
+                    </span>
+                  </>
+                )}
               </div>
               <h1 className="text-3xl font-black text-gray-900 leading-tight">{listing.title}</h1>
               <p className="text-4xl font-black text-[#1B4332] mt-4">
                 GHS {parseFloat(listing.price.toString()).toLocaleString('en-GH', { minimumFractionDigits: 2 })}
               </p>
+              <div className="mt-3">
+                <LikeButton listingId={listing.id} />
+              </div>
             </div>
 
             {/* Buy CTA */}
@@ -226,8 +241,13 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
+        {/* Comments */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 mt-10">
+          <CommentsSection listingId={listing.id} />
+        </div>
+
         {/* Browse Marketplace */}
-        <Link href="/marketplace" className="flex items-center justify-between bg-white border border-gray-100 rounded-2xl px-5 py-4 shadow-sm hover:shadow-md transition-shadow group mt-10">
+        <Link href="/marketplace" className="flex items-center justify-between bg-white border border-gray-100 rounded-2xl px-5 py-4 shadow-sm hover:shadow-md transition-shadow group mt-6">
           <div className="flex items-center gap-3">
             <span className="text-2xl">🛒</span>
             <div>
