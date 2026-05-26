@@ -104,8 +104,36 @@ async function getFeaturedListings() {
   }
 }
 
+async function getFeaturedStores() {
+  try {
+    return await (prisma as any).user.findMany({
+      where: { storeType: { in: ['PRO', 'BUSINESS', 'ENTERPRISE'] }, storeActive: true },
+      select: {
+        id: true, firstName: true, lastName: true, country: true,
+        averageRating: true, totalRatings: true,
+        storeType: true, storeName: true, storeBanner: true, storeTheme: true,
+        _count: { select: { listings: { where: { status: 'ACTIVE' } } } },
+      },
+      take: 6,
+    });
+  } catch {
+    return [];
+  }
+}
+
+const FEATURED_THEME_BG: Record<string, string> = {
+  Bold:         'from-[#1B4332] to-[#0F2B1F]',
+  Warm:         'from-amber-700 to-orange-900',
+  Professional: 'from-slate-700 to-slate-900',
+  Minimal:      'from-gray-100 to-gray-200',
+};
+
+const TIER_LABEL: Record<string, string> = {
+  PRO: '★ Pro', BUSINESS: '✦ Business', ENTERPRISE: '◆ Enterprise',
+};
+
 export default async function HomePage() {
-  const listings = await getFeaturedListings();
+  const [listings, featuredStores] = await Promise.all([getFeaturedListings(), getFeaturedStores()]);
 
   return (
     <div>
@@ -261,6 +289,55 @@ export default async function HomePage() {
           )}
         </div>
       </section>
+
+      {/* ── FEATURED STORES ── */}
+      {(featuredStores as any[]).length > 0 && (
+        <section className="py-10 md:py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between mb-5 md:mb-8">
+              <div>
+                <p className="text-[#F5A623] text-xs font-bold uppercase tracking-widest mb-1">Trusted Sellers</p>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">Featured Stores</h2>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+              {(featuredStores as any[]).map((store: any) => {
+                const bg   = FEATURED_THEME_BG[store.storeTheme] ?? FEATURED_THEME_BG.Bold;
+                const name = store.storeName || `${store.firstName} ${store.lastName}`;
+                const initials = `${store.firstName[0]}${store.lastName[0]}`;
+                return (
+                  <a key={store.id} href={`/store/${store.id}`}
+                    className="group rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all hover:-translate-y-0.5">
+                    {/* Banner */}
+                    <div className={`relative h-28 bg-gradient-to-br ${bg} flex items-end p-4`}>
+                      {store.storeBanner && (
+                        <img src={store.storeBanner} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-luminosity" />
+                      )}
+                      <div className="relative flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white font-black text-sm">
+                          {initials}
+                        </div>
+                        <div>
+                          <p className="text-white font-bold text-sm leading-tight">{name}</p>
+                          <p className="text-white/60 text-xs">{TIER_LABEL[store.storeType] ?? store.storeType}</p>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Info */}
+                    <div className="bg-white px-4 py-3 flex items-center justify-between">
+                      <div className="text-xs text-gray-500">
+                        {store.averageRating && <span>⭐ {parseFloat(store.averageRating.toString()).toFixed(1)} · </span>}
+                        {store._count?.listings ?? 0} listing{store._count?.listings !== 1 ? 's' : ''}
+                      </div>
+                      <span className="text-[#1B4332] text-xs font-bold group-hover:underline">Visit →</span>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── HOW IT WORKS ── */}
       <section id="how-it-works" className="py-12 md:py-24 bg-white">

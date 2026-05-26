@@ -5,12 +5,17 @@ import BottomNav from '@/components/BottomNav';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
+type StoreLink = { label: string; url: string };
+
 type User = {
   id: string; firstName: string; lastName: string; phone: string;
   kycStatus: string; language: string;
   averageRating: number | null; totalRatings: number;
   showPhone: boolean; showEmail: boolean; showWhatsapp: boolean;
   businessPhone: string | null; businessEmail: string | null;
+  storeType: string; storeName: string | null; storeBanner: string | null;
+  storeBio: string | null; storeTheme: string;
+  storeLinks: StoreLink[]; storeActive: boolean;
 };
 
 const KYC_STYLE: Record<string, { bg: string; text: string; label: string; icon: string }> = {
@@ -82,6 +87,16 @@ export default function ProfilePage() {
   const [bizPhone,      setBizPhone]      = useState('');
   const [bizEmail,      setBizEmail]      = useState('');
 
+  // store state
+  const [storeName,    setStoreName]    = useState('');
+  const [storeBio,     setStoreBio]     = useState('');
+  const [storeBanner,  setStoreBanner]  = useState('');
+  const [storeTheme,   setStoreTheme]   = useState('Bold');
+  const [storeLinks,   setStoreLinks]   = useState<StoreLink[]>([]);
+  const [storeSaving,  setStoreSaving]  = useState(false);
+  const [storeSuccess, setStoreSuccess] = useState('');
+  const [storeError,   setStoreError]   = useState('');
+
   useEffect(() => {
     const token = localStorage.getItem('gyedi_token');
     if (!token) { window.location.href = '/login'; return; }
@@ -99,6 +114,11 @@ export default function ProfilePage() {
           setShowWhatsapp(d.user.showWhatsapp ?? false);
           setBizPhone(d.user.businessPhone ?? '');
           setBizEmail(d.user.businessEmail ?? '');
+          setStoreName(d.user.storeName ?? '');
+          setStoreBio(d.user.storeBio ?? '');
+          setStoreBanner(d.user.storeBanner ?? '');
+          setStoreTheme(d.user.storeTheme ?? 'Bold');
+          setStoreLinks(Array.isArray(d.user.storeLinks) ? d.user.storeLinks : []);
           localStorage.setItem('gyedi_user', JSON.stringify(d.user));
         } else {
           setError('Could not load profile');
@@ -135,6 +155,36 @@ export default function ProfilePage() {
       setSaveError(err instanceof Error ? err.message : 'Failed to save');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function saveStoreSettings() {
+    const token = localStorage.getItem('gyedi_token');
+    if (!token) return;
+    setStoreSaving(true);
+    setStoreError('');
+    setStoreSuccess('');
+    try {
+      const res = await fetch(`${API}/users`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          storeName:   storeName.trim() || null,
+          storeBio:    storeBio.trim() || null,
+          storeBanner: storeBanner.trim() || null,
+          storeTheme,
+          storeLinks:  storeLinks.filter(l => l.url.trim()),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Failed to save');
+      setUser(data.user);
+      setStoreSuccess('Store saved');
+      setTimeout(() => setStoreSuccess(''), 2500);
+    } catch (err: unknown) {
+      setStoreError(err instanceof Error ? err.message : 'Failed to save');
+    } finally {
+      setStoreSaving(false);
     }
   }
 
@@ -277,6 +327,107 @@ export default function ProfilePage() {
                   className="w-full bg-[#1B4332] text-white font-bold py-3 rounded-xl text-sm hover:bg-[#0F2B1F] transition-colors disabled:opacity-50 active:scale-[0.98]"
                 >
                   {saving ? 'Saving…' : 'Save Contact Settings'}
+                </button>
+              </div>
+            </div>
+
+            {/* My Store */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden border-l-4 border-l-[#1B4332]">
+              <div className="px-5 py-3 border-b border-gray-50 flex items-center justify-between">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">My Store</p>
+                <a href={`/store/${user.id}`} target="_blank" rel="noopener noreferrer"
+                  className="text-xs text-[#1B4332] font-semibold hover:underline">View Store →</a>
+              </div>
+
+              <div className="px-5 py-5 space-y-4">
+                {/* Store URL */}
+                <div className="bg-gray-50 rounded-xl px-4 py-3 flex items-center gap-2">
+                  <span className="text-xs text-gray-400">🔗 Store URL:</span>
+                  <span className="text-xs font-mono text-[#1B4332] truncate">
+                    {typeof window !== 'undefined' ? window.location.origin : 'https://gyedi.com'}/store/{user.id}
+                  </span>
+                </div>
+
+                {/* Store name */}
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">Store Name</label>
+                  <input value={storeName} onChange={e => setStoreName(e.target.value)}
+                    maxLength={60}
+                    placeholder={`${user.firstName} ${user.lastName}`}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332]" />
+                </div>
+
+                {/* Bio */}
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">
+                    Store Bio <span className="text-gray-300">({storeBio.length}/300)</span>
+                  </label>
+                  <textarea value={storeBio} onChange={e => setStoreBio(e.target.value.slice(0, 300))}
+                    rows={3} placeholder="Describe your store, what you sell…"
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] resize-none" />
+                </div>
+
+                {/* Banner URL */}
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">Banner Image URL</label>
+                  <input value={storeBanner} onChange={e => setStoreBanner(e.target.value)}
+                    type="url" placeholder="https://..."
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332]" />
+                </div>
+
+                {/* Theme */}
+                <div>
+                  <label className="text-xs text-gray-500 block mb-2">Store Theme</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(['Minimal', 'Bold', 'Warm', 'Professional'] as const).map(th => {
+                      const colours: Record<string, string> = {
+                        Minimal:      'from-gray-100 to-gray-200',
+                        Bold:         'from-[#1B4332] to-[#0F2B1F]',
+                        Warm:         'from-amber-700 to-orange-900',
+                        Professional: 'from-slate-700 to-slate-900',
+                      };
+                      return (
+                        <button key={th} onClick={() => setStoreTheme(th)}
+                          className={`relative h-14 rounded-xl bg-gradient-to-br ${colours[th]} flex items-end p-2 transition-all ${storeTheme === th ? 'ring-2 ring-[#F5A623] ring-offset-1' : 'opacity-70 hover:opacity-100'}`}>
+                          <span className="text-white text-xs font-bold">{th}</span>
+                          {storeTheme === th && <span className="absolute top-2 right-2 text-[#F5A623] text-xs">✓</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Social links */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs text-gray-500">Social Links (up to 3)</label>
+                    {storeLinks.length < 3 && (
+                      <button onClick={() => setStoreLinks(l => [...l, { label: '', url: '' }])}
+                        className="text-xs text-[#1B4332] font-semibold hover:underline">+ Add Link</button>
+                    )}
+                  </div>
+                  {storeLinks.map((link, i) => (
+                    <div key={i} className="flex gap-2 mb-2">
+                      <input value={link.label}
+                        onChange={e => setStoreLinks(ls => ls.map((l, j) => j === i ? { ...l, label: e.target.value } : l))}
+                        placeholder="Label" maxLength={30}
+                        className="w-24 border border-gray-200 rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#1B4332]" />
+                      <input value={link.url}
+                        onChange={e => setStoreLinks(ls => ls.map((l, j) => j === i ? { ...l, url: e.target.value } : l))}
+                        placeholder="https://..." type="url"
+                        className="flex-1 border border-gray-200 rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#1B4332]" />
+                      <button onClick={() => setStoreLinks(ls => ls.filter((_, j) => j !== i))}
+                        className="text-red-400 hover:text-red-600 px-2 text-sm">✕</button>
+                    </div>
+                  ))}
+                </div>
+
+                {storeError   && <p className="text-xs text-red-500">{storeError}</p>}
+                {storeSuccess && <p className="text-xs text-green-600">✓ {storeSuccess}</p>}
+
+                <button onClick={saveStoreSettings} disabled={storeSaving}
+                  className="w-full bg-[#1B4332] text-white font-bold py-3 rounded-xl text-sm hover:bg-[#0F2B1F] transition-colors disabled:opacity-50 active:scale-[0.98]">
+                  {storeSaving ? 'Saving…' : 'Save Store Settings'}
                 </button>
               </div>
             </div>
