@@ -109,6 +109,9 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 sellerId={seller.id}
                 listingTitle={listing.title}
                 amount={parseFloat(listing.price.toString())}
+                description={listing.description ?? undefined}
+                deliveryDays={listing.deliveryDays ?? undefined}
+                listingId={listing.id}
               />
             </div>
 
