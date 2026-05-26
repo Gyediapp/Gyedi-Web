@@ -137,6 +137,15 @@ function ActionPanel({
   const [showDispute, setShowDispute]               = useState(false);
   const [disputeReason, setDisputeReason]           = useState('');
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
+  const [releaseChecked, setReleaseChecked]         = useState(false);
+  const [allowEarlyRelease, setAllowEarlyRelease]   = useState(true);
+
+  useEffect(() => {
+    fetch(`${API}/config/public`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d && d.allowEarlyRelease === false) setAllowEarlyRelease(false); })
+      .catch(() => {});
+  }, []);
 
   const isBuyer  = myId === escrow.buyerId;
   const isSeller = myId === escrow.sellerId;
@@ -233,7 +242,7 @@ function ActionPanel({
       )}
 
       {/* Buyer: release early */}
-      {isBuyer && status === 'FUNDED' && !showReleaseConfirm && (
+      {isBuyer && status === 'FUNDED' && allowEarlyRelease && !showReleaseConfirm && (
         <button
           onClick={() => setShowReleaseConfirm(true)}
           disabled={!!loading}
@@ -243,26 +252,41 @@ function ActionPanel({
         </button>
       )}
 
-      {isBuyer && status === 'FUNDED' && showReleaseConfirm && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3">
-          <p className="text-amber-800 font-semibold text-sm">Release funds early?</p>
-          <p className="text-amber-700 text-xs leading-relaxed">
-            This skips shipping verification and immediately releases funds to the seller. Only do this if you trust the seller and have already received your item.
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowReleaseConfirm(false)}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-600 bg-white border border-gray-200"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => { setShowReleaseConfirm(false); action('release', 'PATCH', {}); }}
-              disabled={!!loading}
-              className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white bg-[#1B4332] disabled:opacity-50"
-            >
-              {loading === 'release' ? 'Releasing…' : 'Yes, Release'}
-            </button>
+      {isBuyer && status === 'FUNDED' && allowEarlyRelease && showReleaseConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => { setShowReleaseConfirm(false); setReleaseChecked(false); }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4" onClick={e => e.stopPropagation()}>
+            <div className="flex flex-col items-center gap-3 text-center">
+              <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center text-3xl">⚠️</div>
+              <h2 className="text-lg font-bold text-gray-900">Release Early?</h2>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Only release early if you have already received your item or fully trust this seller.
+                Once released, this cannot be undone and no refund can be requested.
+              </p>
+            </div>
+            <label className="flex items-start gap-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={releaseChecked}
+                onChange={e => setReleaseChecked(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded border-gray-300 accent-[#1B4332] cursor-pointer flex-shrink-0"
+              />
+              <span className="text-sm text-gray-700 font-medium">I understand this cannot be undone</span>
+            </label>
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => { setShowReleaseConfirm(false); setReleaseChecked(false); }}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold border-2 border-[#1B4332] text-[#1B4332] bg-white hover:bg-green-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { setShowReleaseConfirm(false); setReleaseChecked(false); action('release', 'PATCH', {}); }}
+                disabled={!releaseChecked || !!loading}
+                className="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading === 'release' ? 'Releasing…' : 'Release Early'}
+              </button>
+            </div>
           </div>
         </div>
       )}
