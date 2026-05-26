@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import BottomNav from '@/components/BottomNav';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
@@ -35,11 +34,11 @@ function FeeBreakdown({ amount }: { amount: number }) {
         <div className="h-px bg-gray-100 my-1" />
         <div className="flex justify-between text-sm">
           <span className="font-bold text-gray-900">You Pay Total</span>
-          <span className="font-black text-[#1B4332] text-base">GHS {fmt(total)}</span>
+          <span className="font-black text-[#F5A623] text-base">GHS {fmt(total)}</span>
         </div>
         <div className="flex justify-between text-sm text-gray-500">
           <span>Seller Receives</span>
-          <span className="font-semibold text-[#F5A623]">GHS {fmt(sellerGets)}</span>
+          <span className="font-semibold text-[#1B4332]">GHS {fmt(sellerGets)}</span>
         </div>
       </div>
     </div>
@@ -145,25 +144,6 @@ function SummaryView({
 
       {/* Fee breakdown */}
       <FeeBreakdown amount={amount} />
-
-      {/* Read-only fields with grey bg */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
-        <p className="text-xs font-black text-gray-400 uppercase tracking-wider">Transaction Details</p>
-        <div>
-          <p className="text-xs text-gray-400 mb-1">Title</p>
-          <p className="text-sm font-semibold text-gray-700 bg-gray-50 rounded-xl px-3 py-2.5">{title}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-400 mb-1">Amount</p>
-          <p className="text-sm font-semibold text-gray-700 bg-gray-50 rounded-xl px-3 py-2.5">GHS {fmt(amount)}</p>
-        </div>
-        {deliveryDays && (
-          <div>
-            <p className="text-xs text-gray-400 mb-1">Delivery Window</p>
-            <p className="text-sm font-semibold text-gray-700 bg-gray-50 rounded-xl px-3 py-2.5">{deliveryDays} day{deliveryDays !== 1 ? 's' : ''}</p>
-          </div>
-        )}
-      </div>
 
       {/* Note to seller */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
