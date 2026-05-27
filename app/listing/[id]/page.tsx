@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import BuyNowButton from '@/components/BuyNowButton';
 import MessageSellerButton from '@/components/MessageSellerButton';
 import LikeButton from '@/components/LikeButton';
+import ListingShareButton from '@/components/ListingShareButton';
 import CommentsSection from '@/components/CommentsSection';
 
 const COUNTRY_FLAG: Record<string, string> = {
@@ -106,8 +107,9 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
               <p className="text-4xl font-black text-[#1B4332] mt-4">
                 GHS {parseFloat(listing.price.toString()).toLocaleString('en-GH', { minimumFractionDigits: 2 })}
               </p>
-              <div className="mt-3">
+              <div className="mt-3 flex items-center gap-3 flex-wrap">
                 <LikeButton listingId={listing.id} />
+                <ListingShareButton listingId={listing.id} title={listing.title} />
               </div>
             </div>
 
