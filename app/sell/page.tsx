@@ -35,6 +35,24 @@ function fmtFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
 }
 
+function friendlyError(raw: string): string {
+  if (!raw) return 'Something went wrong — please try again.';
+  const r = raw.toLowerCase();
+  if (r.includes('unauthorized') || r.includes('not authorized') || r.includes('401'))
+    return 'Session expired — please sign out and back in.';
+  if (r.includes('too large') || r.includes('413') || r.includes('5 mb') || r.includes('exceeds'))
+    return 'That photo is too large — max 5 MB per image.';
+  if (r.includes('unsupported') || r.includes('type') || r.includes('jpg') || r.includes('png'))
+    return 'Unsupported file type — use JPG, PNG or WebP.';
+  if (r.includes('storage url') || r.includes('not configured') || r.includes('service key'))
+    return 'Photo storage is temporarily unavailable — please try again shortly.';
+  if (r.includes('network') || r.includes('fetch failed') || r.includes('econnrefused') || r.includes('failed to fetch'))
+    return 'Network error — check your connection and try again.';
+  if (r.includes('timeout') || r.includes('timed out'))
+    return 'Upload timed out — check your connection and retry.';
+  return raw;
+}
+
 async function uploadFileWithProgress(
   file: File,
   _path: string,
@@ -63,14 +81,13 @@ async function uploadFileWithProgress(
     clearInterval(ticker);
 
     if (!res.ok) {
-      let msg = `Upload failed (${res.status})`;
+      let raw = `Upload failed (${res.status})`;
       try {
         const body = await res.json() as Record<string, string>;
-        if (body.error) msg = body.error;
+        if (body.error) raw = body.error;
       } catch {}
-      if (res.status === 401) msg = 'Not authorized — try signing out and back in';
-      if (res.status === 413) msg = 'File is too large for the server';
-      console.error('[sell] upload error:', msg);
+      const msg = friendlyError(raw);
+      console.error('[sell] upload error:', raw);
       throw new Error(msg);
     }
 
@@ -112,6 +129,10 @@ export default function SellPage() {
   const [cropZoom,     setCropZoom]     = useState(1);
   const [cropAspect,   setCropAspect]   = useState(1);
   const [croppedArea,  setCroppedArea]  = useState<Area | null>(null);
+  const [title,        setTitle]        = useState('');
+  const [description,  setDescription]  = useState('');
+  const [price,        setPrice]        = useState('');
+  const [category,     setCategory]     = useState('');
   const [uploadStatus, setUploadStatus] = useState('');
   const [loading,      setLoading]      = useState(false);
   const [error,        setError]        = useState('');
@@ -299,7 +320,7 @@ export default function SellPage() {
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Upload failed';
         setImages(prev => prev.map(j => j.id === img.id ? { ...j, progress: undefined, error: msg } : j));
-        setError(`Photo ${i + 1} failed: ${msg} — use the retry button, then submit again.`);
+        setError(`Photo ${i + 1} failed: ${friendlyError(msg)} — use the retry button, then submit again.`);
         setLoading(false);
         setUploadStatus('');
         return;
@@ -311,13 +332,12 @@ export default function SellPage() {
     // Collect URLs in display order
     const imageUrls = images.map(img => urlMap.get(img.id)).filter(Boolean) as string[];
 
-    const fd = new FormData(e.currentTarget);
     const body = {
-      title:       fd.get('title'),
-      description: fd.get('description'),
-      price:       parseFloat(fd.get('price') as string),
-      category:    fd.get('category'),
-      images:      imageUrls,
+      title,
+      description,
+      price: parseFloat(price),
+      category,
+      images: imageUrls,
     };
 
     try {
@@ -331,7 +351,10 @@ export default function SellPage() {
       setSuccess('Your listing is now live on the marketplace!');
       images.forEach(img => URL.revokeObjectURL(img.objectUrl));
       setImages([]);
-      (e.target as HTMLFormElement).reset();
+      setTitle('');
+      setDescription('');
+      setPrice('');
+      setCategory('');
     } catch (err) {
       // Don't reset form — preserve title/description/price/category for retry
       setError(err instanceof Error
@@ -556,8 +579,8 @@ export default function SellPage() {
                         {img.file.size > WARN_SIZE_MB * 1024 * 1024 && ' ⚠'}
                       </span>
 
-                      {/* X remove (hidden while uploading) */}
-                      {img.progress === undefined && !img.error && (
+                      {/* X remove — always visible */}
+                      {!img.error && (
                         <button type="button" onClick={() => removeImage(img.id)}
                           className="absolute top-1.5 right-1.5 w-5 h-5 bg-black/70 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs leading-none z-10 transition-colors">
                           ×
@@ -634,13 +657,14 @@ export default function SellPage() {
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1.5">Title *</label>
               <input name="title" required maxLength={200} placeholder="e.g. iPhone 14 Pro Max 256GB"
+                value={title} onChange={e => setTitle(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] transition-colors" />
             </div>
 
             {/* ── Category ── */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1.5">Category *</label>
-              <select name="category" required defaultValue=""
+              <select name="category" required value={category} onChange={e => setCategory(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] transition-colors">
                 <option value="" disabled>Select a category</option>
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
@@ -653,6 +677,7 @@ export default function SellPage() {
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold select-none">GHS</span>
                 <input name="price" type="number" required min="1" step="0.01" placeholder="0.00"
+                  value={price} onChange={e => setPrice(e.target.value)}
                   className="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] transition-colors" />
               </div>
             </div>
@@ -662,6 +687,7 @@ export default function SellPage() {
               <label className="block text-sm font-bold text-gray-700 mb-1.5">Description *</label>
               <textarea name="description" required rows={5}
                 placeholder="Describe your item — condition, what's included, any defects…"
+                value={description} onChange={e => setDescription(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] transition-colors" />
             </div>
 

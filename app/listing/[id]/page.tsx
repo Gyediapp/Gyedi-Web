@@ -8,6 +8,7 @@ import ListingShareButton from '@/components/ListingShareButton';
 import FavouriteButton from '@/components/FavouriteButton';
 import AddToCartButton from '@/components/AddToCartButton';
 import CommentsSection from '@/components/CommentsSection';
+import EditListingButton from '@/components/EditListingButton';
 
 const COUNTRY_FLAG: Record<string, string> = {
   GH: '🇬🇭', NG: '🇳🇬', GB: '🇬🇧', DE: '🇩🇪',
@@ -110,6 +111,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 GHS {parseFloat(listing.price.toString()).toLocaleString('en-GH', { minimumFractionDigits: 2 })}
               </p>
               <div className="mt-3 flex items-center gap-3 flex-wrap">
+                <EditListingButton listingId={listing.id} sellerId={seller.id} />
                 <LikeButton listingId={listing.id} />
                 <FavouriteButton listingId={listing.id} />
                 <AddToCartButton
