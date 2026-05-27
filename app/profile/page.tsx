@@ -1,9 +1,45 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import BottomNav from '@/components/BottomNav';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
+const API         = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const BUCKET       = 'banners';
+
+function fmtFileSize(bytes: number) {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+}
+
+async function uploadBanner(file: File, onProgress: (p: number) => void): Promise<string> {
+  const path     = `${Date.now()}-${Math.random().toString(36).slice(2)}.${file.name.split('.').pop() ?? 'jpg'}`;
+  const endpoint = `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`;
+  return new Promise<string>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', endpoint);
+    xhr.setRequestHeader('Authorization', `Bearer ${SUPABASE_KEY}`);
+    xhr.setRequestHeader('Content-Type', file.type);
+    xhr.setRequestHeader('x-upsert', 'true');
+    xhr.timeout = 60_000;
+    xhr.upload.onprogress = e => { if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 95)); };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        onProgress(100);
+        resolve(`${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`);
+        return;
+      }
+      let msg = `Upload failed (${xhr.status})`;
+      try { const b = JSON.parse(xhr.responseText); if (b.error) msg = b.error; } catch {}
+      if (xhr.status === 403) msg = 'Not authorized';
+      reject(new Error(msg));
+    };
+    xhr.onerror   = () => reject(new Error('Network error'));
+    xhr.ontimeout = () => reject(new Error('Upload timed out'));
+    xhr.send(file);
+  });
+}
 
 type StoreLink = { label: string; url: string };
 
@@ -88,14 +124,18 @@ export default function ProfilePage() {
   const [bizEmail,      setBizEmail]      = useState('');
 
   // store state
-  const [storeName,    setStoreName]    = useState('');
-  const [storeBio,     setStoreBio]     = useState('');
-  const [storeBanner,  setStoreBanner]  = useState('');
-  const [storeTheme,   setStoreTheme]   = useState('Bold');
-  const [storeLinks,   setStoreLinks]   = useState<StoreLink[]>([]);
-  const [storeSaving,  setStoreSaving]  = useState(false);
-  const [storeSuccess, setStoreSuccess] = useState('');
-  const [storeError,   setStoreError]   = useState('');
+  const [storeName,       setStoreName]       = useState('');
+  const [storeBio,        setStoreBio]        = useState('');
+  const [storeBanner,     setStoreBanner]     = useState('');
+  const [storeTheme,      setStoreTheme]      = useState('Bold');
+  const [storeLinks,      setStoreLinks]      = useState<StoreLink[]>([]);
+  const [storeSaving,     setStoreSaving]     = useState(false);
+  const [storeSuccess,    setStoreSuccess]    = useState('');
+  const [storeError,      setStoreError]      = useState('');
+  const [bannerUploading, setBannerUploading] = useState(false);
+  const [bannerProgress,  setBannerProgress]  = useState(0);
+  const [bannerError,     setBannerError]     = useState('');
+  const bannerRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('gyedi_token');
@@ -185,6 +225,31 @@ export default function ProfilePage() {
       setStoreError(err instanceof Error ? err.message : 'Failed to save');
     } finally {
       setStoreSaving(false);
+    }
+  }
+
+  async function handleBannerFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+      setBannerError('Use JPG, PNG or WebP');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setBannerError(`${fmtFileSize(file.size)} — max 5MB`);
+      return;
+    }
+    setBannerError('');
+    setBannerUploading(true);
+    setBannerProgress(0);
+    try {
+      const url = await uploadBanner(file, setBannerProgress);
+      setStoreBanner(url);
+    } catch (err) {
+      setBannerError(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setBannerUploading(false);
+      e.target.value = '';
     }
   }
 
@@ -367,12 +432,45 @@ export default function ProfilePage() {
                     className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] resize-none" />
                 </div>
 
-                {/* Banner URL */}
+                {/* Banner Image Upload */}
                 <div>
-                  <label className="text-xs text-gray-500 block mb-1">Banner Image URL</label>
-                  <input value={storeBanner} onChange={e => setStoreBanner(e.target.value)}
-                    type="url" placeholder="https://..."
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332]" />
+                  <label className="text-xs text-gray-500 block mb-1.5">Banner Image</label>
+
+                  {/* Preview */}
+                  {storeBanner ? (
+                    <div className="relative rounded-xl overflow-hidden mb-2 border border-gray-100">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={storeBanner} alt="banner" className="w-full h-24 object-cover" />
+                      <button type="button" onClick={() => setStoreBanner('')}
+                        className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/70 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs transition-colors">
+                        ×
+                      </button>
+                    </div>
+                  ) : null}
+
+                  {/* Upload button + progress */}
+                  {bannerUploading ? (
+                    <div className="border border-gray-200 rounded-xl px-3 py-2.5">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <div className="w-3 h-3 border-2 border-[#1B4332] border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                        <span className="text-xs text-[#1B4332] font-semibold">Uploading… {bannerProgress}%</span>
+                      </div>
+                      <div className="h-1 bg-gray-100 rounded-full">
+                        <div className="h-1 bg-[#1B4332] rounded-full transition-all" style={{ width: `${bannerProgress}%` }} />
+                      </div>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => bannerRef.current?.click()}
+                      className="w-full border-2 border-dashed border-gray-200 rounded-xl py-3 flex items-center justify-center gap-2 text-xs font-semibold text-gray-500 hover:border-[#1B4332] hover:text-[#1B4332] transition-colors">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      {storeBanner ? 'Replace banner' : 'Upload banner'} · JPG, PNG or WebP · max 5MB
+                    </button>
+                  )}
+                  {bannerError && <p className="text-xs text-red-500 mt-1">{bannerError}</p>}
+                  <input ref={bannerRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp"
+                    className="hidden" onChange={handleBannerFile} />
                 </div>
 
                 {/* Theme */}
