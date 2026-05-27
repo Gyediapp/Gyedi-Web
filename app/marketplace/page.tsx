@@ -66,7 +66,7 @@ export default async function MarketplacePage({
       sort === 'popular'    ? { views: 'desc' }  :
       { createdAt: 'desc' },
     include: {
-      seller: { select: { firstName: true, lastName: true, averageRating: true } },
+      seller: { select: { id: true, firstName: true, lastName: true, averageRating: true } },
     },
     take: 48,
   });
@@ -229,6 +229,7 @@ export default async function MarketplacePage({
                 country={l.country}
                 storeType={l.storeType}
                 views={l.views}
+                sellerId={l.seller.id}
                 sellerName={`${l.seller.firstName} ${l.seller.lastName}`}
                 sellerRating={l.seller.averageRating ? parseFloat(l.seller.averageRating.toString()) : null}
                 condition={l.condition}

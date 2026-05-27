@@ -1,17 +1,23 @@
+'use client';
+
 import Link from 'next/link';
+import FavouriteButton from '@/components/FavouriteButton';
+import { useCart } from '@/context/CartContext';
+import { useState } from 'react';
 
 interface ListingCardProps {
-  id: string;
-  title: string;
-  price: string | number;
-  images: string[];
-  category: string;
-  country: string;
-  storeType: string;
-  views: number;
-  sellerName: string;
+  id:           string;
+  title:        string;
+  price:        string | number;
+  images:       string[];
+  category:     string;
+  country:      string;
+  storeType:    string;
+  views:        number;
+  sellerName:   string;
+  sellerId:     string;
   sellerRating?: number | null;
-  condition?: string;
+  condition?:   string;
 }
 
 const COUNTRY_FLAG: Record<string, string> = {
@@ -21,9 +27,25 @@ const COUNTRY_FLAG: Record<string, string> = {
 
 export default function ListingCard({
   id, title, price, images, category, country,
-  storeType, views, sellerName, sellerRating, condition,
+  storeType, views, sellerName, sellerId, sellerRating, condition,
 }: ListingCardProps) {
-  const thumb = images[0] ?? null;
+  const { addItem, removeItem, isInCart } = useCart();
+  const [flash, setFlash] = useState(false);
+  const thumb  = images[0] ?? null;
+  const inCart = isInCart(id);
+  const numPrice = parseFloat(price.toString());
+
+  function handleCart(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (inCart) {
+      removeItem(id);
+    } else {
+      addItem({ id, title, price: numPrice, image: thumb, sellerName, sellerId, condition });
+      setFlash(true);
+      setTimeout(() => setFlash(false), 1500);
+    }
+  }
 
   return (
     <Link
@@ -44,6 +66,8 @@ export default function ListingCard({
             </svg>
           </div>
         )}
+
+        {/* Condition badge */}
         {condition && (
           <span className={`absolute top-2.5 left-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm ${
             condition === 'USED' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
@@ -51,8 +75,10 @@ export default function ListingCard({
             {condition === 'USED' ? 'USED' : 'NEW'}
           </span>
         )}
+
+        {/* Store type badge */}
         {storeType !== 'BASIC' && (
-          <span className={`absolute top-2.5 right-2.5 text-xs font-bold px-2.5 py-0.5 rounded-full shadow-sm ${
+          <span className={`absolute top-2.5 ${condition ? 'right-2.5' : 'left-2.5'} text-xs font-bold px-2.5 py-0.5 rounded-full shadow-sm ${
             storeType === 'BUSINESS'
               ? 'bg-[#1B4332] text-white'
               : 'bg-[#F5A623] text-[#1B4332]'
@@ -60,6 +86,11 @@ export default function ListingCard({
             {storeType === 'BUSINESS' ? '✦ Business' : '★ Pro'}
           </span>
         )}
+
+        {/* Favourite heart — top right */}
+        <div className="absolute top-2.5 right-2.5">
+          <FavouriteButton listingId={id} compact />
+        </div>
       </div>
 
       <div className="p-3 sm:p-4">
@@ -69,9 +100,29 @@ export default function ListingCard({
         <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-[#1B4332] transition-colors">
           {title}
         </h3>
-        <p className="text-[#1B4332] font-black text-base sm:text-lg mt-1.5 sm:mt-2">
-          GHS {parseFloat(price.toString()).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </p>
+        <div className="flex items-center justify-between mt-1.5 sm:mt-2">
+          <p className="text-[#1B4332] font-black text-base sm:text-lg">
+            GHS {numPrice.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+          {/* Cart toggle */}
+          <button
+            onClick={handleCart}
+            title={inCart ? 'Remove from cart' : 'Add to cart'}
+            className={`p-1.5 rounded-lg transition-all ${
+              flash ? 'text-green-600' : inCart ? 'text-[#F5A623]' : 'text-gray-300 hover:text-[#1B4332]'
+            }`}
+          >
+            {flash ? (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill={inCart ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            )}
+          </button>
+        </div>
         <div className="flex items-center justify-between mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-gray-100">
           <span className="text-xs text-gray-500 font-medium truncate max-w-[90px] sm:max-w-[110px]">{sellerName}</span>
           <div className="flex items-center gap-1.5 shrink-0">

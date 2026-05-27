@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import { CartProvider } from '@/context/CartContext';
 
 const PWA_PREFIXES = ['/dashboard', '/escrow', '/wallet', '/history', '/profile', '/login', '/register', '/send'];
 
@@ -15,10 +16,10 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   }
 
   return (
-    <>
+    <CartProvider>
       <Navbar />
       <main className="flex-1">{children}</main>
       <Footer />
-    </>
+    </CartProvider>
   );
 }

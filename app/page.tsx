@@ -97,7 +97,7 @@ async function getFeaturedListings() {
       where: { status: 'ACTIVE' },
       orderBy: { views: 'desc' },
       take: 8,
-      include: { seller: { select: { firstName: true, lastName: true, averageRating: true } } },
+      include: { seller: { select: { id: true, firstName: true, lastName: true, averageRating: true } } },
     });
   } catch {
     return [];
@@ -268,6 +268,7 @@ export default async function HomePage() {
                   country={l.country}
                   storeType={l.storeType}
                   views={l.views}
+                  sellerId={l.seller.id}
                   sellerName={`${l.seller.firstName} ${l.seller.lastName}`}
                   sellerRating={l.seller.averageRating ? parseFloat(l.seller.averageRating.toString()) : null}
                 />

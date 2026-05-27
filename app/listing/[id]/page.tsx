@@ -5,6 +5,8 @@ import BuyNowButton from '@/components/BuyNowButton';
 import MessageSellerButton from '@/components/MessageSellerButton';
 import LikeButton from '@/components/LikeButton';
 import ListingShareButton from '@/components/ListingShareButton';
+import FavouriteButton from '@/components/FavouriteButton';
+import AddToCartButton from '@/components/AddToCartButton';
 import CommentsSection from '@/components/CommentsSection';
 
 const COUNTRY_FLAG: Record<string, string> = {
@@ -109,6 +111,16 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
               </p>
               <div className="mt-3 flex items-center gap-3 flex-wrap">
                 <LikeButton listingId={listing.id} />
+                <FavouriteButton listingId={listing.id} />
+                <AddToCartButton
+                  listingId={listing.id}
+                  title={listing.title}
+                  price={parseFloat(listing.price.toString())}
+                  image={listing.images[0] ?? null}
+                  sellerId={seller.id}
+                  sellerName={sellerName}
+                  condition={listing.condition ?? undefined}
+                />
                 <ListingShareButton listingId={listing.id} title={listing.title} />
               </div>
             </div>
