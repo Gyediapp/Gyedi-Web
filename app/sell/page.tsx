@@ -37,46 +37,50 @@ function fmtFileSize(bytes: number): string {
 
 async function uploadFileWithProgress(
   file: File,
-  path: string,
+  _path: string,
   onProgress: (pct: number) => void,
+  token: string,
 ): Promise<string> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-  const endpoint    = `${supabaseUrl}/storage/v1/object/${BUCKET}/${path}`;
+  onProgress(5);
 
-  return new Promise<string>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', endpoint);
-    xhr.setRequestHeader('Authorization', `Bearer ${supabaseKey}`);
-    xhr.setRequestHeader('Content-Type', file.type);
-    xhr.setRequestHeader('x-upsert', 'false');
-    xhr.timeout = 60_000;
+  // Animate fake progress while the server streams to Supabase
+  let fake = 5;
+  const ticker = setInterval(() => {
+    fake = Math.min(fake + Math.random() * 15, 88);
+    onProgress(Math.round(fake));
+  }, 450);
 
-    xhr.upload.onprogress = e => {
-      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 95));
-    };
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('bucket', BUCKET);
 
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        onProgress(100);
-        resolve(`${supabaseUrl}/storage/v1/object/public/${BUCKET}/${path}`);
-        return;
-      }
-      let msg = `Upload failed (${xhr.status})`;
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: fd,
+    });
+    clearInterval(ticker);
+
+    if (!res.ok) {
+      let msg = `Upload failed (${res.status})`;
       try {
-        const body = JSON.parse(xhr.responseText);
-        if (body.error)   msg = body.error;
-        else if (body.message) msg = body.message;
+        const body = await res.json() as Record<string, string>;
+        if (body.error) msg = body.error;
       } catch {}
-      if (xhr.status === 403) msg = 'Not authorized — try signing out and back in';
-      if (xhr.status === 413) msg = 'File is too large for the server';
-      reject(new Error(msg));
-    };
+      if (res.status === 401) msg = 'Not authorized — try signing out and back in';
+      if (res.status === 413) msg = 'File is too large for the server';
+      console.error('[sell] upload error:', msg);
+      throw new Error(msg);
+    }
 
-    xhr.onerror   = () => reject(new Error('Network error — check your connection'));
-    xhr.ontimeout = () => reject(new Error('Upload timed out — try again'));
-    xhr.send(file);
-  });
+    const data = await res.json() as { publicUrl: string };
+    onProgress(100);
+    return data.publicUrl;
+  } catch (err) {
+    clearInterval(ticker);
+    throw err;
+  }
 }
 
 async function getCroppedBlob(imageSrc: string, pixelCrop: Area, mimeType = 'image/jpeg'): Promise<Blob> {
@@ -243,12 +247,14 @@ export default function SellPage() {
   async function retryUpload(id: string) {
     const img = images.find(i => i.id === id);
     if (!img || img.publicUrl) return;
+    if (!token) return;
     setImages(prev => prev.map(i => i.id === id ? { ...i, error: undefined, progress: 0 } : i));
     const ext  = img.file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
     const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     try {
       const publicUrl = await uploadFileWithProgress(img.file, path, pct =>
         setImages(prev => prev.map(i => i.id === id ? { ...i, progress: pct } : i)),
+        token,
       );
       setImages(prev => prev.map(i => i.id === id ? { ...i, publicUrl, progress: undefined, error: undefined } : i));
     } catch (err) {
@@ -286,6 +292,7 @@ export default function SellPage() {
       try {
         const publicUrl = await uploadFileWithProgress(img.file, path, pct =>
           setImages(prev => prev.map(j => j.id === img.id ? { ...j, progress: pct } : j)),
+          token,
         );
         urlMap.set(img.id, publicUrl);
         setImages(prev => prev.map(j => j.id === img.id ? { ...j, publicUrl, progress: undefined } : j));

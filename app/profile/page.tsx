@@ -3,10 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import BottomNav from '@/components/BottomNav';
 
-const API         = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const BUCKET       = 'banners';
+const API    = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
+const BUCKET = 'banners';
 
 function fmtFileSize(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)}KB`;
@@ -14,31 +12,46 @@ function fmtFileSize(bytes: number) {
 }
 
 async function uploadBanner(file: File, onProgress: (p: number) => void): Promise<string> {
-  const path     = `${Date.now()}-${Math.random().toString(36).slice(2)}.${file.name.split('.').pop() ?? 'jpg'}`;
-  const endpoint = `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`;
-  return new Promise<string>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', endpoint);
-    xhr.setRequestHeader('Authorization', `Bearer ${SUPABASE_KEY}`);
-    xhr.setRequestHeader('Content-Type', file.type);
-    xhr.setRequestHeader('x-upsert', 'true');
-    xhr.timeout = 60_000;
-    xhr.upload.onprogress = e => { if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 95)); };
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        onProgress(100);
-        resolve(`${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`);
-        return;
-      }
-      let msg = `Upload failed (${xhr.status})`;
-      try { const b = JSON.parse(xhr.responseText); if (b.error) msg = b.error; } catch {}
-      if (xhr.status === 403) msg = 'Not authorized';
-      reject(new Error(msg));
-    };
-    xhr.onerror   = () => reject(new Error('Network error'));
-    xhr.ontimeout = () => reject(new Error('Upload timed out'));
-    xhr.send(file);
-  });
+  const token = typeof window !== 'undefined' ? localStorage.getItem('gyedi_token') : null;
+  if (!token) throw new Error('Not signed in');
+
+  onProgress(5);
+  let fake = 5;
+  const ticker = setInterval(() => {
+    fake = Math.min(fake + Math.random() * 15, 88);
+    onProgress(Math.round(fake));
+  }, 450);
+
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('bucket', BUCKET);
+
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: fd,
+    });
+    clearInterval(ticker);
+
+    if (!res.ok) {
+      let msg = `Upload failed (${res.status})`;
+      try {
+        const body = await res.json() as Record<string, string>;
+        if (body.error) msg = body.error;
+      } catch {}
+      if (res.status === 401) msg = 'Not authorized';
+      console.error('[profile] banner upload error:', msg);
+      throw new Error(msg);
+    }
+
+    const data = await res.json() as { publicUrl: string };
+    onProgress(100);
+    return data.publicUrl;
+  } catch (err) {
+    clearInterval(ticker);
+    throw err;
+  }
 }
 
 type StoreLink = { label: string; url: string };
