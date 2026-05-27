@@ -127,21 +127,21 @@ async function getCategoryStats(): Promise<Record<string, number>> {
 async function getTestimonials() {
   try {
     const reviews = await (prisma as any).storeReview.findMany({
-      where: { rating: { gte: 4 }, comment: { not: null } },
-      orderBy: { rating: 'desc' },
+      where: { stars: { gte: 4 }, body: { not: null } },
+      orderBy: { stars: 'desc' },
       take: 3,
       include: {
         reviewer: { select: { firstName: true, lastName: true } },
-        store:    { select: { storeName: true, firstName: true, lastName: true } },
+        seller:   { select: { storeName: true, firstName: true, lastName: true } },
       },
     });
     if (!reviews || reviews.length === 0) return null;
     return reviews.map((r: any) => ({
       name:   `${r.reviewer.firstName} ${r.reviewer.lastName}`,
-      role:   r.store.storeName || `${r.store.firstName} ${r.store.lastName}`,
+      role:   r.seller.storeName || `${r.seller.firstName} ${r.seller.lastName}`,
       avatar: `${r.reviewer.firstName[0]}${r.reviewer.lastName[0]}`,
-      rating: r.rating as number,
-      quote:  r.comment as string,
+      rating: r.stars as number,
+      quote:  r.body as string,
     }));
   } catch {
     return null;
