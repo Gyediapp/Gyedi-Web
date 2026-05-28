@@ -14,6 +14,7 @@ function RegisterContent() {
   const [error, setError]             = useState('');
   const [countryCode, setCountryCode] = useState('+233');
   const [myCode, setMyCode]           = useState<string | null>(null);
+  const [rewardAmt, setRewardAmt]     = useState('5.00');
 
   const inputCls = 'w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]';
 
@@ -59,12 +60,15 @@ function RegisterContent() {
       if (!res.ok) throw new Error(data.message ?? 'Registration failed');
       localStorage.setItem('gyedi_token', data.token);
       localStorage.setItem('gyedi_user', JSON.stringify(data.user));
-      // Fetch referral code to show on success screen
+      // Fetch referral code + public config to show on success screen
       try {
-        const codeRes = await fetch(`${API}/referrals/code`, {
-          headers: { Authorization: `Bearer ${data.token}` },
-        });
+        const [codeRes, cfgRes] = await Promise.all([
+          fetch(`${API}/referrals/code`, { headers: { Authorization: `Bearer ${data.token}` } }),
+          fetch(`${API}/config/public`),
+        ]);
         const codeData = await codeRes.json();
+        const cfgData  = await cfgRes.json().catch(() => ({}));
+        if (cfgData?.referralRewardAmount) setRewardAmt(parseFloat(cfgData.referralRewardAmount).toFixed(2));
         if (codeData?.code) { setMyCode(codeData.code); return; }
       } catch { /* fall through to redirect */ }
       window.location.href = '/dashboard';
@@ -92,7 +96,7 @@ function RegisterContent() {
           </div>
 
           <p className="text-sm text-gray-600 font-medium">
-            Share it and earn <span className="text-[#1B4332] font-black">GHS 5</span> for every friend who signs up!
+            Share it and earn <span className="text-[#1B4332] font-black">GHS {rewardAmt}</span> for every friend who signs up!
           </p>
 
           <div className="flex gap-3">

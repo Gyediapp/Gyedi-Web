@@ -14,6 +14,7 @@ export default function ReferralsPage() {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError]   = useState('');
+  const [rewardAmt, setRewardAmt] = useState('5');
 
   useEffect(() => {
     const token = localStorage.getItem('gyedi_token');
@@ -22,13 +23,16 @@ export default function ReferralsPage() {
     async function load() {
       try {
         // /code endpoint auto-generates a code if one doesn't exist yet
-        const [codeRes, statsRes] = await Promise.all([
+        const [codeRes, statsRes, cfgRes] = await Promise.all([
           fetch(`${API}/referrals/code`,  { headers: { Authorization: `Bearer ${token}` } }),
           fetch(`${API}/referrals/stats`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API}/config/public`),
         ]);
 
         const codeData  = await codeRes.json();
         const statsData = await statsRes.json();
+        const cfgData   = await cfgRes.json().catch(() => ({}));
+        if (cfgData?.referralRewardAmount) setRewardAmt(parseFloat(cfgData.referralRewardAmount).toFixed(0));
 
         console.log('[referrals] code response:', codeData);
         console.log('[referrals] stats response:', statsData);
@@ -88,7 +92,7 @@ export default function ReferralsPage() {
       {/* Header */}
       <div className="bg-[#1B4332] text-white px-5 pt-12 pb-6">
         <h1 className="text-2xl font-bold">Refer & Earn</h1>
-        <p className="text-sm text-white/70 mt-1">Invite friends — earn ₵5 per verified sign-up</p>
+        <p className="text-sm text-white/70 mt-1">Invite friends — earn ₵{rewardAmt} per verified sign-up</p>
       </div>
 
       <div className="px-4 py-5 space-y-4 max-w-md mx-auto">
@@ -183,7 +187,7 @@ export default function ReferralsPage() {
             {[
               { step: '1', text: 'Share your link or code with friends' },
               { step: '2', text: 'They sign up at gyedi-web.vercel.app/join?ref=YOUR_CODE' },
-              { step: '3', text: 'You earn ₵5 credited to your Gyedi wallet after they verify KYC' },
+              { step: '3', text: `You earn ₵${rewardAmt} credited to your Gyedi wallet after they verify KYC` },
             ].map(item => (
               <div key={item.step} className="flex items-start gap-3">
                 <div className="w-7 h-7 rounded-full bg-[#1B4332] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">

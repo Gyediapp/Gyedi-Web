@@ -267,7 +267,8 @@ export default function DashboardPage() {
 }
 
 function ReferralBanner() {
-  const [code, setCode] = useState<string | null>(null);
+  const [code, setCode]     = useState<string | null>(null);
+  const [reward, setReward] = useState('5');
 
   useEffect(() => {
     const token = localStorage.getItem('gyedi_token');
@@ -275,6 +276,10 @@ function ReferralBanner() {
     fetch(`${API}/referrals/code`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.code) setCode(d.code); })
+      .catch(() => {});
+    fetch(`${API}/config/public`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.referralRewardAmount) setReward(parseFloat(d.referralRewardAmount).toFixed(0)); })
       .catch(() => {});
   }, []);
 
@@ -288,9 +293,9 @@ function ReferralBanner() {
           🎁
         </div>
         <div>
-          <p className="text-white font-bold text-sm leading-tight">Refer & Earn GHS 5</p>
+          <p className="text-white font-bold text-sm leading-tight">Refer & Earn GHS {reward}</p>
           <p className="text-white/70 text-xs mt-0.5">
-            {code ? `Your code: ${code}` : 'Invite friends, earn GHS 5 each'}
+            {code ? `Your code: ${code}` : `Invite friends, earn GHS ${reward} each`}
           </p>
         </div>
       </div>

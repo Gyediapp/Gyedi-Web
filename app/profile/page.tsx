@@ -127,6 +127,7 @@ export default function ProfilePage() {
   const [error,         setError]         = useState('');
   const [saving,        setSaving]        = useState(false);
   const [subscription,  setSubscription]  = useState<{ planName: string; endDate: string; autoRenew: boolean } | null>(null);
+  const [rewardAmt,     setRewardAmt]     = useState('5');
   const [saveSuccess,   setSaveSuccess]   = useState('');
   const [saveError,     setSaveError]     = useState('');
 
@@ -185,6 +186,11 @@ export default function ProfilePage() {
     fetch(`${API}/subscription/status`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.subscription) setSubscription({ planName: d.subscription.planName, endDate: d.subscription.endDate, autoRenew: d.subscription.autoRenew }); })
+      .catch(() => {});
+
+    fetch(`${API}/config/public`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.referralRewardAmount) setRewardAmt(parseFloat(d.referralRewardAmount).toFixed(0)); })
       .catch(() => {});
   }, []);
 
@@ -363,7 +369,7 @@ export default function ProfilePage() {
                 <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-xl">🎁</div>
                 <div>
                   <p className="text-sm font-bold text-purple-700">Refer & Earn</p>
-                  <p className="text-xs text-gray-400">Invite friends, earn ₵5 each</p>
+                  <p className="text-xs text-gray-400">Invite friends, earn ₵{rewardAmt} each</p>
                 </div>
               </div>
               <span className="text-gray-300 text-lg">›</span>
