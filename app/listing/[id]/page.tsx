@@ -56,21 +56,46 @@ const COUNTRY_FLAG: Record<string, string> = {
 export default async function ListingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  const listing = await (prisma as any).listing.findUnique({
-    where: { id },
-    include: {
-      seller: {
-        select: {
-          id: true, firstName: true, lastName: true,
-          averageRating: true, totalRatings: true,
-          country: true, kycStatus: true,
-          showPhone: true, showEmail: true, showWhatsapp: true,
-          businessPhone: true, businessEmail: true,
-          createdAt: true,
+  let listing: any = null;
+  let fetchError: string | null = null;
+
+  try {
+    listing = await (prisma as any).listing.findUnique({
+      where: { id },
+      select: {
+        id: true, title: true, description: true, price: true,
+        category: true, images: true, country: true, status: true,
+        storeType: true, views: true, condition: true,
+        seller: {
+          select: {
+            id: true, firstName: true, lastName: true,
+            averageRating: true, totalRatings: true,
+            country: true, kycStatus: true,
+            showPhone: true, showEmail: true, showWhatsapp: true,
+            businessPhone: true, businessEmail: true,
+            createdAt: true,
+          },
         },
       },
-    },
-  });
+    });
+  } catch (e: any) {
+    fetchError = e?.message ?? String(e);
+  }
+
+  if (fetchError) {
+    return (
+      <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center p-8">
+        <div className="bg-white rounded-3xl shadow-lg p-8 max-w-2xl w-full">
+          <div className="text-red-500 text-4xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-black text-gray-900 mb-2">Listing unavailable</h1>
+          <p className="text-gray-500 mb-4 text-sm">A database error occurred loading this listing:</p>
+          <pre className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-xs text-red-700 overflow-auto whitespace-pre-wrap break-all">
+            {fetchError}
+          </pre>
+        </div>
+      </div>
+    );
+  }
 
   if (!listing || listing.status !== 'ACTIVE') notFound();
 
@@ -78,11 +103,15 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   (prisma as any).listing.update({ where: { id }, data: { views: { increment: 1 } } }).catch(() => {});
 
   // You Might Also Like — same category, excluding this listing
-  const related = await prisma.listing.findMany({
+  const related = await (prisma as any).listing.findMany({
     where: { status: 'ACTIVE', category: listing.category, id: { not: id } },
     orderBy: { views: 'desc' },
     take: 8,
-    include: { seller: { select: { id: true, firstName: true, lastName: true, averageRating: true } } },
+    select: {
+      id: true, title: true, price: true, images: true,
+      category: true, storeType: true, views: true,
+      seller: { select: { id: true, firstName: true, lastName: true, averageRating: true } },
+    },
   }).catch(() => []);
 
   const seller     = listing.seller;
@@ -178,7 +207,6 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 listingTitle={listing.title}
                 amount={parseFloat(listing.price.toString())}
                 description={listing.description ?? undefined}
-                deliveryDays={listing.deliveryDays ?? undefined}
                 listingId={listing.id}
               />
             </div>
