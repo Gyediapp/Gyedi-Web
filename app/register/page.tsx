@@ -10,9 +10,10 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.
 function RegisterContent() {
   const searchParams              = useSearchParams();
   const refCode                   = searchParams.get('ref') ?? '';
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState('');
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState('');
   const [countryCode, setCountryCode] = useState('+233');
+  const [myCode, setMyCode]           = useState<string | null>(null);
 
   const inputCls = 'w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]';
 
@@ -58,12 +59,61 @@ function RegisterContent() {
       if (!res.ok) throw new Error(data.message ?? 'Registration failed');
       localStorage.setItem('gyedi_token', data.token);
       localStorage.setItem('gyedi_user', JSON.stringify(data.user));
+      // Fetch referral code to show on success screen
+      try {
+        const codeRes = await fetch(`${API}/referrals/code`, {
+          headers: { Authorization: `Bearer ${data.token}` },
+        });
+        const codeData = await codeRes.json();
+        if (codeData?.code) { setMyCode(codeData.code); return; }
+      } catch { /* fall through to redirect */ }
       window.location.href = '/dashboard';
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
       setLoading(false);
     }
+  }
+
+  if (myCode) {
+    const link = `https://gyedi-web.vercel.app/join?ref=${myCode}`;
+    const waText = encodeURIComponent(`Join me on Gyedi! Use my code ${myCode} to sign up: ${link}`);
+    return (
+      <div className="min-h-screen bg-[#F4F6F8] flex flex-col items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm text-center space-y-5">
+          <div className="text-6xl">🎉</div>
+          <h1 className="text-2xl font-black text-[#1B4332]">Welcome to Gyedi!</h1>
+          <p className="text-gray-500 text-sm">Your account is ready. Start earning by sharing your referral code:</p>
+
+          <div className="bg-white rounded-2xl border-2 border-[#F5A623]/50 p-6 shadow-sm">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Your referral code</p>
+            <p className="text-4xl font-black text-[#1B4332] tracking-[0.15em]">{myCode}</p>
+            <p className="text-xs text-gray-400 mt-3 font-mono break-all">{link}</p>
+          </div>
+
+          <p className="text-sm text-gray-600 font-medium">
+            Share it and earn <span className="text-[#1B4332] font-black">GHS 5</span> for every friend who signs up!
+          </p>
+
+          <div className="flex gap-3">
+            <a
+              href={`https://wa.me/?text=${waText}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 bg-[#25D366] text-white font-bold py-3 rounded-xl text-sm hover:bg-[#1ebe5d] transition-colors text-center"
+            >
+              Share on WhatsApp
+            </a>
+            <a
+              href="/dashboard"
+              className="flex-1 bg-[#1B4332] text-white font-bold py-3 rounded-xl text-sm hover:bg-[#14532d] transition-colors text-center"
+            >
+              Go to Dashboard
+            </a>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

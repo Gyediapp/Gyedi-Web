@@ -196,6 +196,9 @@ export default function DashboardPage() {
           </div>
         </Link>
 
+        {/* Refer & Earn banner */}
+        <ReferralBanner />
+
         {/* Recent transactions */}
         <div>
           <div className="flex items-center justify-between mb-3">
@@ -260,5 +263,40 @@ export default function DashboardPage() {
 
       <BottomNav />
     </div>
+  );
+}
+
+function ReferralBanner() {
+  const [code, setCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('gyedi_token');
+    if (!token) return;
+    fetch(`${API}/referrals/code`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.code) setCode(d.code); })
+      .catch(() => {});
+  }, []);
+
+  return (
+    <Link
+      href="/referrals"
+      className="flex items-center justify-between bg-gradient-to-r from-[#7C3AED] to-[#5B21B6] rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-transform"
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-11 h-11 bg-white/20 rounded-full flex items-center justify-center text-2xl flex-shrink-0">
+          🎁
+        </div>
+        <div>
+          <p className="text-white font-bold text-sm leading-tight">Refer & Earn GHS 5</p>
+          <p className="text-white/70 text-xs mt-0.5">
+            {code ? `Your code: ${code}` : 'Invite friends, earn GHS 5 each'}
+          </p>
+        </div>
+      </div>
+      <svg className="w-5 h-5 text-white/50 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+      </svg>
+    </Link>
   );
 }
