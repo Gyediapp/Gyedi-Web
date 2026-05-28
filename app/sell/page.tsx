@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
@@ -138,7 +138,11 @@ export default function SellPage() {
   const [error,        setError]        = useState('');
   const [success,      setSuccess]      = useState('');
   const [categories,   setCategories]   = useState<string[]>(DEFAULT_CATEGORIES);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const fileRef    = useRef<HTMLInputElement>(null);
+  const dragFrom   = useRef<number | null>(null);
+  const dragTo     = useRef<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const [preview,     setPreview]     = useState<{ src: string; id: string; index: number } | null>(null);
 
   useEffect(() => {
     setToken(localStorage.getItem('gyedi_token'));
@@ -264,6 +268,23 @@ export default function SellPage() {
       return next;
     });
   }
+
+  const onDragStart = useCallback((i: number) => { dragFrom.current = i; }, []);
+  const onDragEnter = useCallback((i: number) => { dragTo.current = i; setDragOverIdx(i); }, []);
+  const onDragEnd   = useCallback(() => {
+    if (dragFrom.current !== null && dragTo.current !== null && dragFrom.current !== dragTo.current) {
+      const from = dragFrom.current, to = dragTo.current;
+      setImages(prev => {
+        const next = [...prev];
+        const [item] = next.splice(from, 1);
+        next.splice(to, 0, item);
+        return next;
+      });
+    }
+    dragFrom.current = null;
+    dragTo.current   = null;
+    setDragOverIdx(null);
+  }, []);
 
   async function retryUpload(id: string) {
     const img = images.find(i => i.id === id);
@@ -485,6 +506,45 @@ export default function SellPage() {
     <>
       {CropModal}
 
+      {/* ── Image preview modal ── */}
+      {preview && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4"
+          onClick={() => setPreview(null)}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={preview.src}
+            alt="Preview"
+            className="max-w-full max-h-[75vh] object-contain rounded-2xl shadow-2xl select-none"
+            draggable={false}
+            onClick={e => e.stopPropagation()}
+          />
+          <div className="flex items-center gap-3 mt-5" onClick={e => e.stopPropagation()}>
+            {preview.index !== 0 && (
+              <button
+                onClick={() => { setAsMain(preview.id); setPreview(null); }}
+                className="bg-[#F5A623] text-[#1B4332] font-black px-5 py-2.5 rounded-xl text-sm hover:bg-[#e09500] transition-colors"
+              >
+                ★ Set as Cover
+              </button>
+            )}
+            <button
+              onClick={() => { removeImage(preview.id); setPreview(null); }}
+              className="bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => setPreview(null)}
+              className="bg-white/10 hover:bg-white/20 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="min-h-screen bg-[#F4F6F8] py-10 pb-28">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
 
@@ -517,13 +577,16 @@ export default function SellPage() {
             {/* ── Photos ── */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-bold text-gray-700">
-                  Photos{' '}
-                  <span className="text-gray-400 font-normal">
-                    {images.length > 0
-                      ? `${images.length}/${MAX_IMAGES} · first is cover`
-                      : `(up to ${MAX_IMAGES})`}
-                  </span>
+                <label className="block text-sm font-bold text-gray-700 flex items-center gap-2">
+                  Photos
+                  {images.length > 0 && (
+                    <span className="text-[11px] font-bold bg-[#1B4332]/10 text-[#1B4332] px-2 py-0.5 rounded-full">
+                      {images.length} / {MAX_IMAGES} photos
+                    </span>
+                  )}
+                  {images.length === 0 && (
+                    <span className="text-gray-400 font-normal text-xs">up to {MAX_IMAGES}</span>
+                  )}
                 </label>
                 {images.length > 1 && (
                   <button type="button" onClick={clearAll}
@@ -543,21 +606,40 @@ export default function SellPage() {
               {images.length > 0 ? (
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
                   {images.map((img, i) => (
-                    <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border-2 border-gray-100 bg-gray-50 shadow-sm">
+                    <div
+                      key={img.id}
+                      draggable={img.progress === undefined && !img.error}
+                      onDragStart={() => onDragStart(i)}
+                      onDragEnter={() => onDragEnter(i)}
+                      onDragOver={e => e.preventDefault()}
+                      onDragLeave={() => setDragOverIdx(null)}
+                      onDrop={onDragEnd}
+                      onDragEnd={onDragEnd}
+                      className={`relative aspect-square rounded-xl overflow-hidden border-2 bg-gray-50 shadow-sm transition-all ${
+                        dragOverIdx === i ? 'border-[#F5A623] ring-2 ring-[#F5A623]/30 scale-95' : 'border-gray-100'
+                      }`}
+                    >
 
-                      {/* Thumbnail — tap to set as main */}
-                      <button type="button" onClick={() => setAsMain(img.id)}
-                        title={i === 0 ? 'Cover photo' : 'Set as cover'}
-                        className="absolute inset-0 w-full h-full z-0">
+                      {/* Thumbnail — tap to preview */}
+                      <button type="button"
+                        onClick={() => setPreview({ src: img.objectUrl, id: img.id, index: i })}
+                        title="Preview"
+                        className="absolute inset-0 w-full h-full z-0 cursor-zoom-in">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={img.objectUrl} alt="" className="w-full h-full object-cover" />
+                        <img src={img.objectUrl} alt="" className="w-full h-full object-cover" draggable={false} />
                       </button>
 
-                      {/* MAIN badge */}
-                      {i === 0 && (
+                      {/* MAIN badge / Set-as-cover button */}
+                      {i === 0 ? (
                         <span className="absolute top-1.5 left-1.5 bg-[#F5A623] text-[#1B4332] text-[9px] font-black px-1.5 py-0.5 rounded-full shadow z-10 pointer-events-none">
-                          MAIN
+                          COVER
                         </span>
+                      ) : img.progress === undefined && !img.error && (
+                        <button type="button" onClick={e => { e.stopPropagation(); setAsMain(img.id); }}
+                          title="Set as cover"
+                          className="absolute top-1.5 left-1.5 bg-black/60 hover:bg-[#F5A623] text-white hover:text-[#1B4332] text-[9px] font-black px-1.5 py-0.5 rounded-full shadow z-10 transition-colors">
+                          ★
+                        </button>
                       )}
 
                       {/* Uploaded checkmark */}
