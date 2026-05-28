@@ -126,6 +126,7 @@ export default function ProfilePage() {
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState('');
   const [saving,        setSaving]        = useState(false);
+  const [subscription,  setSubscription]  = useState<{ planName: string; endDate: string; autoRenew: boolean } | null>(null);
   const [saveSuccess,   setSaveSuccess]   = useState('');
   const [saveError,     setSaveError]     = useState('');
 
@@ -179,6 +180,12 @@ export default function ProfilePage() {
       })
       .catch(() => setError('Could not load profile'))
       .finally(() => setLoading(false));
+
+    // Load subscription status
+    fetch(`${API}/subscription/status`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.subscription) setSubscription({ planName: d.subscription.planName, endDate: d.subscription.endDate, autoRenew: d.subscription.autoRenew }); })
+      .catch(() => {});
   }, []);
 
   async function saveContactSettings() {
@@ -312,6 +319,41 @@ export default function ProfilePage() {
 
         {user && (
           <>
+            {/* Seller Plan */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-black text-gray-900 text-sm">Seller Plan</h3>
+                <a href="/pricing" className="text-[#1B4332] text-xs font-bold hover:underline">Upgrade ↗</a>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-black px-2.5 py-1 rounded-full ${
+                    user.storeType === 'PRO'        ? 'bg-[#F5A623]/15 text-[#D4881A]'   :
+                    user.storeType === 'BUSINESS'   ? 'bg-[#1B4332]/10 text-[#1B4332]'   :
+                    user.storeType === 'ENTERPRISE' ? 'bg-purple-100 text-purple-700'     :
+                    'bg-gray-100 text-gray-500'
+                  }`}>
+                    {user.storeType === 'PRO'        ? '★ Pro Seller'       :
+                     user.storeType === 'BUSINESS'   ? '✦ Verified Business' :
+                     user.storeType === 'ENTERPRISE' ? '◆ Enterprise'        :
+                     'Basic'}
+                  </span>
+                </div>
+                {subscription ? (
+                  <div className="text-right">
+                    <p className="text-xs text-gray-400">Expires {new Date(subscription.endDate).toLocaleDateString('en-GH')}</p>
+                    <p className={`text-xs font-semibold ${subscription.autoRenew ? 'text-green-600' : 'text-gray-400'}`}>
+                      Auto-renew {subscription.autoRenew ? 'on' : 'off'}
+                    </p>
+                  </div>
+                ) : user.storeType === 'BASIC' ? (
+                  <a href="/pricing" className="text-xs bg-[#F5A623] text-[#1B4332] font-black px-3 py-1.5 rounded-full hover:bg-[#D4881A] transition-colors">
+                    Upgrade Now
+                  </a>
+                ) : null}
+              </div>
+            </div>
+
             {/* KYC Status */}
             <div className={`rounded-2xl p-4 flex items-center gap-3 border ${kyc.bg} border-current/10`}>
               <span className="text-2xl">{kyc.icon}</span>

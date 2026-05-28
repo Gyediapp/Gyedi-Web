@@ -13,6 +13,7 @@ import EditListingButton from '@/components/EditListingButton';
 import ListingGallery from '@/components/ListingGallery';
 import RecentlyViewedTracker from '@/components/RecentlyViewedTracker';
 import ProductCarousel from '@/components/ProductCarousel';
+import BoostButton from '@/components/BoostButton';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> },
@@ -147,6 +148,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
               </p>
               <div className="mt-3 flex items-center gap-3 flex-wrap">
                 <EditListingButton listingId={listing.id} sellerId={seller.id} />
+                <BoostButton listingId={listing.id} sellerId={seller.id} />
                 <LikeButton listingId={listing.id} />
                 <FavouriteButton listingId={listing.id} />
                 <AddToCartButton
