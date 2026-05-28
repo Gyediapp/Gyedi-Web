@@ -43,7 +43,7 @@ export default async function MarketplacePage({
 }) {
   const { q, category, country, sort, condition } = await searchParams;
 
-  const listings = await (prisma as any).listing.findMany({
+  const listings = await prisma.listing.findMany({
     where: {
       status: 'ACTIVE',
       AND: [
@@ -65,7 +65,10 @@ export default async function MarketplacePage({
       sort === 'price_desc' ? { price: 'desc' }  :
       sort === 'popular'    ? { views: 'desc' }  :
       { createdAt: 'desc' },
-    include: {
+    select: {
+      id: true, title: true, price: true, images: true,
+      category: true, country: true, storeType: true,
+      views: true, condition: true,
       seller: { select: { id: true, firstName: true, lastName: true, averageRating: true } },
     },
     take: 48,
