@@ -1,15 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { COUNTRIES, normalizePhone, validatePhone } from '@/lib/phone';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
-export default function RegisterPage() {
-  const [loading, setLoading]         = useState(false);
-  const [error, setError]             = useState('');
+function RegisterContent() {
+  const searchParams              = useSearchParams();
+  const refCode                   = searchParams.get('ref') ?? '';
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState('');
   const [countryCode, setCountryCode] = useState('+233');
+
+  const inputCls = 'w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]';
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,10 +39,20 @@ export default function RegisterPage() {
     }
 
     try {
-      const res = await fetch(`${API}/auth/register`, {
-        method: 'POST',
+      const body: Record<string, unknown> = {
+        firstName: fd.get('firstName'),
+        lastName:  fd.get('lastName'),
+        phone,
+        email,
+        pin,
+        language: 'en',
+      };
+      if (refCode) body.refCode = refCode.toUpperCase();
+
+      const res  = await fetch(`${API}/auth/register`, {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName: fd.get('firstName'), lastName: fd.get('lastName'), phone, email, pin, language: 'en' }),
+        body:    JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? 'Registration failed');
@@ -51,8 +66,6 @@ export default function RegisterPage() {
     }
   }
 
-  const inputCls = 'w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]';
-
   return (
     <div className="min-h-screen bg-[#F4F6F8] flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
@@ -62,6 +75,12 @@ export default function RegisterPage() {
           </Link>
           <p className="text-gray-500 mt-1 text-sm">Create your account</p>
         </div>
+
+        {refCode && (
+          <div className="mb-4 bg-[#F0FDF4] border border-green-200 text-[#1B4332] text-sm rounded-xl px-4 py-3 text-center font-medium">
+            You were referred with code <span className="font-black tracking-wider">{refCode.toUpperCase()}</span>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
           {error && (
@@ -145,5 +164,17 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[#1B4332] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <RegisterContent />
+    </Suspense>
   );
 }

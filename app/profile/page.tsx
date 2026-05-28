@@ -354,6 +354,21 @@ export default function ProfilePage() {
               </div>
             </div>
 
+            {/* Refer & Earn */}
+            <a
+              href="/referrals"
+              className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-xl">🎁</div>
+                <div>
+                  <p className="text-sm font-bold text-purple-700">Refer & Earn</p>
+                  <p className="text-xs text-gray-400">Invite friends, earn ₵5 each</p>
+                </div>
+              </div>
+              <span className="text-gray-300 text-lg">›</span>
+            </a>
+
             {/* KYC Status */}
             <div className={`rounded-2xl p-4 flex items-center gap-3 border ${kyc.bg} border-current/10`}>
               <span className="text-2xl">{kyc.icon}</span>
