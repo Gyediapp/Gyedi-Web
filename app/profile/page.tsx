@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import BottomNav from '@/components/BottomNav';
 
 const API    = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
@@ -128,6 +128,14 @@ export default function ProfilePage() {
   const [saving,        setSaving]        = useState(false);
   const [subscription,  setSubscription]  = useState<{ planName: string; endDate: string; autoRenew: boolean } | null>(null);
   const [rewardAmt,     setRewardAmt]     = useState('5');
+
+  // Notification preferences
+  const [notifPrefs, setNotifPrefs] = useState({
+    pushEnabled: true, smsEnabled: false, whatsAppEnabled: false,
+    escrowUpdates: true, referralUpdates: true, marketingUpdates: false,
+  });
+  const [savingPrefs, setSavingPrefs] = useState(false);
+  const [prefsSuccess, setPrefsSuccess] = useState('');
   const [saveSuccess,   setSaveSuccess]   = useState('');
   const [saveError,     setSaveError]     = useState('');
 
@@ -191,6 +199,11 @@ export default function ProfilePage() {
     fetch(`${API}/config/public`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.referralRewardAmount) setRewardAmt(parseFloat(d.referralRewardAmount).toFixed(0)); })
+      .catch(() => {});
+
+    fetch(`${API}/notifications/preferences`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setNotifPrefs(p => ({ ...p, ...d })); })
       .catch(() => {});
   }, []);
 
@@ -602,6 +615,55 @@ export default function ProfilePage() {
                 <button onClick={saveStoreSettings} disabled={storeSaving}
                   className="w-full bg-[#1B4332] text-white font-bold py-3 rounded-xl text-sm hover:bg-[#0F2B1F] transition-colors disabled:opacity-50 active:scale-[0.98]">
                   {storeSaving ? 'Saving…' : 'Save Store Settings'}
+                </button>
+              </div>
+            </div>
+
+            {/* Notification Preferences */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-5 py-3 border-b border-gray-50">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Notifications</p>
+              </div>
+              <div className="px-5">
+                {([
+                  { key: 'pushEnabled',      label: 'Push notifications',   desc: 'In-app and device alerts' },
+                  { key: 'smsEnabled',       label: 'SMS alerts',           desc: 'Text messages for key events' },
+                  { key: 'whatsAppEnabled',  label: 'WhatsApp alerts',      desc: 'Messages via WhatsApp' },
+                  { key: 'escrowUpdates',    label: 'Escrow updates',       desc: 'Funded, shipped, confirmed' },
+                  { key: 'referralUpdates',  label: 'Referral rewards',     desc: 'When your friends sign up' },
+                  { key: 'marketingUpdates', label: 'Promotions',           desc: 'Deals, tips and announcements' },
+                ] as const).map(({ key, label, desc }) => (
+                  <Toggle
+                    key={key}
+                    checked={notifPrefs[key]}
+                    onChange={v => setNotifPrefs(p => ({ ...p, [key]: v }))}
+                    label={label}
+                    description={desc}
+                  />
+                ))}
+              </div>
+              <div className="px-5 pb-5 pt-3 border-t border-gray-50">
+                {prefsSuccess && <p className="text-xs text-green-600 mb-2">✓ {prefsSuccess}</p>}
+                <button
+                  onClick={async () => {
+                    const token = localStorage.getItem('gyedi_token');
+                    if (!token) return;
+                    setSavingPrefs(true);
+                    try {
+                      await fetch(`${API}/notifications/preferences`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify(notifPrefs),
+                      });
+                      setPrefsSuccess('Saved');
+                      setTimeout(() => setPrefsSuccess(''), 2500);
+                    } catch {}
+                    setSavingPrefs(false);
+                  }}
+                  disabled={savingPrefs}
+                  className="w-full bg-[#1B4332] text-white font-bold py-3 rounded-xl text-sm hover:bg-[#0F2B1F] transition-colors disabled:opacity-50"
+                >
+                  {savingPrefs ? 'Saving…' : 'Save Preferences'}
                 </button>
               </div>
             </div>
