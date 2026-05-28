@@ -71,6 +71,23 @@ export default async function MarketplacePage({
     take: 48,
   });
 
+  // Get active boosted listing IDs (best-effort; table may not exist yet)
+  let boostedIds = new Set<string>();
+  try {
+    const boosts = await prisma.$queryRawUnsafe<{ listingId: string }[]>(
+      `SELECT "listingId" FROM listing_boosts WHERE status = 'ACTIVE' AND "endDate" > now()`
+    );
+    boostedIds = new Set(boosts.map(b => b.listingId));
+  } catch {}
+
+  // When not sorting by price, float boosted listings to top
+  const sortedListings = (sort === 'price_asc' || sort === 'price_desc')
+    ? listings
+    : [
+        ...listings.filter((l: any) => boostedIds.has(l.id)),
+        ...listings.filter((l: any) => !boostedIds.has(l.id)),
+      ];
+
   const hasFilters = !!(q || category || country || sort || condition);
 
   return (
@@ -216,9 +233,9 @@ export default async function MarketplacePage({
           )}
         </div>
 
-        {listings.length > 0 ? (
+        {sortedListings.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
-            {listings.map((l: any) => (
+            {sortedListings.map((l: any) => (
               <ListingCard
                 key={l.id}
                 id={l.id}
@@ -233,6 +250,7 @@ export default async function MarketplacePage({
                 sellerName={`${l.seller.firstName} ${l.seller.lastName}`}
                 sellerRating={l.seller.averageRating ? parseFloat(l.seller.averageRating.toString()) : null}
                 condition={l.condition}
+                boosted={boostedIds.has(l.id)}
               />
             ))}
           </div>
@@ -258,7 +276,7 @@ export default async function MarketplacePage({
       </div>
 
       {/* ── SELL CTA BANNER ── */}
-      {listings.length > 0 && (
+      {sortedListings.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
           <div className="bg-[#1B4332] rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-5 shadow-lg">
             <div>
