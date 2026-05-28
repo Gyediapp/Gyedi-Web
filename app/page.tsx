@@ -1,15 +1,20 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { getSiteSettings } from '@/lib/site-settings';
-import ListingCard from '@/components/ListingCard';
+import StoreCarousel from '@/components/StoreCarousel';
+import ProductCarousel from '@/components/ProductCarousel';
+import SellerMosaic from '@/components/SellerMosaic';
+import FlashDealsSection from '@/components/FlashDealsSection';
+import SocialProofBanner from '@/components/SocialProofBanner';
+import RecentlyViewed from '@/components/RecentlyViewed';
 
 const CATEGORY_CARDS = [
-  { label: 'Electronics',  icon: '📱', value: 'Electronics',  grad: 'from-blue-500 to-indigo-600',   light: 'bg-blue-50',   text: 'text-blue-700' },
-  { label: 'Fashion',      icon: '👗', value: 'Fashion',       grad: 'from-pink-500 to-rose-600',     light: 'bg-pink-50',   text: 'text-pink-700' },
-  { label: 'Vehicles',     icon: '🚗', value: 'Vehicles',      grad: 'from-orange-500 to-amber-600',  light: 'bg-orange-50', text: 'text-orange-700' },
-  { label: 'Furniture',    icon: '🛋️', value: 'Furniture',     grad: 'from-emerald-500 to-teal-600',  light: 'bg-emerald-50',text: 'text-emerald-700' },
-  { label: 'Agriculture',  icon: '🌾', value: 'Agriculture',   grad: 'from-lime-500 to-green-600',    light: 'bg-lime-50',   text: 'text-lime-700' },
-  { label: 'Services',     icon: '🔧', value: 'Services',      grad: 'from-purple-500 to-violet-600', light: 'bg-purple-50', text: 'text-purple-700' },
+  { label: 'Electronics',  icon: '📱', value: 'Electronics',  grad: 'from-blue-500 to-indigo-600' },
+  { label: 'Fashion',      icon: '👗', value: 'Fashion',       grad: 'from-pink-500 to-rose-600' },
+  { label: 'Vehicles',     icon: '🚗', value: 'Vehicles',      grad: 'from-orange-500 to-amber-600' },
+  { label: 'Furniture',    icon: '🛋️', value: 'Furniture',     grad: 'from-emerald-500 to-teal-600' },
+  { label: 'Agriculture',  icon: '🌾', value: 'Agriculture',   grad: 'from-lime-500 to-green-600' },
+  { label: 'Services',     icon: '🔧', value: 'Services',      grad: 'from-purple-500 to-violet-600' },
 ];
 
 const STEPS = [
@@ -72,29 +77,7 @@ const PLANS = [
   },
 ];
 
-const FEATURED_THEME_BG: Record<string, string> = {
-  Bold:         'from-[#1B4332] to-[#0F2B1F]',
-  Warm:         'from-amber-700 to-orange-900',
-  Professional: 'from-slate-700 to-slate-900',
-  Minimal:      'from-gray-100 to-gray-200',
-};
-
-const TIER_LABEL: Record<string, string> = {
-  PRO: '★ Pro', BUSINESS: '✦ Business', ENTERPRISE: '◆ Enterprise',
-};
-
-async function getFeaturedListings() {
-  try {
-    return await prisma.listing.findMany({
-      where: { status: 'ACTIVE' },
-      orderBy: { views: 'desc' },
-      take: 8,
-      include: { seller: { select: { id: true, firstName: true, lastName: true, averageRating: true } } },
-    });
-  } catch {
-    return [];
-  }
-}
+// ── Data fetchers ────────────────────────────────────────────────────────────
 
 async function getFeaturedStores() {
   try {
@@ -104,13 +87,61 @@ async function getFeaturedStores() {
         id: true, firstName: true, lastName: true,
         averageRating: true, totalRatings: true,
         storeType: true, storeName: true, storeBanner: true, storeTheme: true,
+        storeCategory: true,
         _count: { select: { listings: { where: { status: 'ACTIVE' } } } },
       },
-      take: 8,
+      take: 12,
     });
-  } catch {
-    return [];
-  }
+  } catch { return []; }
+}
+
+async function getTrendingListings() {
+  try {
+    return await prisma.listing.findMany({
+      where: { status: 'ACTIVE' },
+      orderBy: { views: 'desc' },
+      take: 8,
+      include: { seller: { select: { id: true, firstName: true, lastName: true, averageRating: true } } },
+    });
+  } catch { return []; }
+}
+
+async function getRecentListings() {
+  try {
+    return await prisma.listing.findMany({
+      where: { status: 'ACTIVE' },
+      orderBy: { createdAt: 'desc' },
+      take: 8,
+      include: { seller: { select: { id: true, firstName: true, lastName: true, averageRating: true } } },
+    });
+  } catch { return []; }
+}
+
+async function getFlashDeals() {
+  try {
+    return await (prisma as any).listing.findMany({
+      where: { status: 'ACTIVE', flashDeal: true, flashDealExpiry: { gt: new Date() } },
+      orderBy: { flashDealExpiry: 'asc' },
+      take: 8,
+      include: { seller: { select: { id: true, firstName: true, lastName: true } } },
+    });
+  } catch { return []; }
+}
+
+async function getTopSellers() {
+  try {
+    return await (prisma as any).user.findMany({
+      where: { storeActive: true, kycStatus: 'APPROVED' },
+      select: {
+        id: true, firstName: true, lastName: true,
+        storeName: true, avatarUrl: true,
+        storeType: true, averageRating: true,
+        _count: { select: { listings: { where: { status: 'ACTIVE' } } } },
+      },
+      orderBy: { totalRatings: 'desc' },
+      take: 16,
+    });
+  } catch { return []; }
 }
 
 async function getCategoryStats(): Promise<Record<string, number>> {
@@ -119,9 +150,18 @@ async function getCategoryStats(): Promise<Record<string, number>> {
       CATEGORY_CARDS.map(c => prisma.listing.count({ where: { status: 'ACTIVE', category: c.value } })),
     );
     return Object.fromEntries(CATEGORY_CARDS.map((c, i) => [c.value, counts[i]]));
-  } catch {
-    return {};
-  }
+  } catch { return {}; }
+}
+
+async function getSocialStats() {
+  try {
+    const [userCount, listingCount, dealCount] = await Promise.all([
+      prisma.user.count(),
+      prisma.listing.count({ where: { status: 'ACTIVE' } }),
+      prisma.listing.count({ where: { status: 'SOLD' } }),
+    ]);
+    return { userCount, listingCount, dealCount, tradedGhs: dealCount * 450 };
+  } catch { return { userCount: 10000, listingCount: 5000, dealCount: 50000, tradedGhs: 2000000 }; }
 }
 
 async function getTestimonials() {
@@ -135,7 +175,7 @@ async function getTestimonials() {
         seller:   { select: { storeName: true, firstName: true, lastName: true } },
       },
     });
-    if (!reviews || reviews.length === 0) return null;
+    if (!reviews?.length) return null;
     return reviews.map((r: any) => ({
       name:   `${r.reviewer.firstName} ${r.reviewer.lastName}`,
       role:   r.seller.storeName || `${r.seller.firstName} ${r.seller.lastName}`,
@@ -143,27 +183,42 @@ async function getTestimonials() {
       rating: r.stars as number,
       quote:  r.body as string,
     }));
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
+// ── Page ─────────────────────────────────────────────────────────────────────
+
 export default async function HomePage() {
-  const [listings, featuredStores, catStats, dbTestimonials, settings] = await Promise.all([
-    getFeaturedListings(),
-    getFeaturedStores(),
-    getCategoryStats(),
-    getTestimonials(),
-    getSiteSettings(),
+  const [
+    featuredStores, trendingListings, recentListings,
+    flashDeals, topSellers, catStats, socialStats,
+    dbTestimonials, settings,
+  ] = await Promise.all([
+    getFeaturedStores(), getTrendingListings(), getRecentListings(),
+    getFlashDeals(), getTopSellers(), getCategoryStats(), getSocialStats(),
+    getTestimonials(), getSiteSettings(),
   ]);
 
-  const testimonials = (dbTestimonials && dbTestimonials.length > 0) ? dbTestimonials : STATIC_TESTIMONIALS;
+  const testimonials = dbTestimonials?.length ? dbTestimonials : STATIC_TESTIMONIALS;
+  const headline     = settings.heroHeadline || 'Buy & Sell';
+  const subtext      = settings.heroSubtext  || 'Gyedi holds your payment securely until you confirm the deal is done. No scams, no chargebacks — just safe trades for everyone.';
 
-  const headline = settings.heroHeadline || 'Buy & Sell';
-  const subtext  = settings.heroSubtext  || 'Gyedi holds your payment securely until you confirm the deal is done. No scams, no chargebacks — just safe trades for everyone.';
+  // Normalise listing shape for ProductCarousel
+  const toProduct = (l: any) => ({
+    id: l.id, title: l.title, price: l.price.toString(),
+    images: l.images, category: l.category, storeType: l.storeType,
+    views: l.views,
+    seller: {
+      id: l.seller.id,
+      firstName: l.seller.firstName,
+      lastName: l.seller.lastName,
+      averageRating: l.seller.averageRating ? l.seller.averageRating.toString() : null,
+    },
+  });
 
   return (
     <div>
+
       {/* ── HERO ── */}
       <section className="relative bg-[#1B4332] overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
@@ -207,7 +262,6 @@ export default async function HomePage() {
             </button>
           </form>
 
-          {/* Trust badges row */}
           <div className="mt-6 flex flex-wrap gap-3">
             {[
               { icon: '🔒', label: 'Escrow Protected' },
@@ -219,30 +273,23 @@ export default async function HomePage() {
               </span>
             ))}
           </div>
-
-          <div className="mt-10 sm:mt-12 flex flex-wrap gap-x-8 gap-y-4 sm:gap-x-12">
-            {[
-              { value: '10,000+', label: 'Verified Users' },
-              { value: 'GHS 2M+', label: 'Safely Traded' },
-              { value: '50,000+', label: 'Completed Deals' },
-            ].map((s, i) => (
-              <div key={s.label} className={i > 0 ? 'sm:border-l sm:border-white/10 sm:pl-8' : ''}>
-                <p className="text-2xl sm:text-3xl font-black text-white">{s.value}</p>
-                <p className="text-white/40 text-xs sm:text-sm mt-0.5">{s.label}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
+
+      {/* ── SOCIAL PROOF COUNTERS ── */}
+      <SocialProofBanner
+        userCount={socialStats.userCount}
+        listingCount={socialStats.listingCount}
+        dealCount={socialStats.dealCount}
+        tradedGhs={socialStats.tradedGhs}
+      />
 
       {/* ── CATEGORY GRID ── */}
       <section className="py-8 md:py-12 bg-[#F4F6F8] border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg sm:text-xl font-black text-gray-900">Shop by Category</h2>
-            <Link href="/marketplace" className="text-[#1B4332] font-bold text-sm hover:underline">
-              View all →
-            </Link>
+            <Link href="/marketplace" className="text-[#1B4332] font-bold text-sm hover:underline">View all →</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {CATEGORY_CARDS.map(cat => {
@@ -251,15 +298,13 @@ export default async function HomePage() {
                 <Link
                   key={cat.value}
                   href={`/marketplace?category=${encodeURIComponent(cat.value)}`}
-                  className="group relative rounded-2xl overflow-hidden hover:-translate-y-1 transition-all duration-200 shadow-sm hover:shadow-md"
+                  className="group rounded-2xl overflow-hidden hover:-translate-y-1 transition-all duration-200 shadow-sm hover:shadow-md"
                 >
                   <div className={`bg-gradient-to-br ${cat.grad} p-5 flex flex-col items-center text-center gap-2`}>
                     <span className="text-3xl">{cat.icon}</span>
                     <p className="text-white font-black text-sm leading-tight">{cat.label}</p>
                     {count > 0 && (
-                      <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                        {count} listings
-                      </span>
+                      <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{count} listings</span>
                     )}
                   </div>
                 </Link>
@@ -269,101 +314,78 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── FEATURED LISTINGS ── */}
-      <section className="py-10 md:py-16 bg-[#F4F6F8]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-5 md:mb-8">
-            <div>
-              <p className="text-[#F5A623] text-xs font-bold uppercase tracking-widest mb-1">Trending Now</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">Featured Listings</h2>
-            </div>
-            <Link href="/marketplace" className="text-[#1B4332] font-bold text-base hover:underline flex-shrink-0 ml-4">
-              View all →
-            </Link>
-          </div>
-
-          {listings.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
-              {listings.map((l: any) => (
-                <ListingCard
-                  key={l.id}
-                  id={l.id}
-                  title={l.title}
-                  price={l.price.toString()}
-                  images={l.images}
-                  category={l.category}
-                  country={l.country}
-                  storeType={l.storeType}
-                  views={l.views}
-                  sellerId={l.seller.id}
-                  sellerName={`${l.seller.firstName} ${l.seller.lastName}`}
-                  sellerRating={l.seller.averageRating ? parseFloat(l.seller.averageRating.toString()) : null}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm">
-              <div className="w-20 h-20 bg-[#1B4332]/8 rounded-3xl flex items-center justify-center mx-auto mb-5">
-                <svg className="w-10 h-10 text-[#1B4332]/40" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900">Be the First Seller</h3>
-              <p className="text-gray-500 mt-2 mb-6 text-sm max-w-xs mx-auto">No listings yet. Create yours and reach thousands of buyers across Africa.</p>
-              <Link href="/sell" className="bg-[#1B4332] hover:bg-[#0F2B1F] text-white font-bold px-8 py-3.5 rounded-xl transition-colors text-base">
-                Create a Listing
-              </Link>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ── FEATURED STORES (horizontal scroll) ── */}
+      {/* ── FEATURED STOREFRONTS (infinite carousel) ── */}
       {(featuredStores as any[]).length > 0 && (
+        <section className="py-10 md:py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-5 md:mb-8">
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="text-[#F5A623] text-xs font-bold uppercase tracking-widest mb-1">Trusted Sellers</p>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">Featured Storefronts</h2>
+              </div>
+              <Link href="/marketplace" className="text-[#1B4332] font-bold text-sm hover:underline flex-shrink-0 ml-4">See all →</Link>
+            </div>
+          </div>
+          <StoreCarousel stores={featuredStores as any} />
+        </section>
+      )}
+
+      {/* ── TRENDING NOW ── */}
+      {trendingListings.length > 0 && (
+        <section className="py-10 md:py-16 bg-[#F4F6F8]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between mb-5 md:mb-8">
+              <div>
+                <p className="text-[#F5A623] text-xs font-bold uppercase tracking-widest mb-1">🔥 Most Viewed</p>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">Trending Now</h2>
+              </div>
+              <Link href="/marketplace?sort=views" className="text-[#1B4332] font-bold text-base hover:underline flex-shrink-0 ml-4">See all →</Link>
+            </div>
+            <ProductCarousel products={trendingListings.map(toProduct)} />
+          </div>
+        </section>
+      )}
+
+      {/* ── FLASH DEALS ── */}
+      {(flashDeals as any[]).length > 0 && (
+        <FlashDealsSection deals={flashDeals as any} />
+      )}
+
+      {/* ── RECENTLY LISTED ── */}
+      {recentListings.length > 0 && (
         <section className="py-10 md:py-16 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-end justify-between mb-5 md:mb-8">
               <div>
-                <p className="text-[#F5A623] text-xs font-bold uppercase tracking-widest mb-1">Trusted Sellers</p>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">Featured Stores</h2>
+                <p className="text-[#F5A623] text-xs font-bold uppercase tracking-widest mb-1">Just Added</p>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">Recently Listed</h2>
               </div>
+              <Link href="/marketplace?sort=new" className="text-[#1B4332] font-bold text-base hover:underline flex-shrink-0 ml-4">See all →</Link>
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
-              {(featuredStores as any[]).map((store: any) => {
-                const bg   = FEATURED_THEME_BG[store.storeTheme] ?? FEATURED_THEME_BG.Bold;
-                const name = store.storeName || `${store.firstName} ${store.lastName}`;
-                const initials = `${store.firstName[0]}${store.lastName[0]}`;
-                return (
-                  <a key={store.id} href={`/store/${store.id}`}
-                    className="group flex-shrink-0 w-56 sm:w-64 rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all hover:-translate-y-0.5 snap-start">
-                    <div className={`relative h-28 bg-gradient-to-br ${bg} flex items-end p-4`}>
-                      {store.storeBanner && (
-                        <img src={store.storeBanner} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-luminosity" />
-                      )}
-                      <div className="relative flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white font-black text-sm flex-shrink-0">
-                          {initials}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-white font-bold text-sm leading-tight truncate">{name}</p>
-                          <p className="text-white/60 text-xs">{TIER_LABEL[store.storeType] ?? store.storeType}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-white px-4 py-3 flex items-center justify-between">
-                      <div className="text-xs text-gray-500">
-                        {store.averageRating && <span>⭐ {parseFloat(store.averageRating.toString()).toFixed(1)} · </span>}
-                        {store._count?.listings ?? 0} listing{store._count?.listings !== 1 ? 's' : ''}
-                      </div>
-                      <span className="text-[#1B4332] text-xs font-bold group-hover:underline flex-shrink-0">Visit →</span>
-                    </div>
-                  </a>
-                );
-              })}
-            </div>
+            <ProductCarousel products={recentListings.map(toProduct)} />
           </div>
         </section>
       )}
+
+      {/* ── TOP SELLERS MOSAIC ── */}
+      {(topSellers as any[]).length > 0 && (
+        <section className="py-10 md:py-16 bg-[#F4F6F8]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between mb-6 md:mb-8">
+              <div>
+                <p className="text-[#F5A623] text-xs font-bold uppercase tracking-widest mb-1">Our Community</p>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">Top Sellers</h2>
+                <p className="text-gray-400 text-sm mt-1">KYC-verified. Trusted by hundreds of buyers.</p>
+              </div>
+              <Link href="/marketplace" className="text-[#1B4332] font-bold text-sm hover:underline flex-shrink-0 ml-4">See all →</Link>
+            </div>
+            <SellerMosaic sellers={topSellers as any} />
+          </div>
+        </section>
+      )}
+
+      {/* ── RECENTLY VIEWED (client — reads localStorage) ── */}
+      <RecentlyViewed />
 
       {/* ── HOW IT WORKS ── */}
       <section id="how-it-works" className="py-12 md:py-24 bg-white">
@@ -375,7 +397,6 @@ export default async function HomePage() {
               Three steps to trade safely with anyone, anywhere in Africa.
             </p>
           </div>
-
           <div className="grid sm:grid-cols-3 gap-4 md:gap-8 relative">
             <div className="hidden sm:block absolute top-[52px] left-[calc(16.67%+32px)] right-[calc(16.67%+32px)] h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
             {STEPS.map((step, i) => (
@@ -409,9 +430,7 @@ export default async function HomePage() {
               { icon: '⚖️', title: '24/7 Dispute Help', desc: 'Our team resolves disputes fast and fairly' },
             ].map(b => (
               <div key={b.title} className="bg-white rounded-2xl p-5 md:p-6 text-center border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                <div className="w-14 h-14 bg-[#F5A623]/15 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 text-3xl">
-                  {b.icon}
-                </div>
+                <div className="w-14 h-14 bg-[#F5A623]/15 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 text-3xl">{b.icon}</div>
                 <h3 className="font-black text-gray-900 text-base md:text-lg">{b.title}</h3>
                 <p className="text-gray-500 text-sm md:text-base mt-1.5 leading-relaxed">{b.desc}</p>
               </div>
@@ -522,12 +541,8 @@ export default async function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             {settings.playStoreUrl && (
-              <a
-                href={settings.playStoreUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 bg-white text-[#1B4332] font-bold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors shadow-xl text-base sm:text-lg w-full sm:w-auto justify-center"
-              >
+              <a href={settings.playStoreUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 bg-white text-[#1B4332] font-bold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors shadow-xl text-base sm:text-lg w-full sm:w-auto justify-center">
                 <svg className="w-5 h-5 text-[#F5A623] flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M3 20.5v-17c0-.83.94-1.3 1.6-.8l15 8.5c.6.34.6 1.26 0 1.6l-15 8.5c-.66.5-1.6.03-1.6-.8z"/>
                 </svg>
@@ -535,12 +550,8 @@ export default async function HomePage() {
               </a>
             )}
             {settings.appStoreUrl && (
-              <a
-                href={settings.appStoreUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 bg-white text-[#1B4332] font-bold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors shadow-xl text-base sm:text-lg w-full sm:w-auto justify-center"
-              >
+              <a href={settings.appStoreUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 bg-white text-[#1B4332] font-bold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors shadow-xl text-base sm:text-lg w-full sm:w-auto justify-center">
                 <svg className="w-5 h-5 text-[#F5A623] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
                 </svg>
@@ -548,27 +559,22 @@ export default async function HomePage() {
               </a>
             )}
             {!settings.playStoreUrl && !settings.appStoreUrl && (
-              <a
-                href="https://play.google.com/store"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 bg-white text-[#1B4332] font-bold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors shadow-xl text-base sm:text-lg w-full sm:w-auto justify-center"
-              >
+              <a href="https://play.google.com/store" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 bg-white text-[#1B4332] font-bold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors shadow-xl text-base sm:text-lg w-full sm:w-auto justify-center">
                 <svg className="w-5 h-5 text-[#F5A623] flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M3 20.5v-17c0-.83.94-1.3 1.6-.8l15 8.5c.6.34.6 1.26 0 1.6l-15 8.5c-.66.5-1.6.03-1.6-.8z"/>
                 </svg>
                 Download on Google Play
               </a>
             )}
-            <Link
-              href="/marketplace"
-              className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/18 border border-white/20 text-white font-semibold px-8 py-4 rounded-xl transition-colors text-base sm:text-lg w-full sm:w-auto justify-center"
-            >
+            <Link href="/marketplace"
+              className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/18 border border-white/20 text-white font-semibold px-8 py-4 rounded-xl transition-colors text-base sm:text-lg w-full sm:w-auto justify-center">
               Browse on Web →
             </Link>
           </div>
         </div>
       </section>
+
     </div>
   );
 }

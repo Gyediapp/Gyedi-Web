@@ -120,8 +120,10 @@ model Listing {
   storeType   String   @default("BASIC")
   views       Int      @default(0)
   condition   String   @default("NEW")
-  featured    Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  featured         Boolean   @default(false)
+  flashDeal        Boolean   @default(false)
+  flashDealExpiry  DateTime?
+  createdAt        DateTime  @default(now())
   updatedAt   DateTime @updatedAt
   seller      User     @relation(fields: [sellerId], references: [id])
   likes       ListingLike[]

@@ -11,6 +11,8 @@ import AddToCartButton from '@/components/AddToCartButton';
 import CommentsSection from '@/components/CommentsSection';
 import EditListingButton from '@/components/EditListingButton';
 import ListingGallery from '@/components/ListingGallery';
+import RecentlyViewedTracker from '@/components/RecentlyViewedTracker';
+import ProductCarousel from '@/components/ProductCarousel';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> },
@@ -74,12 +76,31 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   // Increment views (fire and forget)
   (prisma as any).listing.update({ where: { id }, data: { views: { increment: 1 } } }).catch(() => {});
 
+  // You Might Also Like — same category, excluding this listing
+  const related = await prisma.listing.findMany({
+    where: { status: 'ACTIVE', category: listing.category, id: { not: id } },
+    orderBy: { views: 'desc' },
+    take: 8,
+    include: { seller: { select: { id: true, firstName: true, lastName: true, averageRating: true } } },
+  }).catch(() => []);
+
   const seller     = listing.seller;
   const sellerName = `${seller.firstName} ${seller.lastName}`;
   const memberSince = new Date(seller.createdAt).toLocaleDateString('en-GH', { month: 'short', year: 'numeric' });
 
+  const toProduct = (l: any) => ({
+    id: l.id, title: l.title, price: l.price.toString(),
+    images: l.images, category: l.category, storeType: l.storeType,
+    views: l.views,
+    seller: {
+      id: l.seller.id, firstName: l.seller.firstName, lastName: l.seller.lastName,
+      averageRating: l.seller.averageRating ? l.seller.averageRating.toString() : null,
+    },
+  });
+
   return (
     <div className="min-h-screen bg-gray-50 py-10 pb-28">
+      <RecentlyViewedTracker listingId={id} />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-6 flex-wrap">
@@ -290,6 +311,25 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           </svg>
         </Link>
       </div>
+
+      {/* ── YOU MIGHT ALSO LIKE ── */}
+      {related.length > 0 && (
+        <section className="py-10 md:py-14 bg-[#F4F6F8] mt-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between mb-5 md:mb-8">
+              <div>
+                <p className="text-[#F5A623] text-xs font-bold uppercase tracking-widest mb-1">More like this</p>
+                <h2 className="text-xl sm:text-2xl font-black text-gray-900">You Might Also Like</h2>
+              </div>
+              <Link href={`/marketplace?category=${encodeURIComponent(listing.category)}`}
+                className="text-[#1B4332] font-bold text-sm hover:underline flex-shrink-0 ml-4">
+                See all in {listing.category} →
+              </Link>
+            </div>
+            <ProductCarousel products={related.map(toProduct)} />
+          </div>
+        </section>
+      )}
     </div>
   );
 }
