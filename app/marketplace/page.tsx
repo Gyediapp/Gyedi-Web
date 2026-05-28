@@ -43,47 +43,78 @@ export default async function MarketplacePage({
 }) {
   const { q, category, country, sort, condition } = await searchParams;
 
-  const listings = await prisma.listing.findMany({
-    where: {
-      status: 'ACTIVE',
-      AND: [
-        category  ? { category }  : {},
-        country   ? { country }   : {},
-        condition ? { condition } : {},
-        q
-          ? {
-              OR: [
-                { title:       { contains: q, mode: 'insensitive' } },
-                { description: { contains: q, mode: 'insensitive' } },
-              ],
-            }
-          : {},
-      ],
-    },
-    orderBy:
-      sort === 'price_asc'  ? { price: 'asc' }   :
-      sort === 'price_desc' ? { price: 'desc' }  :
-      sort === 'popular'    ? { views: 'desc' }  :
-      { createdAt: 'desc' },
-    select: {
-      id: true, title: true, price: true, images: true,
-      category: true, country: true, storeType: true,
-      views: true, condition: true,
-      seller: { select: { id: true, firstName: true, lastName: true, averageRating: true } },
-    },
-    take: 48,
-  });
+  // ── Fetch listings ────────────────────────────────────────────────────────
+  let listings: any[] = [];
+  let fetchError: string | null = null;
 
-  // Get active boosted listing IDs (best-effort; table may not exist yet)
+  try {
+    listings = await (prisma as any).listing.findMany({
+      where: {
+        status: 'ACTIVE',
+        AND: [
+          category  ? { category }  : {},
+          country   ? { country }   : {},
+          condition ? { condition } : {},
+          q
+            ? {
+                OR: [
+                  { title:       { contains: q, mode: 'insensitive' } },
+                  { description: { contains: q, mode: 'insensitive' } },
+                ],
+              }
+            : {},
+        ],
+      },
+      orderBy:
+        sort === 'price_asc'  ? { price: 'asc' }  :
+        sort === 'price_desc' ? { price: 'desc' } :
+        sort === 'popular'    ? { views: 'desc' } :
+        { createdAt: 'desc' },
+      select: {
+        id: true, title: true, price: true, images: true,
+        category: true, country: true, storeType: true,
+        views: true, condition: true,
+        seller: { select: { id: true, firstName: true, lastName: true, averageRating: true } },
+      },
+      take: 48,
+    });
+  } catch (e: any) {
+    fetchError = e?.message ?? String(e);
+    console.error('[marketplace] listing query failed:', fetchError);
+  }
+
+  // ── Fetch active boost IDs ────────────────────────────────────────────────
   let boostedIds = new Set<string>();
   try {
-    const boosts = await prisma.$queryRawUnsafe<{ listingId: string }[]>(
+    const boosts = await (prisma as any).$queryRawUnsafe(
       `SELECT "listingId" FROM listing_boosts WHERE status = 'ACTIVE' AND "endDate" > now()`
-    );
-    boostedIds = new Set(boosts.map(b => b.listingId));
+    ) as { listingId: string }[];
+    boostedIds = new Set(boosts.map((b: { listingId: string }) => b.listingId));
   } catch {}
 
-  // When not sorting by price, float boosted listings to top
+  // ── If DB query failed entirely, show a diagnostic page ──────────────────
+  if (fetchError) {
+    return (
+      <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center p-8">
+        <div className="bg-white rounded-3xl shadow-lg p-8 max-w-2xl w-full">
+          <div className="text-red-500 text-4xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-black text-gray-900 mb-2">Marketplace unavailable</h1>
+          <p className="text-gray-500 mb-4 text-sm">A database error occurred. Error details (share with your developer):</p>
+          <pre className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-xs text-red-700 overflow-auto whitespace-pre-wrap break-all">
+            {fetchError}
+          </pre>
+          <p className="text-gray-400 text-xs mt-4">
+            Run in Supabase SQL Editor to check columns:
+            <code className="block mt-1 bg-gray-100 p-2 rounded text-gray-700">
+              SELECT column_name, data_type FROM information_schema.columns WHERE table_name = &apos;listings&apos; ORDER BY column_name;
+            </code>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Sort: boosted listings float to top (unless user chose a price sort) ──
   const sortedListings = (sort === 'price_asc' || sort === 'price_desc')
     ? listings
     : [
