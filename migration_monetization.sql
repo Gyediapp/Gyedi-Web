@@ -83,18 +83,10 @@ CREATE INDEX IF NOT EXISTS idx_listing_boosts_status     ON listing_boosts(statu
 -- 7. Seed default plans
 INSERT INTO subscription_plans (name, slug, price, "maxListings", "freeBoosts", features, badge, "badgeColor", "sortOrder")
 VALUES
-  ('Basic',      'basic',      0,   5,    0,
-   '["5 active listings", "Standard store page", "Basic search ranking"]',
-   null, null, 1),
-  ('Pro',        'pro',        20,  20,   1,
-   '["20 active listings", "Gold Pro badge", "Custom store banner", "Featured in Top Sellers", "Priority search ranking", "1 free boost/month"]',
-   'Pro Seller', '#F5A623', 2),
-  ('Business',   'business',   50,  999,  3,
-   '["Unlimited listings", "Verified Business badge", "Custom store URL", "Homepage hero feature", "Full analytics", "3 free boosts/month", "Dedicated support"]',
-   'Verified Business', '#1B4332', 3),
-  ('Enterprise', 'enterprise', 150, 9999, 10,
-   '["Everything in Business", "API access", "5 staff accounts", "Account manager", "10 free boosts/month"]',
-   'Enterprise', '#7C3AED', 4)
+  ('Basic', 'basic', 0, 5, 0, '["5 active listings", "Standard store page", "Basic search ranking"]', null, null, 1),
+  ('Pro', 'pro', 20, 20, 1, '["20 active listings", "Gold Pro badge", "Custom store banner", "Featured in Top Sellers", "Priority search ranking", "1 free boost/month"]', 'Pro Seller', '#F5A623', 2),
+  ('Business', 'business', 50, 999, 3, '["Unlimited listings", "Verified Business badge", "Custom store URL", "Homepage hero feature", "Full analytics", "3 free boosts/month", "Dedicated support"]', 'Verified Business', '#1B4332', 3),
+  ('Enterprise', 'enterprise', 150, 9999, 10, '["Everything in Business", "API access", "5 staff accounts", "Account manager", "10 free boosts/month"]', 'Enterprise', '#7C3AED', 4)
 ON CONFLICT (slug) DO NOTHING;
 
 -- 8. Seed default boost packages
