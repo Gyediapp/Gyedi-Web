@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
@@ -37,6 +37,18 @@ const DURATIONS = [
 type Step = 'plan' | 'duration' | 'promo' | 'payment' | 'confirm';
 
 export default function UpgradePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[#1B4332] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <UpgradeContent />
+    </Suspense>
+  );
+}
+
+function UpgradeContent() {
   const searchParams  = useSearchParams();
   const router        = useRouter();
   const initialSlug   = searchParams.get('plan') ?? 'pro';
