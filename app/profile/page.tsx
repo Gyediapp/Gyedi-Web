@@ -389,16 +389,26 @@ export default function ProfilePage() {
             </a>
 
             {/* KYC Status */}
-            <div className={`rounded-2xl p-4 flex items-center gap-3 border ${kyc.bg} border-current/10`}>
-              <span className="text-2xl">{kyc.icon}</span>
-              <div>
-                <p className={`text-sm font-bold ${kyc.text}`}>{kyc.label}</p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {user.kycStatus === 'PENDING'   && 'Submit your ID to unlock full features'}
-                  {user.kycStatus === 'SUBMITTED' && 'Your documents are being reviewed'}
-                  {user.kycStatus === 'VERIFIED'  && 'Your identity has been verified'}
-                  {user.kycStatus === 'REJECTED'  && 'Please resubmit your documents'}
-                </p>
+            <div className={`rounded-2xl p-4 border ${kyc.bg} border-current/10`}>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{kyc.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-bold ${kyc.text}`}>{kyc.label}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {user.kycStatus === 'PENDING'   && 'Submit your ID to unlock full features'}
+                    {user.kycStatus === 'SUBMITTED' && 'Your documents are being reviewed — usually 24h'}
+                    {user.kycStatus === 'VERIFIED'  && 'Your identity has been verified'}
+                    {user.kycStatus === 'REJECTED'  && 'Documents were rejected — please resubmit'}
+                  </p>
+                </div>
+                {(user.kycStatus === 'PENDING' || user.kycStatus === 'REJECTED') && (
+                  <a
+                    href="/verify"
+                    className="flex-shrink-0 bg-[#1B4332] text-white text-xs font-bold px-3 py-2 rounded-xl hover:bg-[#0F2B1F] transition-colors"
+                  >
+                    {user.kycStatus === 'REJECTED' ? 'Resubmit' : 'Verify'}
+                  </a>
+                )}
               </div>
             </div>
 
