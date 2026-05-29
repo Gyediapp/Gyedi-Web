@@ -373,6 +373,30 @@ export default function ProfilePage() {
               </div>
             </div>
 
+            {/* Listing shortcuts */}
+            <div className="grid grid-cols-2 gap-3">
+              <a
+                href="/my-listings"
+                className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:bg-gray-50 transition-colors"
+              >
+                <div className="w-10 h-10 bg-[#1B4332]/5 rounded-full flex items-center justify-center text-xl flex-shrink-0">🏪</div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">Manage</p>
+                  <p className="text-xs text-gray-400">My listings</p>
+                </div>
+              </a>
+              <a
+                href="/sell"
+                className="flex items-center gap-3 bg-[#F5A623]/10 rounded-2xl border border-[#F5A623]/30 shadow-sm p-4 hover:bg-[#F5A623]/20 transition-colors"
+              >
+                <div className="w-10 h-10 bg-[#F5A623]/30 rounded-full flex items-center justify-center text-xl flex-shrink-0">➕</div>
+                <div>
+                  <p className="text-sm font-bold text-[#92400E]">Add Listing</p>
+                  <p className="text-xs text-[#92400E]/70">Sell something</p>
+                </div>
+              </a>
+            </div>
+
             {/* Refer & Earn */}
             <a
               href="/referrals"

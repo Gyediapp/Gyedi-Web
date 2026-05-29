@@ -48,11 +48,12 @@ function fmt(amount: string) {
 }
 
 export default function DashboardPage() {
-  const [user, setUser]     = useState<User | null>(null);
-  const [wallet, setWallet] = useState<Wallet | null>(null);
-  const [escrows, setEscrows] = useState<Escrow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]   = useState('');
+  const [user, setUser]           = useState<User | null>(null);
+  const [wallet, setWallet]       = useState<Wallet | null>(null);
+  const [escrows, setEscrows]     = useState<Escrow[]>([]);
+  const [activeListings, setActiveListings] = useState<number | null>(null);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('gyedi_token');
@@ -78,6 +79,16 @@ export default function DashboardPage() {
         const [wData, eData] = await Promise.all([wRes.json(), eRes.json()]);
         setWallet(wData);
         setEscrows(eData.escrows ?? []);
+
+        // Fetch listing count in the background (non-blocking)
+        fetch(`${API}/listings/my-listings`, { headers })
+          .then(r => r.ok ? r.json() : null)
+          .then((d: { listings?: { status: string }[] } | null) => {
+            if (d?.listings) {
+              setActiveListings(d.listings.filter((l: { status: string }) => l.status === 'ACTIVE').length);
+            }
+          })
+          .catch(() => {});
       } catch (err: any) {
         const isTimeout = err?.name === 'AbortError';
         setError(isTimeout ? 'Request timed out — tap to retry.' : 'Could not connect. Check your internet.');
@@ -145,42 +156,92 @@ export default function DashboardPage() {
         {/* Quick actions */}
         <div>
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Quick Actions</h2>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-2.5">
             <Link
               href="/escrow/create"
-              className="bg-[#F5A623] rounded-2xl p-4 flex flex-col items-center gap-2 shadow-sm active:scale-95 transition-transform"
+              className="bg-[#F5A623] rounded-2xl p-3 flex flex-col items-center gap-1.5 shadow-sm active:scale-95 transition-transform"
             >
-              <div className="w-10 h-10 bg-[#1B4332]/20 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#1B4332]" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <div className="w-9 h-9 bg-[#1B4332]/20 rounded-full flex items-center justify-center">
+                <svg className="w-4.5 h-4.5 text-[#1B4332]" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
               </div>
-              <span className="text-[#1B4332] font-bold text-xs text-center leading-tight">Create Escrow</span>
+              <span className="text-[#1B4332] font-bold text-[10px] text-center leading-tight">Escrow</span>
+            </Link>
+
+            <Link
+              href="/my-listings"
+              className="bg-white rounded-2xl p-3 flex flex-col items-center gap-1.5 shadow-sm border border-gray-100 active:scale-95 transition-transform"
+            >
+              <div className="w-9 h-9 bg-[#F4F6F8] rounded-full flex items-center justify-center relative">
+                <svg className="w-4.5 h-4.5 text-[#1B4332]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                {activeListings !== null && activeListings > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#F5A623] text-[#1B4332] text-[9px] font-black rounded-full flex items-center justify-center">
+                    {activeListings > 9 ? '9+' : activeListings}
+                  </span>
+                )}
+              </div>
+              <span className="text-gray-700 font-bold text-[10px] text-center leading-tight">Listings</span>
             </Link>
 
             <Link
               href="/history"
-              className="bg-white rounded-2xl p-4 flex flex-col items-center gap-2 shadow-sm border border-gray-100 active:scale-95 transition-transform"
+              className="bg-white rounded-2xl p-3 flex flex-col items-center gap-1.5 shadow-sm border border-gray-100 active:scale-95 transition-transform"
             >
-              <div className="w-10 h-10 bg-[#F4F6F8] rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#1B4332]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <div className="w-9 h-9 bg-[#F4F6F8] rounded-full flex items-center justify-center">
+                <svg className="w-4.5 h-4.5 text-[#1B4332]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <span className="text-gray-700 font-bold text-xs text-center leading-tight">History</span>
+              <span className="text-gray-700 font-bold text-[10px] text-center leading-tight">History</span>
             </Link>
 
             <Link
               href="/wallet"
-              className="bg-white rounded-2xl p-4 flex flex-col items-center gap-2 shadow-sm border border-gray-100 active:scale-95 transition-transform"
+              className="bg-white rounded-2xl p-3 flex flex-col items-center gap-1.5 shadow-sm border border-gray-100 active:scale-95 transition-transform"
             >
-              <div className="w-10 h-10 bg-[#F4F6F8] rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#1B4332]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <div className="w-9 h-9 bg-[#F4F6F8] rounded-full flex items-center justify-center">
+                <svg className="w-4.5 h-4.5 text-[#1B4332]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
               </div>
-              <span className="text-gray-700 font-bold text-xs text-center leading-tight">Wallet</span>
+              <span className="text-gray-700 font-bold text-[10px] text-center leading-tight">Wallet</span>
             </Link>
+          </div>
+        </div>
+
+        {/* Listings management banner */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3.5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#1B4332]/5 rounded-full flex items-center justify-center text-xl">🏪</div>
+              <div>
+                <p className="text-sm font-bold text-gray-900">
+                  {activeListings === null
+                    ? 'My Listings'
+                    : activeListings === 0
+                      ? 'No active listings'
+                      : `${activeListings} active listing${activeListings !== 1 ? 's' : ''}`}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">Manage, edit and boost your listings</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/sell"
+                className="text-xs font-bold bg-[#F5A623] text-[#1B4332] px-3 py-1.5 rounded-full hover:bg-[#e09520] transition-colors"
+              >
+                + New
+              </Link>
+              <Link
+                href="/my-listings"
+                className="text-xs font-bold text-[#1B4332] border border-[#1B4332]/20 px-3 py-1.5 rounded-full hover:bg-[#1B4332]/5 transition-colors"
+              >
+                Manage
+              </Link>
+            </div>
           </div>
         </div>
 

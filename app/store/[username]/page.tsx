@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import ReviewsSection from '@/components/ReviewsSection';
 import StoreActions from './StoreActions';
 import StoreListingGrid from './StoreListingGrid';
+import StoreOwnerBar from './StoreOwnerBar';
 import FollowerCount from './FollowerCount';
 
 const COUNTRY_FLAG: Record<string, string> = {
@@ -152,6 +153,8 @@ export default async function StorePage({ params }: { params: Promise<{ username
 
   return (
     <div className={`min-h-screen ${t.pageBg}`}>
+      {/* Owner toolbar — only renders if viewing your own store */}
+      <StoreOwnerBar sellerId={seller.id as string} />
 
       {/* ──────────────── BANNER ──────────────── */}
       <div className={`relative overflow-hidden h-56 sm:h-72 ${t.banner}`}>

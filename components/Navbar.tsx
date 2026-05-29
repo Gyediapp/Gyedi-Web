@@ -62,12 +62,17 @@ export default function Navbar() {
             </Link>
 
             {hydrated && (navUser ? (
-              <Link href="/profile" className="flex items-center gap-2 text-white/85 hover:text-white transition-colors">
-                <div className="w-8 h-8 rounded-full bg-[#F5A623] flex items-center justify-center text-[#1B4332] text-xs font-black">
-                  {navUser.firstName[0]?.toUpperCase()}{navUser.lastName[0]?.toUpperCase()}
-                </div>
-                <span className="text-sm font-semibold max-w-[100px] truncate">{navUser.firstName}</span>
-              </Link>
+              <>
+                <Link href="/my-listings" className="text-white/75 hover:text-white text-base font-medium transition-colors">
+                  My Listings
+                </Link>
+                <Link href="/profile" className="flex items-center gap-2 text-white/85 hover:text-white transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-[#F5A623] flex items-center justify-center text-[#1B4332] text-xs font-black">
+                    {navUser.firstName[0]?.toUpperCase()}{navUser.lastName[0]?.toUpperCase()}
+                  </div>
+                  <span className="text-sm font-semibold max-w-[100px] truncate">{navUser.firstName}</span>
+                </Link>
+              </>
             ) : (
               <Link href="/login" className="text-white/75 hover:text-white text-base font-medium transition-colors px-4 py-2">
                 Log In
@@ -109,6 +114,9 @@ export default function Navbar() {
             <Link href="/#how-it-works" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">How It Works</Link>
             <Link href="/pricing" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">Pricing</Link>
             <Link href="/sell" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">Sell an Item</Link>
+            {hydrated && navUser && (
+              <Link href="/my-listings" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">My Listings</Link>
+            )}
             <Link href="/referrals" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-3 text-[#F5A623] font-bold hover:bg-white/10 rounded-xl text-base transition-colors">
               🎁 Refer &amp; Earn
             </Link>
