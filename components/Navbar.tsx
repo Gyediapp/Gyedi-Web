@@ -1,12 +1,34 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
+
+type NavUser = { firstName: string; lastName: string };
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const { totalItems } = useCart();
+  const [navUser, setNavUser] = useState<NavUser | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('gyedi_token');
+    if (token) {
+      try {
+        const stored = localStorage.getItem('gyedi_user');
+        if (stored) {
+          const u = JSON.parse(stored) as NavUser;
+          setNavUser(u);
+        } else {
+          setNavUser({ firstName: 'Me', lastName: '' });
+        }
+      } catch {
+        setNavUser({ firstName: 'Me', lastName: '' });
+      }
+    }
+    setHydrated(true);
+  }, []);
 
   return (
     <nav className="bg-[#1B4332] text-white sticky top-0 z-50 shadow-lg">
@@ -38,9 +60,20 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
-            <Link href="/login" className="text-white/75 hover:text-white text-base font-medium transition-colors px-4 py-2">
-              Log In
-            </Link>
+
+            {hydrated && (navUser ? (
+              <Link href="/profile" className="flex items-center gap-2 text-white/85 hover:text-white transition-colors">
+                <div className="w-8 h-8 rounded-full bg-[#F5A623] flex items-center justify-center text-[#1B4332] text-xs font-black">
+                  {navUser.firstName[0]?.toUpperCase()}{navUser.lastName[0]?.toUpperCase()}
+                </div>
+                <span className="text-sm font-semibold max-w-[100px] truncate">{navUser.firstName}</span>
+              </Link>
+            ) : (
+              <Link href="/login" className="text-white/75 hover:text-white text-base font-medium transition-colors px-4 py-2">
+                Log In
+              </Link>
+            ))}
+
             <Link
               href="/sell"
               className="bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-bold text-base px-6 py-2.5 rounded-xl transition-colors"
@@ -80,9 +113,18 @@ export default function Navbar() {
               🎁 Refer &amp; Earn
             </Link>
             <div className="pt-3 border-t border-white/10 mt-2 px-2">
-              <Link href="/login" onClick={() => setOpen(false)} className="block w-full text-center bg-[#F5A623] text-[#1B4332] font-bold py-3 rounded-xl text-base transition-colors">
-                Log In
-              </Link>
+              {hydrated && (navUser ? (
+                <Link href="/profile" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/10 rounded-xl transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-[#F5A623] flex items-center justify-center text-[#1B4332] text-xs font-black flex-shrink-0">
+                    {navUser.firstName[0]?.toUpperCase()}{navUser.lastName[0]?.toUpperCase()}
+                  </div>
+                  <span className="text-sm font-semibold">{navUser.firstName} {navUser.lastName}</span>
+                </Link>
+              ) : (
+                <Link href="/login" onClick={() => setOpen(false)} className="block w-full text-center bg-[#F5A623] text-[#1B4332] font-bold py-3 rounded-xl text-base transition-colors">
+                  Log In
+                </Link>
+              ))}
             </div>
           </div>
         )}
