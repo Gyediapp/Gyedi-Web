@@ -104,7 +104,10 @@ function SummaryView({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? data.error ?? 'Failed to create escrow');
-      window.location.href = `/escrow/${data.escrow.id}`;
+      const nextPath = data.escrow.status === 'PENDING'
+        ? `/escrow/${data.escrow.id}/pay`
+        : `/escrow/${data.escrow.id}`;
+      window.location.href = nextPath;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
       setLoading(false);
@@ -225,7 +228,10 @@ function ManualForm({ user }: { user: User | null }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? 'Failed to create escrow');
-      window.location.href = `/escrow/${data.escrow.id}`;
+      const nextPath = data.escrow.status === 'PENDING'
+        ? `/escrow/${data.escrow.id}/pay`
+        : `/escrow/${data.escrow.id}`;
+      window.location.href = nextPath;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {

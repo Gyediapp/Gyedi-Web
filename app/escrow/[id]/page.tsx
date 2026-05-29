@@ -219,6 +219,36 @@ function ActionPanel({
         <div className="bg-blue-50 border border-blue-100 text-blue-700 text-sm rounded-xl px-4 py-3">{error}</div>
       )}
 
+      {/* Buyer: fund PENDING escrow */}
+      {isBuyer && status === 'PENDING' && (
+        <div className="space-y-3">
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 items-start">
+            <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-amber-800 font-bold text-sm">Payment Required</p>
+              <p className="text-amber-600 text-xs mt-0.5">This escrow is awaiting your payment. Fund it to proceed.</p>
+            </div>
+          </div>
+          <a
+            href={`/escrow/${escrow.id}/pay`}
+            className={`${btnBase} bg-[#F5A623] text-[#1B4332] shadow-sm flex items-center justify-center gap-2`}
+          >
+            💳 Pay to Fund Escrow
+          </a>
+        </div>
+      )}
+
+      {!isBuyer && status === 'PENDING' && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
+          <p className="text-amber-700 font-semibold text-sm">Awaiting buyer payment</p>
+          <p className="text-amber-500 text-xs mt-1">Funds will appear here once the buyer completes payment.</p>
+        </div>
+      )}
+
       {/* Seller: mark shipped */}
       {isSeller && status === 'FUNDED' && (
         <button
