@@ -25,17 +25,30 @@ async function verifyToken(req: NextRequest): Promise<string | null> {
   }
 }
 
+const LISTING_SELECT = {
+  id: true, title: true, description: true, price: true,
+  category: true, images: true, sellerId: true,
+  country: true, status: true, storeType: true,
+  views: true, condition: true, createdAt: true, updatedAt: true,
+  seller: { select: { id: true, firstName: true, lastName: true } },
+} as const;
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const listing = await prisma.listing.findUnique({
-    where: { id },
-    include: { seller: { select: { id: true, firstName: true, lastName: true } } },
-  });
-  if (!listing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  return NextResponse.json({ listing });
+  try {
+    const listing = await prisma.listing.findUnique({
+      where: { id },
+      select: LISTING_SELECT,
+    });
+    if (!listing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    return NextResponse.json({ listing });
+  } catch (err) {
+    console.error('[GET /api/listings/:id] Prisma error:', err);
+    return NextResponse.json({ error: 'Database error loading listing' }, { status: 500 });
+  }
 }
 
 export async function PATCH(
@@ -63,10 +76,17 @@ export async function PATCH(
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 
-  const updated = await prisma.listing.update({
-    where: { id },
-    data: parsed.data,
-  });
+  let updated;
+  try {
+    updated = await prisma.listing.update({
+      where: { id },
+      data: parsed.data,
+      select: LISTING_SELECT,
+    });
+  } catch (err) {
+    console.error('[PATCH /api/listings/:id] Prisma error:', err);
+    return NextResponse.json({ error: 'Database error saving listing' }, { status: 500 });
+  }
 
   return NextResponse.json({ listing: updated });
 }

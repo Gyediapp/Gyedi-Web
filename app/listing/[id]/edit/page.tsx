@@ -81,9 +81,20 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
     if (!tok) { setLoading(false); return; }
 
     fetch(`/api/listings/${id}`)
-      .then(r => r.json())
-      .then(data => {
-        if (!data.listing) { setError('Listing not found.'); setLoading(false); return; }
+      .then(async r => {
+        const data = await r.json();
+        if (!r.ok) {
+          console.error('[edit] load failed', r.status, data);
+          setError(data?.error ?? `Failed to load listing (HTTP ${r.status}).`);
+          setLoading(false);
+          return;
+        }
+        if (!data.listing) {
+          console.error('[edit] no listing in response', data);
+          setError('Listing not found.');
+          setLoading(false);
+          return;
+        }
         try {
           const payload = JSON.parse(atob(tok.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
           if (payload.sub !== data.listing.sellerId) {
@@ -96,7 +107,11 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         setImages((data.listing.images as string[]).map(url => ({ kind: 'existing' as const, url })));
         setLoading(false);
       })
-      .catch(() => { setError('Failed to load listing.'); setLoading(false); });
+      .catch(err => {
+        console.error('[edit] fetch error', err);
+        setError('Network error — check your connection and try again.');
+        setLoading(false);
+      });
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
