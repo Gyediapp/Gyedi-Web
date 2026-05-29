@@ -1,11 +1,27 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { COUNTRIES, normalizePhone, validatePhone } from '@/lib/phone';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
+
+type SupportedCountry = {
+  code: string; name: string; flag: string; dialCode: string;
+  currency: string; currencySymbol: string; isLaunchCountry: boolean;
+};
+
+const FALLBACK_COUNTRIES: SupportedCountry[] = [
+  { code: 'GH', name: 'Ghana',          flag: '🇬🇭', dialCode: '+233', currency: 'GHS', currencySymbol: '₵',   isLaunchCountry: true },
+  { code: 'NG', name: 'Nigeria',         flag: '🇳🇬', dialCode: '+234', currency: 'NGN', currencySymbol: '₦',   isLaunchCountry: false },
+  { code: 'GB', name: 'United Kingdom',  flag: '🇬🇧', dialCode: '+44',  currency: 'GBP', currencySymbol: '£',   isLaunchCountry: false },
+  { code: 'US', name: 'United States',   flag: '🇺🇸', dialCode: '+1',   currency: 'USD', currencySymbol: '$',   isLaunchCountry: false },
+  { code: 'DE', name: 'Germany',         flag: '🇩🇪', dialCode: '+49',  currency: 'EUR', currencySymbol: '€',   isLaunchCountry: false },
+  { code: 'CA', name: 'Canada',          flag: '🇨🇦', dialCode: '+1',   currency: 'CAD', currencySymbol: 'CA$', isLaunchCountry: false },
+  { code: 'AU', name: 'Australia',       flag: '🇦🇺', dialCode: '+61',  currency: 'AUD', currencySymbol: 'A$',  isLaunchCountry: false },
+  { code: 'ZA', name: 'South Africa',    flag: '🇿🇦', dialCode: '+27',  currency: 'ZAR', currencySymbol: 'R',   isLaunchCountry: false },
+];
 
 function RegisterContent() {
   const searchParams              = useSearchParams();
@@ -13,8 +29,17 @@ function RegisterContent() {
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState('');
   const [countryCode, setCountryCode] = useState('+233');
+  const [residenceCountry, setResidenceCountry] = useState('GH');
+  const [supportedCountries, setSupportedCountries] = useState<SupportedCountry[]>(FALLBACK_COUNTRIES);
   const [myCode, setMyCode]           = useState<string | null>(null);
   const [rewardAmt, setRewardAmt]     = useState('5.00');
+
+  useEffect(() => {
+    fetch(`${API}/countries`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.countries?.length) setSupportedCountries(d.countries); })
+      .catch(() => {});
+  }, []);
 
   const inputCls = 'w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]';
 
@@ -47,6 +72,7 @@ function RegisterContent() {
         phone,
         email,
         pin,
+        country:  residenceCountry,
         language: 'en',
       };
       if (refCode) body.refCode = refCode.toUpperCase();
@@ -151,6 +177,27 @@ function RegisterContent() {
                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">Last Name</label>
                 <input name="lastName" required placeholder="Mensah" className={inputCls} />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Country of Residence</label>
+              <select
+                value={residenceCountry}
+                onChange={e => {
+                  const c = supportedCountries.find(sc => sc.code === e.target.value);
+                  setResidenceCountry(e.target.value);
+                  if (c?.dialCode) setCountryCode(c.dialCode);
+                }}
+                className={inputCls}
+              >
+                {supportedCountries.map(c => (
+                  <option key={c.code} value={c.code}>
+                    {c.flag} {c.name} ({c.currency})
+                    {c.isLaunchCountry ? ' — Available Now' : ''}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-400">Where you&apos;re registering from</p>
             </div>
 
             <div>
