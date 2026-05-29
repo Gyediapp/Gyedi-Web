@@ -128,6 +128,7 @@ export default function ProfilePage() {
   const [saving,        setSaving]        = useState(false);
   const [subscription,  setSubscription]  = useState<{ planName: string; endDate: string; autoRenew: boolean } | null>(null);
   const [rewardAmt,     setRewardAmt]     = useState('5');
+  const [pointsBalance, setPointsBalance] = useState<number | null>(null);
 
   // Notification preferences
   const [notifPrefs, setNotifPrefs] = useState({
@@ -204,6 +205,11 @@ export default function ProfilePage() {
     fetch(`${API}/notifications/preferences`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setNotifPrefs(p => ({ ...p, ...d })); })
+      .catch(() => {});
+
+    fetch(`${API}/points`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d != null) setPointsBalance(d.points ?? 0); })
       .catch(() => {});
   }, []);
 
@@ -338,6 +344,23 @@ export default function ProfilePage() {
 
         {user && (
           <>
+            {/* Points & Community */}
+            <a
+              href="/community"
+              className="flex items-center justify-between bg-gradient-to-r from-[#1B4332] to-[#2D6A4F] rounded-2xl shadow-sm p-4 hover:opacity-90 transition-opacity"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#F5A623]/20 rounded-full flex items-center justify-center text-xl">🪙</div>
+                <div>
+                  <p className="text-sm font-bold text-white">Community Points</p>
+                  <p className="text-xs text-green-300 mt-0.5">
+                    {pointsBalance !== null ? `${pointsBalance.toLocaleString()} pts · Visit Community →` : 'Join the community →'}
+                  </p>
+                </div>
+              </div>
+              <span className="text-green-300 text-lg">›</span>
+            </a>
+
             {/* Seller Plan */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
