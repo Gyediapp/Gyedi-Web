@@ -49,6 +49,13 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
+            {/* Saved / Favourites icon */}
+            <Link href="/favourites" className="p-2 text-white/75 hover:text-white transition-colors" title="Saved items">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+            </Link>
+
             {/* Cart icon */}
             <Link href="/cart" className="relative p-2 text-white/75 hover:text-white transition-colors">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -87,6 +94,13 @@ export default function Navbar() {
             </Link>
           </div>
 
+          {/* Mobile saved icon */}
+          <Link href="/favourites" className="md:hidden p-2 text-white/75 hover:text-white transition-colors" title="Saved items">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+          </Link>
+
           {/* Mobile cart icon */}
           <Link href="/cart" className="md:hidden relative p-2 text-white/75 hover:text-white transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -117,6 +131,12 @@ export default function Navbar() {
             {hydrated && navUser && (
               <Link href="/my-listings" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">My Listings</Link>
             )}
+            <Link href="/favourites" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">
+              <svg className="w-4 h-4 text-[#F5A623]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              Saved Items
+            </Link>
             <Link href="/referrals" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-3 text-[#F5A623] font-bold hover:bg-white/10 rounded-xl text-base transition-colors">
               🎁 Refer &amp; Earn
             </Link>

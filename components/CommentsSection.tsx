@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api.up.railway.app';
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
 type Comment = {
   id: string;
@@ -19,7 +19,7 @@ export default function CommentsSection({ listingId }: { listingId: string }) {
   const [error,    setError]    = useState('');
 
   useEffect(() => {
-    fetch(`${API}/api/social/comments/${listingId}`)
+    fetch(`${API}/social/comments/${listingId}`)
       .then(r => r.json())
       .then(d => setComments(Array.isArray(d) ? d : []))
       .catch(() => {})
@@ -32,7 +32,7 @@ export default function CommentsSection({ listingId }: { listingId: string }) {
     if (!draft.trim()) return;
     setPosting(true); setError('');
     try {
-      const res = await fetch(`${API}/api/social/comments/${listingId}`, {
+      const res = await fetch(`${API}/social/comments/${listingId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ body: draft.trim() }),

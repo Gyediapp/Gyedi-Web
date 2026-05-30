@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import ShareModal from '@/components/ShareModal';
 
-const API    = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api.up.railway.app';
+const API    = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 const FAV_KEY = 'gyedi_fav_stores';
 
 function loadFavs(): string[] {
@@ -20,7 +20,7 @@ export default function StoreActions({ sellerId, storeName }: { sellerId: string
 
   useEffect(() => {
     const token = localStorage.getItem('gyedi_token');
-    fetch(`${API}/api/social/follow/${sellerId}`, {
+    fetch(`${API}/social/follow/${sellerId}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then(r => r.json())
@@ -36,7 +36,7 @@ export default function StoreActions({ sellerId, storeName }: { sellerId: string
     if (!token) { alert('Please sign in to follow stores.'); return; }
     setActing(true);
     try {
-      const res = await fetch(`${API}/api/social/follow/${sellerId}`, {
+      const res = await fetch(`${API}/social/follow/${sellerId}`, {
         method: following ? 'DELETE' : 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });

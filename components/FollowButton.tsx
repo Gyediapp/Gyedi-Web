@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api.up.railway.app';
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
 export default function FollowButton({ sellerId }: { sellerId: string }) {
   const [following, setFollowing] = useState(false);
@@ -12,7 +12,7 @@ export default function FollowButton({ sellerId }: { sellerId: string }) {
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('gyedi_token') : null;
-    fetch(`${API}/api/social/follow/${sellerId}`, {
+    fetch(`${API}/social/follow/${sellerId}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then(r => r.json())
@@ -27,7 +27,7 @@ export default function FollowButton({ sellerId }: { sellerId: string }) {
     setActing(true);
     const method = following ? 'DELETE' : 'POST';
     try {
-      const res = await fetch(`${API}/api/social/follow/${sellerId}`, {
+      const res = await fetch(`${API}/social/follow/${sellerId}`, {
         method,
         headers: { Authorization: `Bearer ${token}` },
       });

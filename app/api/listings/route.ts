@@ -48,14 +48,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
 
-  const listing = await prisma.listing.create({
-    data: {
-      ...parsed.data,
-      sellerId:  userId,
-      country:   user.country,
-      storeType: 'BASIC',
-    },
-  });
+  let listing;
+  try {
+    listing = await prisma.listing.create({
+      data: {
+        ...parsed.data,
+        sellerId:  userId,
+        country:   user.country,
+        storeType: 'BASIC',
+      },
+    });
+  } catch (err: any) {
+    console.error('[listings] create error:', err?.message ?? err);
+    return NextResponse.json(
+      { error: 'Failed to save listing — please try again.' },
+      { status: 500 },
+    );
+  }
 
   return NextResponse.json({ listing }, { status: 201 });
 }

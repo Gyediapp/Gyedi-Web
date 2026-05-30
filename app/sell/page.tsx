@@ -555,11 +555,11 @@ export default function SellPage() {
                   Photos
                   {images.length > 0 && (
                     <span className="text-[11px] font-bold bg-[#1B4332]/10 text-[#1B4332] px-2 py-0.5 rounded-full">
-                      {images.length} / {MAX_IMAGES} photos
+                      {images.length} of {MAX_IMAGES} max
                     </span>
                   )}
                   {images.length === 0 && (
-                    <span className="text-gray-400 font-normal text-xs">up to {MAX_IMAGES}</span>
+                    <span className="text-gray-400 font-normal text-xs">optional — up to {MAX_IMAGES}</span>
                   )}
                 </label>
                 {images.length > 1 && (

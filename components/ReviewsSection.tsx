@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api.up.railway.app';
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
 type Review = {
   id: string;
@@ -37,7 +37,7 @@ export default function ReviewsSection({ sellerId, sellerName }: { sellerId: str
   const [error,     setError]     = useState('');
 
   useEffect(() => {
-    fetch(`${API}/api/social/reviews/${sellerId}`)
+    fetch(`${API}/social/reviews/${sellerId}`)
       .then(r => r.json())
       .then(d => {
         setReviews(d.reviews ?? []);
@@ -55,7 +55,7 @@ export default function ReviewsSection({ sellerId, sellerName }: { sellerId: str
     if (!token) { setError('Please sign in to leave a review.'); return; }
     setPosting(true); setError('');
     try {
-      const res = await fetch(`${API}/api/social/reviews/${sellerId}`, {
+      const res = await fetch(`${API}/social/reviews/${sellerId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ stars, body }),

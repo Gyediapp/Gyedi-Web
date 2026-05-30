@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import type { CartItem } from '@/context/CartContext';
 
-const API      = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api.up.railway.app';
+const API      = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 const FEE_RATE = 0.015;
 
 function fmt(n: number) {
@@ -57,7 +57,7 @@ export default function CheckoutPage() {
         .join('\n');
 
       try {
-        const res = await fetch(`${API}/api/escrows`, {
+        const res = await fetch(`${API}/escrows`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body:    JSON.stringify({ sellerId, title, description, amount: sellerTotal }),

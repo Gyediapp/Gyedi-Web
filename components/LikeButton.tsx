@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api.up.railway.app';
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
 export default function LikeButton({ listingId, compact }: { listingId: string; compact?: boolean }) {
   const [liked,   setLiked]   = useState(false);
@@ -12,7 +12,7 @@ export default function LikeButton({ listingId, compact }: { listingId: string; 
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('gyedi_token') : null;
-    fetch(`${API}/api/social/like/${listingId}`, {
+    fetch(`${API}/social/like/${listingId}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then(r => r.json())
@@ -27,7 +27,7 @@ export default function LikeButton({ listingId, compact }: { listingId: string; 
     setActing(true);
     const method = liked ? 'DELETE' : 'POST';
     try {
-      const res = await fetch(`${API}/api/social/like/${listingId}`, {
+      const res = await fetch(`${API}/social/like/${listingId}`, {
         method,
         headers: { Authorization: `Bearer ${token}` },
       });

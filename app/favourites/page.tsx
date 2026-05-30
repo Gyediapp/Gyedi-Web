@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api.up.railway.app';
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 const LS_KEY = 'gyedi_fav_listings';
 
 interface Listing {
@@ -24,7 +24,7 @@ export default function FavouritesPage() {
     setLoggedIn(!!token);
 
     if (token) {
-      fetch(`${API}/api/favourites/listings`, { headers: { Authorization: `Bearer ${token}` } })
+      fetch(`${API}/favourites/listings`, { headers: { Authorization: `Bearer ${token}` } })
         .then(r => r.json())
         .then(d => setListings(d.listings ?? []))
         .catch(() => {})
@@ -37,7 +37,7 @@ export default function FavouritesPage() {
   function unfavourite(id: string) {
     const token = localStorage.getItem('gyedi_token');
     if (token) {
-      fetch(`${API}/api/favourites/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+      fetch(`${API}/favourites/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
     }
     // Also remove from localStorage
     try {
@@ -51,9 +51,13 @@ export default function FavouritesPage() {
     return (
       <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center px-4">
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-10 text-center max-w-md w-full">
-          <div className="text-5xl mb-4">❤️</div>
-          <h1 className="text-2xl font-black text-gray-900 mb-2">Your Favourites</h1>
-          <p className="text-gray-500 text-sm mb-6">Sign in to save and view your favourite listings across devices.</p>
+          <div className="flex items-center justify-center mb-4">
+            <svg className="w-14 h-14 text-[#F5A623]" fill="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-black text-gray-900 mb-2">Your Saved Items</h1>
+          <p className="text-gray-500 text-sm mb-6">Sign in to save and view your bookmarked listings across devices.</p>
           <Link href="/login" className="bg-[#1B4332] text-white font-bold px-8 py-3 rounded-xl text-base transition-colors hover:bg-[#0F2B1F]">
             Sign In
           </Link>
@@ -86,9 +90,13 @@ export default function FavouritesPage() {
           </div>
         ) : listings.length === 0 ? (
           <div className="text-center py-24 bg-white rounded-3xl border border-gray-100">
-            <div className="text-5xl mb-4">🤍</div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">No favourites yet</h2>
-            <p className="text-gray-500 text-sm mb-6">Tap the heart on any listing to save it here.</p>
+            <div className="flex items-center justify-center mb-4">
+              <svg className="w-14 h-14 text-gray-200" fill="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">No saved items yet</h2>
+            <p className="text-gray-500 text-sm mb-6">Tap the bookmark icon on any listing to save it here.</p>
             <Link href="/marketplace" className="bg-[#1B4332] text-white font-bold px-7 py-3 rounded-xl text-base transition-colors hover:bg-[#0F2B1F]">
               Browse Marketplace
             </Link>
@@ -103,14 +111,14 @@ export default function FavouritesPage() {
                 const price = parseFloat(l.price.toString());
                 return (
                   <div key={l.id} className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 overflow-hidden relative">
-                    {/* Remove heart */}
+                    {/* Remove bookmark */}
                     <button
                       onClick={() => unfavourite(l.id)}
                       className="absolute top-2.5 right-2.5 z-10 w-7 h-7 rounded-full bg-[#F5A623] flex items-center justify-center shadow-sm"
-                      title="Remove from favourites"
+                      title="Remove from saved"
                     >
                       <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                       </svg>
                     </button>
                     <Link href={`/listing/${l.id}`}>
