@@ -172,7 +172,7 @@ export default function CategoryPage() {
                       <span className="text-[10px] font-bold text-white/40 bg-white/5 px-2 py-0.5 rounded-full">🔒 Locked</span>
                     )}
                   </div>
-                  <h3 className="font-bold text-white text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-[#F5A623] transition-colors">
+                  <h3 className="font-bold text-white text-sm sm:text-base leading-snug line-clamp-2 break-words group-hover:text-[#F5A623] transition-colors">
                     {post.title}
                   </h3>
                   <div className="flex items-center gap-3 mt-2 flex-wrap">

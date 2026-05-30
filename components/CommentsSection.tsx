@@ -67,7 +67,7 @@ export default function CommentsSection({ listingId }: { listingId: string }) {
                 <span className="text-xs font-semibold text-gray-700">{c.author.firstName} {c.author.lastName}</span>
                 <span className="text-xs text-gray-400 ml-auto">{new Date(c.createdAt).toLocaleDateString('en-GH', { day: 'numeric', month: 'short' })}</span>
               </div>
-              <p className="text-sm text-gray-700 leading-relaxed">{c.body}</p>
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words overflow-hidden">{c.body}</p>
             </div>
           ))}
         </div>

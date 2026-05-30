@@ -133,7 +133,7 @@ export default function ForumPostPage() {
           </Link>
           {post && (
             <>
-              <h1 className="text-xl md:text-2xl font-black text-white leading-snug">{post.title}</h1>
+              <h1 className="text-xl md:text-2xl font-black text-white leading-snug break-words">{post.title}</h1>
               <div className="flex items-center gap-3 mt-3 flex-wrap">
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center text-[#1B4332] font-black text-[10px] flex-shrink-0"
@@ -167,7 +167,7 @@ export default function ForumPostPage() {
           <>
             {/* Post body */}
             <div className="bg-[#1E293B] border border-white/5 rounded-2xl p-5 sm:p-6">
-              <div className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap">{post.body}</div>
+              <div className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap break-words overflow-hidden">{post.body}</div>
 
               {/* Vote + share */}
               <div className="mt-5 pt-5 border-t border-white/5 space-y-3">
@@ -216,7 +216,7 @@ export default function ForumPostPage() {
                           👍 {Number(reply.upvotes)}
                         </div>
                       </div>
-                      <p className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">{reply.body}</p>
+                      <p className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap break-words overflow-hidden">{reply.body}</p>
                     </div>
                   ))}
                 </div>
