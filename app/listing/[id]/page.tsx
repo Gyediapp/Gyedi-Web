@@ -8,7 +8,7 @@ import LikeButton from '@/components/LikeButton';
 import ListingShareButton from '@/components/ListingShareButton';
 import FavouriteButton from '@/components/FavouriteButton';
 import AddToCartButton from '@/components/AddToCartButton';
-import CommentsSection from '@/components/CommentsSection';
+import QASection from '@/components/QASection';
 import EditListingButton from '@/components/EditListingButton';
 import ListingGallery from '@/components/ListingGallery';
 import RecentlyViewedTracker from '@/components/RecentlyViewedTracker';
@@ -383,9 +383,9 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        {/* Comments */}
+        {/* Questions & Answers */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 mt-10">
-          <CommentsSection listingId={listing.id} />
+          <QASection listingId={listing.id} sellerId={listing.seller.id} />
         </div>
 
         {/* Browse Marketplace */}

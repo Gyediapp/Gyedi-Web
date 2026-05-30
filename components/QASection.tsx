@@ -1,0 +1,368 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
+const REPLIES_PREVIEW = 2; // show this many replies before "Show more"
+
+// ── types ─────────────────────────────────────────────────────────────────────
+
+type QAComment = {
+  id: string;
+  parentId: string | null;
+  body: string;
+  createdAt: string;
+  isSeller: boolean;
+  verifiedBuyer: boolean;
+  author: { id: string; firstName: string; lastName: string };
+};
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+function timeAgo(iso: string) {
+  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (m < 1)  return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return d < 7 ? `${d}d ago` : new Date(iso).toLocaleDateString('en-GH', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function initials(first: string, last: string) {
+  return `${(first[0] ?? '').toUpperCase()}${(last[0] ?? '').toUpperCase()}`;
+}
+
+// ── sub-components ────────────────────────────────────────────────────────────
+
+function Avatar({ name, size = 8 }: { name: string; size?: number }) {
+  const colors = ['#1B4332', '#F5A623', '#7C3AED', '#0369A1', '#B45309', '#15803D'];
+  let h = 0; for (const c of name) h = (h * 31 + c.charCodeAt(0)) | 0;
+  const bg = colors[Math.abs(h) % colors.length];
+  const sz = `w-${size} h-${size}`;
+  return (
+    <div
+      className={`${sz} rounded-full flex items-center justify-center text-white font-black text-[11px] flex-shrink-0`}
+      style={{ backgroundColor: bg }}
+    >
+      {initials(name.split(' ')[0] ?? '', name.split(' ')[1] ?? '')}
+    </div>
+  );
+}
+
+function SellerBadge() {
+  return (
+    <span className="inline-flex items-center gap-0.5 text-[10px] font-black px-2 py-0.5 rounded-full bg-[#F5A623] text-[#1B4332] flex-shrink-0">
+      ✦ Seller
+    </span>
+  );
+}
+
+function VerifiedBuyerBadge() {
+  return (
+    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-100 flex-shrink-0">
+      <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+      </svg>
+      Verified Buyer
+    </span>
+  );
+}
+
+function CommentBody({ body }: { body: string }) {
+  // Highlight @mention at the start of a reply
+  const mention = body.match(/^(@\S+)\s/);
+  if (mention) {
+    return (
+      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words overflow-hidden">
+        <span className="text-[#1B4332] font-semibold">{mention[1]}</span>
+        {body.slice(mention[1].length)}
+      </p>
+    );
+  }
+  return <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words overflow-hidden">{body}</p>;
+}
+
+// ── inline reply form ─────────────────────────────────────────────────────────
+
+function ReplyForm({
+  mention, listingId, parentId, onPosted, onCancel,
+}: {
+  mention: string; listingId: string; parentId: string;
+  onPosted: (c: QAComment) => void; onCancel: () => void;
+}) {
+  const [draft, setDraft] = useState(`@${mention} `);
+  const [posting, setPosting] = useState(false);
+  const [err, setErr] = useState('');
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => { ref.current?.focus(); }, []);
+
+  async function submit() {
+    const token = localStorage.getItem('gyedi_token');
+    if (!token) { setErr('Sign in to reply'); return; }
+    if (!draft.trim()) return;
+    setPosting(true); setErr('');
+    try {
+      const res = await fetch(`${API}/social/comments/${listingId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ body: draft.trim(), parentId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Failed');
+      onPosted(data as QAComment);
+      setDraft('');
+    } catch (e: any) { setErr(e.message ?? 'Failed to post'); }
+    setPosting(false);
+  }
+
+  return (
+    <div className="mt-3 pl-10 space-y-2">
+      <textarea
+        ref={ref}
+        value={draft}
+        onChange={e => setDraft(e.target.value.slice(0, 2000))}
+        rows={2}
+        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] resize-none transition-colors"
+        placeholder={`Reply to @${mention}…`}
+        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } }}
+      />
+      {err && <p className="text-xs text-red-600">{err}</p>}
+      <div className="flex gap-2">
+        <button
+          onClick={submit} disabled={posting || !draft.trim()}
+          className="bg-[#1B4332] hover:bg-[#0F2B1F] disabled:opacity-50 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors"
+        >
+          {posting ? 'Posting…' : 'Post Reply'}
+        </button>
+        <button onClick={onCancel} className="text-xs text-gray-500 hover:text-gray-700 px-3 py-2">
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── main component ────────────────────────────────────────────────────────────
+
+export default function QASection({
+  listingId,
+  sellerId,
+}: {
+  listingId: string;
+  sellerId?: string;
+}) {
+  const [comments, setComments] = useState<QAComment[]>([]);
+  const [loading,  setLoading]  = useState(true);
+  const [draft,    setDraft]    = useState('');
+  const [posting,  setPosting]  = useState(false);
+  const [error,    setError]    = useState('');
+  const [replyTarget, setReplyTarget] = useState<{ parentId: string; mention: string } | null>(null);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    fetch(`${API}/social/comments/${listingId}`)
+      .then(r => r.ok ? r.json() : [])
+      .then((d: QAComment[]) => setComments(Array.isArray(d) ? d : []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [listingId]);
+
+  const threads    = comments.filter(c => !c.parentId);
+  const getReplies = (id: string) => comments.filter(c => c.parentId === id);
+  const totalCount = comments.length;
+
+  async function postQuestion() {
+    const token = localStorage.getItem('gyedi_token');
+    if (!token) { setError('Please sign in to ask a question.'); return; }
+    if (!draft.trim()) return;
+    setPosting(true); setError('');
+    try {
+      const res = await fetch(`${API}/social/comments/${listingId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ body: draft.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Failed');
+      setComments(prev => [...prev, data as QAComment]);
+      setDraft('');
+    } catch (e: any) { setError(e.message ?? 'Failed to post'); }
+    setPosting(false);
+  }
+
+  function addComment(c: QAComment) {
+    setComments(prev => [...prev, c]);
+    setReplyTarget(null);
+  }
+
+  function toggleExpand(threadId: string) {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      next.has(threadId) ? next.delete(threadId) : next.add(threadId);
+      return next;
+    });
+  }
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="text-base font-black text-gray-900">
+          Questions &amp; Answers
+          {totalCount > 0 && (
+            <span className="text-gray-400 font-normal text-sm ml-2">({totalCount})</span>
+          )}
+        </h3>
+      </div>
+
+      {/* Ask a question */}
+      <div className="flex gap-3 mb-6">
+        <textarea
+          value={draft}
+          onChange={e => setDraft(e.target.value.slice(0, 2000))}
+          rows={2}
+          placeholder="Ask a question about this listing…"
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); postQuestion(); } }}
+          className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] resize-none transition-colors"
+        />
+        <button
+          onClick={postQuestion}
+          disabled={posting || !draft.trim()}
+          className="self-end bg-[#1B4332] hover:bg-[#0F2B1F] disabled:opacity-50 text-white text-sm font-bold px-5 py-3 rounded-xl transition-colors flex-shrink-0"
+        >
+          {posting ? '…' : 'Ask'}
+        </button>
+      </div>
+      {error && <p className="text-xs text-red-600 mb-4 -mt-3">{error}</p>}
+
+      {/* Thread list */}
+      {loading ? (
+        <div className="space-y-3">
+          {[1, 2].map(i => <div key={i} className="h-20 bg-gray-50 rounded-2xl animate-pulse" />)}
+        </div>
+      ) : threads.length === 0 ? (
+        <div className="text-center py-10 bg-gray-50 rounded-2xl border border-gray-100">
+          <p className="text-2xl mb-2">💬</p>
+          <p className="text-sm text-gray-500">No questions yet. Be the first to ask!</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {threads.map(thread => {
+            const replies      = getReplies(thread.id);
+            const isExpanded   = expanded.has(thread.id);
+            const shownReplies = isExpanded ? replies : replies.slice(0, REPLIES_PREVIEW);
+            const hiddenCount  = replies.length - REPLIES_PREVIEW;
+
+            return (
+              <div key={thread.id} className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 shadow-sm">
+
+                {/* Question */}
+                <div className="flex items-start gap-3">
+                  <Avatar name={`${thread.author.firstName} ${thread.author.lastName}`} size={8} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="text-sm font-semibold text-gray-900">
+                        {thread.author.firstName} {thread.author.lastName}
+                      </span>
+                      {thread.isSeller && <SellerBadge />}
+                      {thread.verifiedBuyer && <VerifiedBuyerBadge />}
+                      <span className="text-xs text-gray-400 ml-auto flex-shrink-0">{timeAgo(thread.createdAt)}</span>
+                    </div>
+                    <CommentBody body={thread.body} />
+                    <button
+                      onClick={() => setReplyTarget(
+                        replyTarget?.parentId === thread.id
+                          ? null
+                          : { parentId: thread.id, mention: thread.author.firstName }
+                      )}
+                      className="mt-2 text-xs font-semibold text-[#1B4332] hover:underline"
+                    >
+                      Reply
+                    </button>
+                  </div>
+                </div>
+
+                {/* Inline reply form on question */}
+                {replyTarget?.parentId === thread.id && (
+                  <ReplyForm
+                    mention={replyTarget.mention}
+                    listingId={listingId}
+                    parentId={thread.id}
+                    onPosted={addComment}
+                    onCancel={() => setReplyTarget(null)}
+                  />
+                )}
+
+                {/* Replies */}
+                {shownReplies.length > 0 && (
+                  <div className="mt-4 pl-4 border-l-2 border-gray-100 space-y-3">
+                    {shownReplies.map(reply => (
+                      <div key={reply.id}>
+                        <div className="flex items-start gap-2.5">
+                          <Avatar name={`${reply.author.firstName} ${reply.author.lastName}`} size={7} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <span className="text-sm font-semibold text-gray-900">
+                                {reply.author.firstName} {reply.author.lastName}
+                              </span>
+                              {reply.isSeller && <SellerBadge />}
+                              {reply.verifiedBuyer && <VerifiedBuyerBadge />}
+                              <span className="text-xs text-gray-400 ml-auto flex-shrink-0">{timeAgo(reply.createdAt)}</span>
+                            </div>
+                            <CommentBody body={reply.body} />
+                            <button
+                              onClick={() => setReplyTarget(
+                                replyTarget?.parentId === thread.id && replyTarget.mention === reply.author.firstName
+                                  ? null
+                                  : { parentId: thread.id, mention: reply.author.firstName }
+                              )}
+                              className="mt-1.5 text-xs font-semibold text-[#1B4332] hover:underline"
+                            >
+                              Reply
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Inline reply form on a specific reply */}
+                        {replyTarget?.parentId === thread.id &&
+                          replyTarget.mention === reply.author.firstName && (
+                          <ReplyForm
+                            mention={replyTarget.mention}
+                            listingId={listingId}
+                            parentId={thread.id}
+                            onPosted={addComment}
+                            onCancel={() => setReplyTarget(null)}
+                          />
+                        )}
+                      </div>
+                    ))}
+
+                    {/* Show more / show fewer */}
+                    {hiddenCount > 0 && !isExpanded && (
+                      <button
+                        onClick={() => toggleExpand(thread.id)}
+                        className="text-xs font-semibold text-[#1B4332] hover:underline pl-0"
+                      >
+                        ↓ Show {hiddenCount} more {hiddenCount === 1 ? 'reply' : 'replies'}
+                      </button>
+                    )}
+                    {isExpanded && replies.length > REPLIES_PREVIEW && (
+                      <button
+                        onClick={() => toggleExpand(thread.id)}
+                        className="text-xs font-semibold text-gray-400 hover:text-gray-600 hover:underline"
+                      >
+                        ↑ Show fewer
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
