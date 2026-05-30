@@ -10,6 +10,7 @@ type Review = {
   body: string | null;
   sellerReply: string | null;
   createdAt: string;
+  verifiedBuyer?: boolean;
   reviewer: { id: string; firstName: string; lastName: string };
 };
 
@@ -169,14 +170,24 @@ export default function ReviewsSection({ sellerId, sellerName }: { sellerId: str
                   {r.reviewer.firstName[0]}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-gray-900 text-sm">{r.reviewer.firstName} {r.reviewer.lastName}</span>
-                    <span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString('en-GH', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                      <span className="font-semibold text-gray-900 text-sm">{r.reviewer.firstName} {r.reviewer.lastName}</span>
+                      {r.verifiedBuyer && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-100 flex-shrink-0">
+                          <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          Verified Buyer
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-400 flex-shrink-0">{new Date(r.createdAt).toLocaleDateString('en-GH', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   </div>
                   <Stars n={r.stars} />
                 </div>
               </div>
-              {r.body && <p className="text-sm text-gray-700 leading-relaxed">{r.body}</p>}
+              {r.body && <p className="text-sm text-gray-700 leading-relaxed mt-1">{r.body}</p>}
               {r.sellerReply && (
                 <div className="mt-3 ml-4 bg-gray-50 rounded-xl px-4 py-3 border-l-2 border-[#1B4332]">
                   <p className="text-xs font-bold text-[#1B4332] mb-1">Seller response</p>
