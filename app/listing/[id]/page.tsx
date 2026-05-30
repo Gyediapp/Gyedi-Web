@@ -102,6 +102,19 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   // Increment views (fire and forget)
   (prisma as any).listing.update({ where: { id }, data: { views: { increment: 1 } } }).catch(() => {});
 
+  // Store siblings — for prev/next navigation within the seller's store
+  let storeListings: { id: string; title: string }[] = [];
+  try {
+    storeListings = await (prisma as any).listing.findMany({
+      where: { sellerId: listing.seller.id, status: 'ACTIVE' },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, title: true },
+    });
+  } catch {}
+  const storeIdx   = storeListings.findIndex((l: any) => l.id === id);
+  const prevListing = storeIdx > 0 ? storeListings[storeIdx - 1] : null;
+  const nextListing = storeIdx < storeListings.length - 1 ? storeListings[storeIdx + 1] : null;
+
   // You Might Also Like — same category, excluding this listing
   const related = await (prisma as any).listing.findMany({
     where: { status: 'ACTIVE', category: listing.category, id: { not: id } },
@@ -132,6 +145,54 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
     <div className="min-h-screen bg-gray-50 py-10 pb-28">
       <RecentlyViewedTracker listingId={id} />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Store navigation strip */}
+        {storeListings.length > 1 && (
+          <div className="flex items-center justify-between bg-white border border-gray-100 rounded-2xl px-4 py-3 mb-5 shadow-sm">
+            <Link
+              href={`/store/${listing.seller.id}`}
+              className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-[#1B4332] transition-colors min-w-0 truncate"
+            >
+              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              <span className="truncate">
+                {seller.firstName}&apos;s store
+              </span>
+            </Link>
+            <div className="flex items-center gap-0.5 shrink-0 ml-3">
+              {prevListing ? (
+                <Link
+                  href={`/listing/${prevListing.id}`}
+                  title={prevListing.title}
+                  className="p-2 rounded-xl hover:bg-gray-50 text-gray-400 hover:text-[#1B4332] transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </Link>
+              ) : (
+                <span className="p-2 text-gray-200"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg></span>
+              )}
+              <span className="text-xs text-gray-400 font-medium px-1 tabular-nums">
+                {storeIdx + 1}/{storeListings.length}
+              </span>
+              {nextListing ? (
+                <Link
+                  href={`/listing/${nextListing.id}`}
+                  title={nextListing.title}
+                  className="p-2 rounded-xl hover:bg-gray-50 text-gray-400 hover:text-[#1B4332] transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              ) : (
+                <span className="p-2 text-gray-200"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg></span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-6 flex-wrap">
           <Link href="/marketplace" className="hover:text-[#1B4332] font-medium transition-colors">Marketplace</Link>

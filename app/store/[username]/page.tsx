@@ -2,8 +2,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import ReviewsSection from '@/components/ReviewsSection';
+import StoreProductCarousel from '@/components/StoreProductCarousel';
 import StoreActions from './StoreActions';
-import StoreListingGrid from './StoreListingGrid';
 import StoreOwnerBar from './StoreOwnerBar';
 import FollowerCount from './FollowerCount';
 
@@ -296,27 +296,30 @@ export default async function StorePage({ params }: { params: Promise<{ username
           </div>
         </div>
 
-        {/* ──────────────── LISTINGS ──────────────── */}
+        {/* ──────────────── LISTINGS CAROUSEL ──────────────── */}
         <div className={`border-t ${t.sectionBorder} pt-8 mb-10`}>
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-xl sm:text-2xl font-black text-gray-900">
-              All Listings
-              <span className="text-gray-400 font-normal text-base ml-2">({listings.length})</span>
-            </h2>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black text-gray-900">
+                Shop Products
+              </h2>
+              <p className="text-sm text-gray-400 mt-0.5">
+                {listings.length} listing{listings.length !== 1 ? 's' : ''}
+                {listings.length > 0 && <span className="ml-1 hidden sm:inline">· swipe or use arrows to browse</span>}
+              </p>
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            <StoreListingGrid
-              listings={listings.map(l => ({
-                id:        l.id,
-                title:     l.title,
-                price:     l.price.toString(),
-                images:    l.images,
-                category:  l.category,
-                condition: l.condition,
-              }))}
-              accentColor={t.accentColor}
-            />
-          </div>
+          <StoreProductCarousel
+            listings={listings.map(l => ({
+              id:        l.id,
+              title:     l.title,
+              price:     l.price.toString(),
+              images:    l.images,
+              category:  l.category,
+              condition: l.condition,
+            }))}
+            sellerRating={rating}
+          />
         </div>
 
         {/* ──────────────── REVIEWS ──────────────── */}
