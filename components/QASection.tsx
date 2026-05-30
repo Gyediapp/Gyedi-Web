@@ -35,15 +35,26 @@ function initials(first: string, last: string) {
 
 // ── sub-components ────────────────────────────────────────────────────────────
 
-function Avatar({ name, size = 8 }: { name: string; size?: number }) {
-  const colors = ['#1B4332', '#F5A623', '#7C3AED', '#0369A1', '#B45309', '#15803D'];
+const AVATAR_COLORS = ['#1B4332', '#7C3AED', '#0369A1', '#B45309', '#15803D', '#9D174D'];
+
+function avatarBg(name: string) {
   let h = 0; for (const c of name) h = (h * 31 + c.charCodeAt(0)) | 0;
-  const bg = colors[Math.abs(h) % colors.length];
-  const sz = `w-${size} h-${size}`;
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+
+function Avatar({
+  name, lg = false, isSeller = false, isVerified = false,
+}: {
+  name: string; lg?: boolean; isSeller?: boolean; isVerified?: boolean;
+}) {
+  const bg   = avatarBg(name);
+  const ring = isSeller  ? '2px solid #F5A623'
+             : isVerified ? '2px solid #22c55e'
+             : 'none';
   return (
     <div
-      className={`${sz} rounded-full flex items-center justify-center text-white font-black text-[11px] flex-shrink-0`}
-      style={{ backgroundColor: bg }}
+      className={`${lg ? 'w-8 h-8 text-xs' : 'w-7 h-7 text-[11px]'} rounded-full flex items-center justify-center text-white font-black flex-shrink-0`}
+      style={{ backgroundColor: bg, outline: ring, outlineOffset: '2px' }}
     >
       {initials(name.split(' ')[0] ?? '', name.split(' ')[1] ?? '')}
     </div>
@@ -52,16 +63,21 @@ function Avatar({ name, size = 8 }: { name: string; size?: number }) {
 
 function SellerBadge() {
   return (
-    <span className="inline-flex items-center gap-0.5 text-[10px] font-black px-2 py-0.5 rounded-full bg-[#F5A623] text-[#1B4332] flex-shrink-0">
-      ✦ Seller
+    <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#F5A623] text-[#1B4332] flex-shrink-0 shadow-sm">
+      {/* storefront icon */}
+      <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M2 3a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H3z" />
+        <path fillRule="evenodd" d="M7 16a1 1 0 110 2 1 1 0 010-2zm7 0a1 1 0 110 2 1 1 0 010-2z" clipRule="evenodd" />
+      </svg>
+      Store Owner
     </span>
   );
 }
 
 function VerifiedBuyerBadge() {
   return (
-    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-100 flex-shrink-0">
-      <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-200 flex-shrink-0">
+      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
       </svg>
       Verified Buyer
@@ -70,12 +86,12 @@ function VerifiedBuyerBadge() {
 }
 
 function CommentBody({ body }: { body: string }) {
-  // Highlight @mention at the start of a reply
-  const mention = body.match(/^(@\S+)\s/);
+  // Gold @mention at the start of a reply
+  const mention = body.match(/^(@\S+)(\s|$)/);
   if (mention) {
     return (
       <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words overflow-hidden">
-        <span className="text-[#1B4332] font-semibold">{mention[1]}</span>
+        <span className="text-[#F5A623] font-bold">{mention[1]}</span>
         {body.slice(mention[1].length)}
       </p>
     );
@@ -250,31 +266,33 @@ export default function QASection({
       ) : (
         <div className="space-y-4">
           {threads.map(thread => {
-            const replies      = getReplies(thread.id);
-            const isExpanded   = expanded.has(thread.id);
-            const shownReplies = isExpanded ? replies : replies.slice(0, REPLIES_PREVIEW);
-            const hiddenCount  = replies.length - REPLIES_PREVIEW;
+            const replies    = getReplies(thread.id);
+            const isExpanded = expanded.has(thread.id);
 
             return (
               <div key={thread.id} className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 shadow-sm">
 
                 {/* Question */}
                 <div className="flex items-start gap-3">
-                  <Avatar name={`${thread.author.firstName} ${thread.author.lastName}`} size={8} />
+                  <Avatar
+                    name={`${thread.author.firstName} ${thread.author.lastName}`}
+                    lg
+                    isSeller={thread.isSeller}
+                    isVerified={thread.verifiedBuyer}
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="text-sm font-semibold text-gray-900">
                         {thread.author.firstName} {thread.author.lastName}
                       </span>
-                      {thread.isSeller && <SellerBadge />}
+                      {thread.isSeller  && <SellerBadge />}
                       {thread.verifiedBuyer && <VerifiedBuyerBadge />}
                       <span className="text-xs text-gray-400 ml-auto flex-shrink-0">{timeAgo(thread.createdAt)}</span>
                     </div>
                     <CommentBody body={thread.body} />
                     <button
                       onClick={() => setReplyTarget(
-                        replyTarget?.parentId === thread.id
-                          ? null
+                        replyTarget?.parentId === thread.id ? null
                           : { parentId: thread.id, mention: thread.author.firstName }
                       )}
                       className="mt-2 text-xs font-semibold text-[#1B4332] hover:underline"
@@ -284,8 +302,8 @@ export default function QASection({
                   </div>
                 </div>
 
-                {/* Inline reply form on question */}
-                {replyTarget?.parentId === thread.id && (
+                {/* Inline reply form on top-level question */}
+                {replyTarget?.parentId === thread.id && !replyTarget.mention.includes(' ') && (
                   <ReplyForm
                     mention={replyTarget.mention}
                     listingId={listingId}
@@ -295,65 +313,69 @@ export default function QASection({
                   />
                 )}
 
-                {/* Replies */}
-                {shownReplies.length > 0 && (
-                  <div className="mt-4 pl-4 border-l-2 border-gray-100 space-y-3">
-                    {shownReplies.map(reply => (
-                      <div key={reply.id}>
-                        <div className="flex items-start gap-2.5">
-                          <Avatar name={`${reply.author.firstName} ${reply.author.lastName}`} size={7} />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap mb-1">
-                              <span className="text-sm font-semibold text-gray-900">
-                                {reply.author.firstName} {reply.author.lastName}
-                              </span>
-                              {reply.isSeller && <SellerBadge />}
-                              {reply.verifiedBuyer && <VerifiedBuyerBadge />}
-                              <span className="text-xs text-gray-400 ml-auto flex-shrink-0">{timeAgo(reply.createdAt)}</span>
+                {/* Replies — animated expand/collapse via max-height */}
+                {replies.length > 0 && (
+                  <div className="mt-4 pl-4 border-l-2 border-[#F5A623]/30 space-y-3">
+                    {replies.map((reply, idx) => {
+                      const visible = idx < REPLIES_PREVIEW || isExpanded;
+                      return (
+                        <div
+                          key={reply.id}
+                          className="transition-all duration-300 overflow-hidden"
+                          style={{ maxHeight: visible ? '600px' : '0px', opacity: visible ? 1 : 0 }}
+                        >
+                          <div className="flex items-start gap-2.5">
+                            <Avatar
+                              name={`${reply.author.firstName} ${reply.author.lastName}`}
+                              isSeller={reply.isSeller}
+                              isVerified={reply.verifiedBuyer}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap mb-1">
+                                <span className="text-sm font-semibold text-gray-900">
+                                  {reply.author.firstName} {reply.author.lastName}
+                                </span>
+                                {reply.isSeller      && <SellerBadge />}
+                                {reply.verifiedBuyer && <VerifiedBuyerBadge />}
+                                <span className="text-xs text-gray-400 ml-auto flex-shrink-0">{timeAgo(reply.createdAt)}</span>
+                              </div>
+                              <CommentBody body={reply.body} />
+                              <button
+                                onClick={() => setReplyTarget(
+                                  replyTarget?.parentId === thread.id && replyTarget.mention === reply.author.firstName
+                                    ? null
+                                    : { parentId: thread.id, mention: reply.author.firstName }
+                                )}
+                                className="mt-1.5 text-xs font-semibold text-[#1B4332] hover:underline"
+                              >
+                                Reply
+                              </button>
                             </div>
-                            <CommentBody body={reply.body} />
-                            <button
-                              onClick={() => setReplyTarget(
-                                replyTarget?.parentId === thread.id && replyTarget.mention === reply.author.firstName
-                                  ? null
-                                  : { parentId: thread.id, mention: reply.author.firstName }
-                              )}
-                              className="mt-1.5 text-xs font-semibold text-[#1B4332] hover:underline"
-                            >
-                              Reply
-                            </button>
                           </div>
+
+                          {replyTarget?.parentId === thread.id &&
+                           replyTarget.mention === reply.author.firstName && (
+                            <ReplyForm
+                              mention={replyTarget.mention}
+                              listingId={listingId}
+                              parentId={thread.id}
+                              onPosted={addComment}
+                              onCancel={() => setReplyTarget(null)}
+                            />
+                          )}
                         </div>
+                      );
+                    })}
 
-                        {/* Inline reply form on a specific reply */}
-                        {replyTarget?.parentId === thread.id &&
-                          replyTarget.mention === reply.author.firstName && (
-                          <ReplyForm
-                            mention={replyTarget.mention}
-                            listingId={listingId}
-                            parentId={thread.id}
-                            onPosted={addComment}
-                            onCancel={() => setReplyTarget(null)}
-                          />
-                        )}
-                      </div>
-                    ))}
-
-                    {/* Show more / show fewer */}
-                    {hiddenCount > 0 && !isExpanded && (
+                    {/* Expand / collapse control */}
+                    {replies.length > REPLIES_PREVIEW && (
                       <button
                         onClick={() => toggleExpand(thread.id)}
-                        className="text-xs font-semibold text-[#1B4332] hover:underline pl-0"
+                        className="text-xs font-semibold text-[#1B4332] hover:underline transition-colors"
                       >
-                        ↓ Show {hiddenCount} more {hiddenCount === 1 ? 'reply' : 'replies'}
-                      </button>
-                    )}
-                    {isExpanded && replies.length > REPLIES_PREVIEW && (
-                      <button
-                        onClick={() => toggleExpand(thread.id)}
-                        className="text-xs font-semibold text-gray-400 hover:text-gray-600 hover:underline"
-                      >
-                        ↑ Show fewer
+                        {isExpanded
+                          ? '↑ Show fewer'
+                          : `↓ Show ${replies.length - REPLIES_PREVIEW} more ${replies.length - REPLIES_PREVIEW === 1 ? 'reply' : 'replies'}`}
                       </button>
                     )}
                   </div>
