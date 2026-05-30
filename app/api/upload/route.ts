@@ -62,14 +62,15 @@ async function uploadToSupabase(
   buffer: ArrayBuffer,
   contentType: string,
 ): Promise<{ publicUrl: string } | { error: string; status: number }> {
-  const supabaseUrl    = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  // Accept either NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL
+  const supabaseUrl    = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   console.log('[upload] env — url:', supabaseUrl?.slice(0, 40), 'keyLen:', serviceRoleKey?.length ?? 0);
 
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    console.error('[upload] NEXT_PUBLIC_SUPABASE_URL missing or placeholder');
-    return { error: 'Storage URL not configured', status: 500 };
+    console.error('[upload] NEXT_PUBLIC_SUPABASE_URL (or SUPABASE_URL) missing or placeholder');
+    return { error: 'Storage not configured — add NEXT_PUBLIC_SUPABASE_URL to Vercel env vars', status: 500 };
   }
   if (!serviceRoleKey || serviceRoleKey === 'placeholder') {
     console.error('[upload] SUPABASE_SERVICE_ROLE_KEY missing or placeholder');
@@ -121,6 +122,15 @@ async function uploadToSupabase(
 
 // ── POST ─────────────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
+  try {
+    return await handlePost(req);
+  } catch (err) {
+    console.error('[upload] Unhandled exception:', err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: 'Internal server error during upload' }, { status: 500 });
+  }
+}
+
+async function handlePost(req: NextRequest) {
   console.log('[upload] POST');
 
   const userId = await verifyToken(req);
