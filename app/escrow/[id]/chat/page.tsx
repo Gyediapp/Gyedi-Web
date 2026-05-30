@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import BottomNav from '@/components/BottomNav';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 const POLL_MS = 5000;
@@ -304,7 +303,6 @@ export default function ChatPage() {
         </button>
       </div>
 
-      <BottomNav />
     </div>
   );
 }

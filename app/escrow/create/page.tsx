@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import BottomNav from '@/components/BottomNav';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 const FEE_RATE = 0.015;
@@ -404,7 +403,6 @@ export default function CreateEscrowPage() {
         )}
       </div>
 
-      <BottomNav />
     </div>
   );
 }

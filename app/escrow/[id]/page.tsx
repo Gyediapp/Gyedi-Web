@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import BottomNav from '@/components/BottomNav';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 const FEE_RATE = 0.015;
@@ -416,9 +415,10 @@ export default function EscrowDetailPage() {
   const fee     = escrow ? parseFloat(escrow.amount) * FEE_RATE : 0;
 
   return (
-    <div className="min-h-screen bg-[#F4F6F8] pb-28">
+    <div className="min-h-screen bg-[#F4F6F8] pb-6 md:py-10">
+      <div className="max-w-[800px] mx-auto md:px-4">
       {/* Breadcrumb */}
-      <div className="bg-[#1B4332] px-5 pt-12 pb-1">
+      <div className="bg-[#1B4332] md:rounded-2xl px-5 pt-12 md:pt-6 pb-1">
         <div className="flex items-center gap-1.5 text-white/50 text-xs">
           <Link href="/dashboard" className="hover:text-white/80 transition-colors">Dashboard</Link>
           <span>/</span>
@@ -640,7 +640,7 @@ export default function EscrowDetailPage() {
         </div>
       )}
 
-      <BottomNav />
+      </div>
     </div>
   );
 }

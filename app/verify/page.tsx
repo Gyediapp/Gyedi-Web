@@ -2,7 +2,6 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import BottomNav from '@/components/BottomNav';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
@@ -197,7 +196,6 @@ export default function VerifyPage() {
             Back to Profile
           </button>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -413,7 +411,6 @@ export default function VerifyPage() {
         )}
       </div>
 
-      <BottomNav />
     </div>
   );
 }

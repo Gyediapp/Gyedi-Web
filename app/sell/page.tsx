@@ -519,13 +519,13 @@ export default function SellPage() {
         </div>
       )}
 
-      <div className="min-h-screen bg-[#F4F6F8] py-10 pb-28">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6">
+      <div className="min-h-screen bg-white md:bg-[#F4F6F8] py-0 md:py-10 pb-6 md:pb-16">
+        <div className="w-full max-w-[700px] mx-auto px-4 sm:px-6">
 
-          <div className="mb-7">
+          <div className="mb-7 pt-6 md:pt-0">
             <p className="text-[#F5A623] text-xs font-bold uppercase tracking-widest mb-1">Sell on Gyedi</p>
-            <h1 className="text-3xl font-black text-gray-900">Create a Listing</h1>
-            <p className="text-gray-400 mt-1.5">Goes live on the marketplace immediately</p>
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900">Create a Listing</h1>
+            <p className="text-gray-400 mt-1.5 text-sm md:text-base">Goes live on the marketplace immediately</p>
           </div>
 
           {error && (

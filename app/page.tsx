@@ -231,47 +231,92 @@ export default async function HomePage() {
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 lg:py-28">
-          <div className="inline-flex items-center gap-2 bg-[#F5A623]/15 border border-[#F5A623]/30 text-[#F5A623] text-[11px] font-bold px-3.5 py-1.5 rounded-full mb-5 tracking-widest uppercase">
-            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
-            </svg>
-            Escrow-Protected · Trusted Across Africa
-          </div>
+          <div className="lg:grid lg:grid-cols-2 lg:gap-16 lg:items-center">
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.03] tracking-tight max-w-3xl">
-            {headline === 'Buy & Sell'
-              ? (<>Buy &amp; Sell<br /><span className="text-[#F5A623]">with Confidence</span><br /><span className="text-white/60 text-3xl sm:text-4xl md:text-5xl font-extrabold">across Africa.</span></>)
-              : headline}
-          </h1>
+            {/* ── Left: copy + search ── */}
+            <div>
+              <div className="inline-flex items-center gap-2 bg-[#F5A623]/15 border border-[#F5A623]/30 text-[#F5A623] text-[11px] font-bold px-3.5 py-1.5 rounded-full mb-5 tracking-widest uppercase">
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
+                </svg>
+                Escrow-Protected · Trusted Across Africa
+              </div>
 
-          <p className="mt-5 sm:mt-6 text-base sm:text-lg text-white/60 max-w-xl leading-relaxed">{subtext}</p>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black text-white leading-[1.03] tracking-tight">
+                {headline === 'Buy & Sell'
+                  ? (<>Buy &amp; Sell<br /><span className="text-[#F5A623]">with Confidence</span><br /><span className="text-white/60 text-3xl sm:text-4xl lg:text-5xl font-extrabold">across Africa.</span></>)
+                  : headline}
+              </h1>
 
-          <form method="GET" action="/marketplace" className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-2 max-w-2xl">
-            <div className="relative flex-1">
-              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                name="q"
-                placeholder="Search phones, clothes, cars…"
-                className="w-full pl-12 pr-4 py-4 bg-white/12 border border-white/25 rounded-2xl text-white placeholder-white/40 text-sm sm:text-base focus:outline-none focus:border-[#F5A623]/60 focus:bg-white/18 transition-colors"
-              />
+              <p className="mt-5 sm:mt-6 text-base sm:text-lg text-white/60 max-w-xl leading-relaxed">{subtext}</p>
+
+              <form method="GET" action="/marketplace" className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    name="q"
+                    placeholder="Search phones, clothes, cars…"
+                    className="w-full pl-12 pr-4 py-4 bg-white/12 border border-white/25 rounded-2xl text-white placeholder-white/40 text-sm sm:text-base focus:outline-none focus:border-[#F5A623]/60 focus:bg-white/18 transition-colors"
+                  />
+                </div>
+                <button type="submit" className="bg-[#F5A623] hover:bg-[#D4881A] text-[#1B4332] font-black px-8 py-4 rounded-2xl text-base sm:text-lg transition-all shadow-lg shadow-[#F5A623]/20 whitespace-nowrap">
+                  Search →
+                </button>
+              </form>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                {[
+                  { icon: '🔒', label: 'Escrow Protected' },
+                  { icon: '✅', label: 'KYC Verified Sellers' },
+                  { icon: '⚡', label: 'Instant MoMo Payouts' },
+                ].map(b => (
+                  <span key={b.label} className="inline-flex items-center gap-1.5 bg-white/10 border border-white/15 text-white/70 text-xs font-semibold px-3 py-1.5 rounded-full">
+                    {b.icon} {b.label}
+                  </span>
+                ))}
+              </div>
             </div>
-            <button type="submit" className="bg-[#F5A623] hover:bg-[#D4881A] active:bg-[#B87315] text-[#1B4332] font-black px-8 py-4 rounded-2xl text-base sm:text-lg transition-all shadow-lg shadow-[#F5A623]/20 whitespace-nowrap">
-              Search →
-            </button>
-          </form>
 
-          <div className="mt-6 flex flex-wrap gap-3">
-            {[
-              { icon: '🔒', label: 'Escrow Protected' },
-              { icon: '✅', label: 'KYC Verified Sellers' },
-              { icon: '⚡', label: 'Instant MoMo Payouts' },
-            ].map(b => (
-              <span key={b.label} className="inline-flex items-center gap-1.5 bg-white/10 border border-white/15 text-white/70 text-xs font-semibold px-3 py-1.5 rounded-full">
-                {b.icon} {b.label}
-              </span>
-            ))}
+            {/* ── Right: trust card (desktop only) ── */}
+            <div className="hidden lg:flex flex-col gap-4 items-end">
+              {/* Transaction preview card */}
+              <div className="w-full max-w-sm bg-white/10 backdrop-blur border border-white/20 rounded-3xl p-6 shadow-2xl">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-white/60 text-xs font-bold uppercase tracking-widest">Live Escrow</span>
+                  <span className="bg-green-500/20 text-green-300 text-[10px] font-bold px-2.5 py-1 rounded-full">● FUNDED</span>
+                </div>
+                <p className="text-white font-black text-lg leading-snug mb-1">iPhone 15 Pro Max 256GB</p>
+                <p className="text-[#F5A623] font-black text-3xl">GHS 8,500</p>
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-[#F5A623] flex items-center justify-center text-[#1B4332] text-xs font-black flex-shrink-0">KA</div>
+                  <div>
+                    <p className="text-white/80 text-xs font-semibold">Kwame Asante</p>
+                    <p className="text-white/40 text-[10px]">Buyer · Verified ✅</p>
+                  </div>
+                  <div className="ml-auto text-right">
+                    <p className="text-white/40 text-[10px]">Protected by</p>
+                    <p className="text-[#F5A623] text-xs font-black">Gyedi Escrow</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats row */}
+              <div className="w-full max-w-sm grid grid-cols-3 gap-3">
+                {[
+                  { n: '50K+', label: 'Deals Done' },
+                  { n: '10K+', label: 'Sellers' },
+                  { n: '0', label: 'Chargebacks' },
+                ].map(s => (
+                  <div key={s.label} className="bg-white/8 border border-white/15 rounded-2xl p-3 text-center">
+                    <p className="text-[#F5A623] font-black text-lg">{s.n}</p>
+                    <p className="text-white/50 text-[10px] font-semibold">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         </div>
       </section>

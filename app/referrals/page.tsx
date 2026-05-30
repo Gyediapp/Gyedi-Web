@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import BottomNav from '@/components/BottomNav';
 
 const API      = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 const PWA_BASE = 'https://gyedi-web.vercel.app';
@@ -201,7 +200,6 @@ export default function ReferralsPage() {
 
       </div>
 
-      <BottomNav />
     </div>
   );
 }

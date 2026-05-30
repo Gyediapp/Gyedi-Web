@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import BottomNav from '@/components/BottomNav';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
@@ -64,7 +63,6 @@ export default function ForumPage() {
         )}
       </div>
 
-      <BottomNav />
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import BottomNav from '@/components/BottomNav';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
@@ -339,7 +338,6 @@ export default function WalletPage() {
         </div>
       )}
 
-      <BottomNav />
     </div>
   );
 }

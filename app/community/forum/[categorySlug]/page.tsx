@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import BottomNav from '@/components/BottomNav';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
@@ -189,7 +188,6 @@ export default function CategoryPage() {
         </div>
       )}
 
-      <BottomNav />
     </div>
   );
 }
