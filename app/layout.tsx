@@ -56,16 +56,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
-      <body className="bg-gray-100 text-gray-900 overflow-x-hidden">
-        <div className="min-h-screen max-w-[480px] mx-auto bg-white flex flex-col shadow-[0_0_0_1px_rgba(0,0,0,0.04),0_4px_32px_rgba(0,0,0,0.08)]">
-          <SiteBanner banner={banner} />
-          <LayoutShell>{children}</LayoutShell>
-          <Script id="sw-register" strategy="afterInteractive">{`
-            if ('serviceWorker' in navigator) {
-              navigator.serviceWorker.register('/sw.js');
-            }
-          `}</Script>
-        </div>
+      <body className="min-h-screen flex flex-col bg-white text-gray-900 overflow-x-hidden">
+        <SiteBanner banner={banner} />
+        <LayoutShell>{children}</LayoutShell>
+        <Script id="sw-register" strategy="afterInteractive">{`
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+          }
+        `}</Script>
       </body>
     </html>
   );
