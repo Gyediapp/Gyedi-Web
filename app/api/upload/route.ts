@@ -34,6 +34,27 @@ async function verifyToken(req: NextRequest): Promise<string | null> {
   }
 }
 
+// ── ensure bucket exists (creates it if missing) ──────────────────────────────
+async function ensureBucket(supabaseUrl: string, serviceRoleKey: string, bucket: string): Promise<void> {
+  try {
+    const checkRes = await fetch(`${supabaseUrl}/storage/v1/bucket/${bucket}`, {
+      headers: { Authorization: `Bearer ${serviceRoleKey}` },
+    });
+    if (checkRes.ok) return;
+    const createRes = await fetch(`${supabaseUrl}/storage/v1/bucket`, {
+      method:  'POST',
+      headers: {
+        Authorization:  `Bearer ${serviceRoleKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id: bucket, name: bucket, public: true }),
+    });
+    console.log('[upload] ensureBucket create status:', createRes.status, bucket);
+  } catch (err) {
+    console.warn('[upload] ensureBucket non-fatal error:', err instanceof Error ? err.message : err);
+  }
+}
+
 // ── upload helper (reads env lazily — safe for serverless cold starts) ────────
 async function uploadToSupabase(
   bucket: string,
@@ -54,6 +75,8 @@ async function uploadToSupabase(
     console.error('[upload] SUPABASE_SERVICE_ROLE_KEY missing or placeholder');
     return { error: 'Upload service key not configured — add SUPABASE_SERVICE_ROLE_KEY to env vars', status: 500 };
   }
+
+  await ensureBucket(supabaseUrl, serviceRoleKey, bucket);
 
   const endpoint = `${supabaseUrl}/storage/v1/object/${bucket}/${path}`;
   console.log('[upload] → Storage:', endpoint.slice(0, 90));

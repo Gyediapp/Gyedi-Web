@@ -12,14 +12,16 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const isPwa = PWA_PREFIXES.some(p => pathname.startsWith(p));
 
   if (isPwa) {
-    return <main className="min-h-screen bg-[#F4F6F8]">{children}</main>;
+    return <main className="flex-1 bg-[#F4F6F8]">{children}</main>;
   }
 
   return (
     <CartProvider>
-      <Navbar />
-      <main className="flex-1">{children}</main>
-      <Footer />
+      <div className="flex-1 flex flex-col">
+        <Navbar />
+        <main className="flex-1">{children}</main>
+        <Footer />
+      </div>
     </CartProvider>
   );
 }
