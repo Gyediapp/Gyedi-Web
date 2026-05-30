@@ -51,16 +51,6 @@ export default function StoreOwnerBar({ sellerId }: { sellerId: string }) {
       {/* Spacer so page content clears the fixed banner */}
       <div className="h-10" />
 
-      {/* Floating Add Listing button (mobile-friendly) */}
-      <Link
-        href="/sell"
-        className="fixed bottom-6 right-5 z-40 flex items-center gap-2 bg-[#F5A623] text-[#1B4332] font-black text-sm px-5 py-3.5 rounded-2xl shadow-2xl shadow-[#F5A623]/40 hover:bg-[#e09520] transition-all active:scale-95"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-        </svg>
-        Add Listing
-      </Link>
     </>
   );
 }
