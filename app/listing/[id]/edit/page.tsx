@@ -16,7 +16,7 @@ type ImageItem =
 
 interface Listing {
   id: string; title: string; description: string;
-  price: number | string; category: string; images: string[]; sellerId: string;
+price: number | string; category: string; images: string[]; sellerId: string; condition?: string;
 }
 
 function uid() { return Math.random().toString(36).slice(2, 10); }
@@ -72,6 +72,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
   const [images,  setImages]  = useState<ImageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving,  setSaving]  = useState(false);
+const [condition, setCondition] = useState('New');
   const [error,   setError]   = useState('');
   const [success, setSuccess] = useState('');
 
@@ -105,6 +106,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         } catch { /* if decode fails, let server enforce */ }
         setListing(data.listing);
         setImages((data.listing.images as string[]).map(url => ({ kind: 'existing' as const, url })));
+        setCondition(data.listing.condition ?? 'New');
         setLoading(false);
       })
       .catch(err => {
@@ -209,6 +211,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
       description: fd.get('description'),
       price:       parseFloat(fd.get('price') as string),
       category:    fd.get('category'),
+      condition,
       images:      imageUrls,
     };
 
@@ -427,6 +430,26 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
 
           {/* ── Price ── */}
           <div>
+            {/* Condition */}
+<div>
+  <label className="block text-sm font-bold text-gray-700 mb-1.5">Condition *</label>
+  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+    {['New', 'Like New', 'Good', 'Fair', 'For Parts'].map(c => (
+      <button
+        key={c}
+        type="button"
+        onClick={() => setCondition(c)}
+        className={`py-2.5 px-2 rounded-xl text-xs font-bold border-2 transition-colors ${
+          condition === c
+            ? 'bg-[#1B4332] text-white border-[#1B4332]'
+            : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B4332]'
+        }`}
+      >
+        {c}
+      </button>
+    ))}
+  </div>
+</div>
             <label className="block text-sm font-bold text-gray-700 mb-1.5">Price (GHS) *</label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold select-none">GHS</span>
