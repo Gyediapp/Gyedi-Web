@@ -226,10 +226,10 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                     <span className="text-gray-300">·</span>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
           listing.condition === 'New' ? 'bg-green-100 text-green-700' :
-          listing.condition === 'Like New' ? 'bg-emerald-100 text-emerald-700' :
-          listing.condition === 'Good' ? 'bg-blue-100 text-blue-700' :
-           listing.condition === 'Fair' ? 'bg-amber-100 text-amber-700' :
-          'bg-red-100 text-red-700'                    }`}>
+          listing.condition === 'Like New' ? 'bg-blue-100 text-blue-700' :
+          listing.condition === 'Good' ? 'bg-amber-100 text-amber-700' :
+          listing.condition === 'Fair' ? 'bg-orange-100 text-orange-700' :
+         'bg-red-100 text-red-700'}`}>
                       {listing.condition}
                     </span>
                   </>
