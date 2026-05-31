@@ -9,6 +9,7 @@ const CreateListingSchema = z.object({
   price:       z.number().positive(),
   category:    z.string().min(1),
   images:      z.array(z.string().url()).max(10).default([]),
+  condition:   z.string().default('New'),
 });
 
 async function verifyToken(req: NextRequest): Promise<string | null> {
@@ -56,6 +57,7 @@ export async function POST(req: NextRequest) {
         sellerId:  userId,
         country:   user.country,
         storeType: 'BASIC',
+        condition: parsed.data.condition,
       },
     });
   } catch (err: any) {
