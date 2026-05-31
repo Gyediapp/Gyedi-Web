@@ -133,6 +133,7 @@ export default function SellPage() {
   const [description,  setDescription]  = useState('');
   const [price,        setPrice]        = useState('');
   const [category,     setCategory]     = useState('');
+  const [condition,    setCondition]    = useState('New');
   const [uploadStatus, setUploadStatus] = useState('');
   const [loading,      setLoading]      = useState(false);
   const [error,        setError]        = useState('');
@@ -357,12 +358,13 @@ export default function SellPage() {
     const imageUrls = images.map(img => urlMap.get(img.id)).filter(Boolean) as string[];
 
     const body = {
-      title,
-      description,
-      price: parseFloat(price),
-      category,
-      images: imageUrls,
-    };
+  title,
+  description,
+  price: parseFloat(price),
+  category,
+  condition,
+  images: imageUrls,
+};
 
     try {
       const res = await fetch('/api/listings', {
@@ -379,6 +381,7 @@ export default function SellPage() {
       setDescription('');
       setPrice('');
       setCategory('');
+      setCondition('New');
     } catch (err) {
       // Don't reset form — preserve title/description/price/category for retry
       setError(err instanceof Error
@@ -726,7 +729,26 @@ export default function SellPage() {
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-
+{/* Condition */}
+<div>
+  <label className="block text-sm font-bold text-gray-700 mb-1.5">Condition *</label>
+  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+    {['New', 'Like New', 'Good', 'Fair', 'For Parts'].map(c => (
+      <button
+        key={c}
+        type="button"
+        onClick={() => setCondition(c)}
+        className={`py-2.5 px-2 rounded-xl text-xs font-bold border-2 transition-colors ${
+          condition === c
+            ? 'bg-[#1B4332] text-white border-[#1B4332]'
+            : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B4332]'
+        }`}
+      >
+        {c}
+      </button>
+    ))}
+  </div>
+</div>
             {/* ── Price ── */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1.5">Price (GHS) *</label>
