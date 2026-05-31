@@ -262,8 +262,11 @@ export default function ProfilePage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Failed to save');
-      setUser(data.user);
-      setStoreSuccess('Store saved');
+      if (data.user) {
+        setUser(prev => prev ? { ...prev, ...data.user } : data.user);
+      }
+
+      setStoreSuccess('Store saved ✔');
       setTimeout(() => setStoreSuccess(''), 2500);
     } catch (err: unknown) {
       setStoreError(err instanceof Error ? err.message : 'Failed to save');
