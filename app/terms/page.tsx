@@ -6,7 +6,10 @@ export default async function TermsPage() {
   let body  = 'Terms of service content coming soon.';
 
   try {
-    const page = await (prisma as any).legalPage.findUnique({ where: { slug: 'terms' } });
+    const rows = await (prisma as any).$queryRawUnsafe(
+  `SELECT title, body FROM legal_pages WHERE slug = $1`, 'terms'
+);
+const page = (rows as any[])[0] ?? null;
     if (page) { title = page.title; body = page.body; }
   } catch {}
 
