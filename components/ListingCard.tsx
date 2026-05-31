@@ -77,14 +77,17 @@ export default function ListingCard({
         )}
 
         {/* Condition badge */}
-        {condition && (
+       {condition && (
           <span className={`absolute top-2.5 left-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm ${
-            condition === 'USED' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+            condition === 'New' ? 'bg-green-100 text-green-700' :
+            condition === 'Like New' ? 'bg-emerald-100 text-emerald-700' :
+            condition === 'Good' ? 'bg-blue-100 text-blue-700' :
+            condition === 'Fair' ? 'bg-amber-100 text-amber-700' :
+            'bg-red-100 text-red-700'
           }`}>
-            {condition === 'USED' ? 'USED' : 'NEW'}
+            {condition}
           </span>
         )}
-
         {/* Store type badge */}
         {storeType !== 'BASIC' && (
           <span className={`absolute top-2.5 ${condition ? 'right-2.5' : 'left-2.5'} text-xs font-bold px-2.5 py-0.5 rounded-full shadow-sm ${
