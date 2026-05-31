@@ -26,7 +26,7 @@ const CONDITION_STYLES: Record<string, string> = {
   'Like New':  'bg-blue-100 text-blue-700',
   'Good':      'bg-amber-100 text-amber-700',
   'Fair':      'bg-orange-100 text-orange-700',
-  'For Parts': 'bg-red-100 text-red-700',
+  'Faulty': 'bg-red-100 text-red-700',
   'NEW':       'bg-green-100 text-green-700',
   'USED':      'bg-amber-100 text-amber-700',
 };

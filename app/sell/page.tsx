@@ -733,7 +733,7 @@ export default function SellPage() {
 <div>
   <label className="block text-sm font-bold text-gray-700 mb-1.5">Condition *</label>
   <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-    {['New', 'Like New', 'Good', 'Fair', 'For Parts'].map(c => (
+    {['New', 'Like New', 'Good', 'Fair', 'Faulty'].map(c => (
       <button
         key={c}
         type="button"
