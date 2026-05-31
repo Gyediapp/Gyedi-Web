@@ -9,6 +9,7 @@ const UpdateListingSchema = z.object({
   price:       z.number().positive().optional(),
   category:    z.string().min(1).optional(),
   images:      z.array(z.string().url()).max(10).optional(),
+  condition:   z.string().optional(),
 });
 
 async function verifyToken(req: NextRequest): Promise<string | null> {
