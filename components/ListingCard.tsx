@@ -21,6 +21,16 @@ interface ListingCardProps {
   boosted?:     boolean;
 }
 
+const CONDITION_STYLES: Record<string, string> = {
+  'New':       'bg-green-100 text-green-700',
+  'Like New':  'bg-emerald-100 text-emerald-700',
+  'Good':      'bg-blue-100 text-blue-700',
+  'Fair':      'bg-amber-100 text-amber-700',
+  'For Parts': 'bg-red-100 text-red-700',
+  'NEW':       'bg-green-100 text-green-700',
+  'USED':      'bg-amber-100 text-amber-700',
+};
+
 const COUNTRY_FLAG: Record<string, string> = {
   GH: '🇬🇭', NG: '🇳🇬', GB: '🇬🇧', DE: '🇩🇪',
   FR: '🇫🇷', US: '🇺🇸', SN: '🇸🇳', CI: '🇨🇮',
@@ -78,13 +88,9 @@ export default function ListingCard({
 
         {/* Condition badge */}
        {condition && (
-          <span className={`absolute top-2.5 left-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm ${
-            condition === 'New' ? 'bg-green-100 text-green-700' :
-            condition === 'Like New' ? 'bg-emerald-100 text-emerald-700' :
-            condition === 'Good' ? 'bg-blue-100 text-blue-700' :
-            condition === 'Fair' ? 'bg-amber-100 text-amber-700' :
-            'bg-red-100 text-red-700'
-          }`}>
+  <span className={`absolute top-2.5 left-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm ${
+    CONDITION_STYLES[condition] ?? 'bg-green-100 text-green-700'
+  }`}>
             {condition}
           </span>
         )}
