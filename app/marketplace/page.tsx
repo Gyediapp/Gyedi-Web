@@ -43,7 +43,9 @@ export default async function MarketplacePage({
 }: {
   searchParams: Promise<{ q?: string; category?: string; country?: string; sort?: string; condition?: string }>;
 }) {
-  const { q, category, country, sort, condition } = await searchParams;
+  const { q, category, country, sort, condition, page } = await searchParams;
+const pageNum = Math.max(1, parseInt(page ?? '1', 10));
+const PAGE_SIZE = 48;
 
   // ── Fetch listings ────────────────────────────────────────────────────────
   let listings: any[] = [];
@@ -78,7 +80,8 @@ export default async function MarketplacePage({
         views: true, condition: true,
         seller: { select: { id: true, firstName: true, lastName: true, averageRating: true } },
       },
-      take: 48,
+      skip: (pageNum - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
     });
   } catch (e: any) {
     fetchError = e?.message ?? String(e);
@@ -311,6 +314,24 @@ export default async function MarketplacePage({
       </div>
 
       {/* ── SELL CTA BANNER ── */}
+      {/* Load More */}
+{sortedListings.length === PAGE_SIZE && (
+  <div className="flex justify-center mt-8">
+    <Link
+      href={`/marketplace?${new URLSearchParams({
+        ...(q ? { q } : {}),
+        ...(category ? { category } : {}),
+        ...(country ? { country } : {}),
+        ...(sort ? { sort } : {}),
+        ...(condition ? { condition } : {}),
+        page: String(pageNum + 1),
+      }).toString()}`}
+      className="bg-white border border-gray-200 hover:border-[#1B4332] text-gray-700 hover:text-[#1B4332] font-bold px-8 py-3 rounded-xl text-sm transition-colors shadow-sm"
+    >
+      Load More Listings →
+    </Link>
+  </div>
+)}
       {sortedListings.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
           <div className="bg-[#1B4332] rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-5 shadow-lg">
