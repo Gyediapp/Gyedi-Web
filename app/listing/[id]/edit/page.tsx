@@ -173,6 +173,21 @@ const [condition, setCondition] = useState('New');
     return img.kind === 'existing' ? img.url : img.objectUrl;
   }
 
+async function handleDelete() {
+    if (!confirm('Delete this listing permanently? This cannot be undone.')) return;
+    if (!token || !listing) return;
+    try {
+      const res = await fetch(`/api/listings/${listing.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to delete');
+      router.push('/my-listings');
+    } catch {
+      setError('Failed to delete listing. Please try again.');
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!token || !listing) return;
@@ -467,16 +482,22 @@ const [condition, setCondition] = useState('New');
           </div>
 
           {/* ── Actions ── */}
-          <div className="flex gap-3">
-            <Link href={`/listing/${listing.id}`}
-              className="flex-1 border border-gray-200 text-gray-600 font-bold py-4 rounded-xl text-base text-center hover:bg-gray-50 transition-colors">
-              Cancel
-            </Link>
-            <button type="submit" disabled={saving}
-              className="flex-1 bg-[#1B4332] hover:bg-[#0F2B1F] disabled:opacity-50 text-white font-black py-4 rounded-xl transition-colors text-base flex items-center justify-center gap-2">
-              {saving ? (
-                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Saving…</>
-              ) : 'Save Changes'}
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <Link href={`/listing/${listing.id}`}
+                className="flex-1 border border-gray-200 text-gray-600 font-bold py-4 rounded-xl text-base text-center hover:bg-gray-50 transition-colors">
+                Cancel
+              </Link>
+              <button type="submit" disabled={saving}
+                className="flex-1 bg-[#1B4332] hover:bg-[#0F2B1F] disabled:opacity-50 text-white font-black py-4 rounded-xl transition-colors text-base flex items-center justify-center gap-2">
+                {saving ? (
+                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Saving...</>
+                ) : 'Save Changes'}
+              </button>
+            </div>
+            <button type="button" onClick={handleDelete}
+              className="w-full border border-red-200 text-red-500 font-bold py-3 rounded-xl text-sm hover:bg-red-50 transition-colors">
+              Delete Listing
             </button>
           </div>
         </form>
