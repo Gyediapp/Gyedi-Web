@@ -117,16 +117,22 @@ async function getRecentListings() {
   } catch { return []; }
 }
 
+
+
 async function getFlashDeals() {
   try {
-    return await (prisma as any).listing.findMany({
-      where: { status: 'ACTIVE', flashDeal: true, flashDealExpiry: { gt: new Date() } },
-      orderBy: { flashDealExpiry: 'asc' },
-      take: 8,
-      include: { seller: { select: { id: true, firstName: true, lastName: true } } },
-    });
+    return await (prisma as any).$queryRawUnsafe(
+      `SELECT l.id, l.title, l.price, l.images, l.category, l."flashDealExpiry",
+              json_build_object('id', u.id, 'firstName', u."firstName", 'lastName', u."lastName") as seller
+       FROM listings l
+       JOIN users u ON u.id = l."sellerId"
+       WHERE l.status = 'ACTIVE' AND l."flashDeal" = true AND l."flashDealExpiry" > now()
+       ORDER BY l."flashDealExpiry" ASC
+       LIMIT 8`,
+    );
   } catch { return []; }
 }
+
 
 async function getTopSellers() {
   try {
