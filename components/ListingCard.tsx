@@ -30,7 +30,7 @@ const CONDITION_STYLES: Record<string, string> = {
   'NEW':       'bg-green-100 text-green-700',
   'USED':      'bg-amber-100 text-amber-700',
 };
-};
+
 
 const COUNTRY_FLAG: Record<string, string> = {
   GH: '🇬🇭', NG: '🇳🇬', GB: '🇬🇧', DE: '🇩🇪',
