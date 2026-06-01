@@ -91,3 +91,21 @@ export async function PATCH(
 
   return NextResponse.json({ listing: updated });
 }
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const userId = await verifyToken(req);
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { id } = await params;
+  const listing = await prisma.listing.findUnique({ where: { id }, select: { sellerId: true } });
+  if (!listing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (listing.sellerId !== userId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  try {
+    await prisma.listing.delete({ where: { id } });
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error('[DELETE /api/listings/:id] Prisma error:', err);
+    return NextResponse.json({ error: 'Failed to delete listing' }, { status: 500 });
+  }
+}
