@@ -834,18 +834,17 @@ const [reservePrice,   setReservePrice]   = useState('');
       </button>
     ))}
   </div>
-</div>
-            {/* ── Price ── */}
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1.5">Price (GHS) *</label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold select-none">GHS</span>
-                <input name="price" type="number" required min="1" step="0.01" placeholder="0.00"
-                  value={price} onChange={e => setPrice(e.target.value)}
-                  className="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] transition-colors" />
-              </div>
-            </div>
-
+</div>{listingType === 'fixed' && (
+  <div>
+    <label className="block text-sm font-bold text-gray-700 mb-1.5">Price (GHS) *</label>
+    <div className="relative">
+      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold select-none">GHS</span>
+      <input name="price" type="number" required min="1" step="0.01" placeholder="0.00"
+        value={price} onChange={e => setPrice(e.target.value)}
+        className="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] transition-colors" />
+    </div>
+  </div>
+)}
             {/* ── Description ── */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1.5">Description *</label>
