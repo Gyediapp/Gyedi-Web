@@ -1,3 +1,4 @@
+import BidSection from '@/components/BidSection';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -114,6 +115,16 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   const storeIdx   = storeListings.findIndex((l: any) => l.id === id);
   const prevListing = storeIdx > 0 ? storeListings[storeIdx - 1] : null;
   const nextListing = storeIdx < storeListings.length - 1 ? storeListings[storeIdx + 1] : null;
+  
+  // Fetch auction data if listing is auction type
+  let auctionData: any = null;
+  try {
+    const auctionRows = await (prisma as any).$queryRawUnsafe(
+      `SELECT "listingType", "auctionEndTime", "startingPrice", "currentBid", "bidCount", "reservePrice"
+       FROM listings WHERE id = $1`, id
+    );
+    if ((auctionRows as any[]).length > 0) auctionData = (auctionRows as any[])[0];
+  } catch {}
 
   // You Might Also Like — same category, excluding this listing
   const related = await (prisma as any).listing.findMany({
@@ -256,6 +267,19 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 <ListingShareButton listingId={listing.id} title={listing.title} />
               </div>
             </div>
+
+             {/* Auction/Bidding section */}
+            {auctionData?.listingType === 'auction' && (
+              <BidSection
+                listingId={listing.id}
+                sellerId={seller.id}
+                currentBid={auctionData.currentBid ? parseFloat(auctionData.currentBid) : null}
+                startingPrice={auctionData.startingPrice ? parseFloat(auctionData.startingPrice) : parseFloat(listing.price.toString())}
+                bidCount={Number(auctionData.bidCount ?? 0)}
+                auctionEndTime={auctionData.auctionEndTime}
+                reservePrice={auctionData.reservePrice ? parseFloat(auctionData.reservePrice) : null}
+              />
+            )}
 
             {/* Buy CTA */}
             <div className="bg-[#1B4332] rounded-2xl p-6 text-white">
