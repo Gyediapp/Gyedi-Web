@@ -10,6 +10,10 @@ const CreateListingSchema = z.object({
   category:    z.string().min(1),
   images:      z.array(z.string().url()).max(10).default([]),
   condition:   z.string().default('New'),
+  listingType:    z.string().default('fixed'),
+  auctionEndTime: z.string().optional(),
+  startingPrice:  z.number().optional(),
+  reservePrice:   z.number().nullable().optional(),
 });
 
 async function verifyToken(req: NextRequest): Promise<string | null> {
@@ -51,15 +55,28 @@ export async function POST(req: NextRequest) {
 
   let listing;
   try {
+   const { listingType, auctionEndTime, startingPrice, reservePrice, ...listingData } = parsed.data;
+    
     listing = await prisma.listing.create({
       data: {
-        ...parsed.data,
+        ...listingData,
         sellerId:  userId,
         country:   user.country,
         storeType: 'BASIC',
-        condition: parsed.data.condition,
       },
     });
+
+    // Save auction fields with raw SQL if auction type
+    if (listingType === 'auction' && auctionEndTime) {
+      await (prisma as any).$executeRawUnsafe(
+        `UPDATE listings SET "listingType" = 'auction', "auctionEndTime" = $1::timestamptz, 
+         "startingPrice" = $2, "reservePrice" = $3 WHERE id = $4`,
+        auctionEndTime,
+        startingPrice ?? listingData.price,
+        reservePrice ?? null,
+        listing.id,
+      );
+    }
   } catch (err: any) {
     console.error('[listings] create error:', err?.message ?? err);
     return NextResponse.json(
