@@ -134,6 +134,10 @@ export default function SellPage() {
   const [price,        setPrice]        = useState('');
   const [category,     setCategory]     = useState('');
   const [condition,    setCondition]    = useState('New');
+  const [listingType,    setListingType]    = useState<'fixed' | 'auction'>('fixed');
+const [auctionEndTime, setAuctionEndTime] = useState('');
+const [startingPrice,  setStartingPrice]  = useState('');
+const [reservePrice,   setReservePrice]   = useState('');
   const [uploadStatus, setUploadStatus] = useState('');
   const [loading,      setLoading]      = useState(false);
   const [error,        setError]        = useState('');
@@ -362,7 +366,20 @@ export default function SellPage() {
   description,
   price: parseFloat(price),
   category,
+  conditioconst body = {
+  title,
+  description,
+  price: listingType === 'auction' ? parseFloat(startingPrice || price) : parseFloat(price),
+  category,
   condition,
+  images: imageUrls,
+  listingType,
+  ...(listingType === 'auction' && {
+    auctionEndTime: new Date(auctionEndTime).toISOString(),
+    startingPrice: parseFloat(startingPrice || price),
+    reservePrice: reservePrice ? parseFloat(reservePrice) : null,
+  }),
+};n,
   images: imageUrls,
 };
 
@@ -729,6 +746,81 @@ export default function SellPage() {
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
+
+   {/* Listing Type */}
+<div>
+  <label className="block text-sm font-bold text-gray-700 mb-1.5">Listing Type</label>
+  <div className="grid grid-cols-2 gap-3">
+    <button
+      type="button"
+      onClick={() => setListingType('fixed')}
+      className={`py-3 px-4 rounded-xl text-sm font-bold border-2 transition-colors text-left ${
+        listingType === 'fixed'
+          ? 'bg-[#1B4332] text-white border-[#1B4332]'
+          : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B4332]'
+      }`}
+    >
+      <div>🏷️ Fixed Price</div>
+      <div className="text-xs font-normal mt-0.5 opacity-70">Sell at set price</div>
+    </button>
+    <button
+      type="button"
+      onClick={() => setListingType('auction')}
+      className={`py-3 px-4 rounded-xl text-sm font-bold border-2 transition-colors text-left ${
+        listingType === 'auction'
+          ? 'bg-[#F5A623] text-[#1B4332] border-[#F5A623]'
+          : 'bg-white text-gray-600 border-gray-200 hover:border-[#F5A623]'
+      }`}
+    >
+      <div>🔨 Auction</div>
+      <div className="text-xs font-normal mt-0.5 opacity-70">Let buyers bid</div>
+    </button>
+  </div>
+</div>
+
+{/* Auction fields */}
+{listingType === 'auction' && (
+  <div className="space-y-4 bg-[#F5A623]/5 border border-[#F5A623]/20 rounded-xl p-4">
+    <div>
+      <label className="block text-sm font-bold text-gray-700 mb-1.5">Starting Price (GHS) *</label>
+      <div className="relative">
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold select-none">GHS</span>
+        <input
+          type="number" min="1" step="0.01"
+          value={startingPrice}
+          onChange={e => setStartingPrice(e.target.value)}
+          placeholder="0.00"
+          className="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F5A623]/30 focus:border-[#F5A623] transition-colors"
+        />
+      </div>
+    </div>
+    <div>
+      <label className="block text-sm font-bold text-gray-700 mb-1.5">Reserve Price (GHS) <span className="text-gray-400 font-normal">optional</span></label>
+      <div className="relative">
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold select-none">GHS</span>
+        <input
+          type="number" min="1" step="0.01"
+          value={reservePrice}
+          onChange={e => setReservePrice(e.target.value)}
+          placeholder="Minimum price to sell"
+          className="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F5A623]/30 focus:border-[#F5A623] transition-colors"
+        />
+      </div>
+    </div>
+    <div>
+      <label className="block text-sm font-bold text-gray-700 mb-1.5">Auction End Date & Time *</label>
+      <input
+        type="datetime-local"
+        value={auctionEndTime}
+        onChange={e => setAuctionEndTime(e.target.value)}
+        min={new Date(Date.now() + 3600000).toISOString().slice(0, 16)}
+        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F5A623]/30 focus:border-[#F5A623] transition-colors"
+      />
+      <p className="text-xs text-gray-400 mt-1">Minimum 1 hour from now</p>
+    </div>
+  </div>
+)}
+
 {/* Condition */}
 <div>
   <label className="block text-sm font-bold text-gray-700 mb-1.5">Condition *</label>
