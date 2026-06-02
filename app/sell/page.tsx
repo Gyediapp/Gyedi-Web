@@ -376,7 +376,7 @@ const [reservePrice,   setReservePrice]   = useState('');
     reservePrice: reservePrice ? parseFloat(reservePrice) : null,
   }),
 
-
+  }
     try {
       const res = await fetch('/api/listings', {
         method: 'POST',
