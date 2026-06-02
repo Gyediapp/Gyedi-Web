@@ -361,12 +361,8 @@ const [reservePrice,   setReservePrice]   = useState('');
     // Collect URLs in display order
     const imageUrls = images.map(img => urlMap.get(img.id)).filter(Boolean) as string[];
 
-    const body = {
-  title,
-  description,
-  price: parseFloat(price),
-  category,
-  conditioconst body = {
+   
+  const body = {
   title,
   description,
   price: listingType === 'auction' ? parseFloat(startingPrice || price) : parseFloat(price),
@@ -379,9 +375,7 @@ const [reservePrice,   setReservePrice]   = useState('');
     startingPrice: parseFloat(startingPrice || price),
     reservePrice: reservePrice ? parseFloat(reservePrice) : null,
   }),
-};n,
-  images: imageUrls,
-};
+
 
     try {
       const res = await fetch('/api/listings', {
