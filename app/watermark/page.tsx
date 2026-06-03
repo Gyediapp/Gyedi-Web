@@ -150,17 +150,27 @@ export default function WatermarkPage() {
             {/* Upload */}
             <div className="bg-[#1E293B] border border-white/5 rounded-2xl p-5">
               <h3 className="font-black text-white text-sm mb-3">1. Upload Image</h3>
-              <button
-                onClick={() => fileRef.current?.click()}
-                className="w-full border-2 border-dashed border-white/20 hover:border-[#F5A623]/50 rounded-xl py-8 flex flex-col items-center gap-2 text-white/40 hover:text-[#F5A623] transition-colors"
-              >
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span className="text-sm font-semibold">
-                  {imageName ? imageName : 'Click to upload JPG or PNG'}
-                </span>
-              </button>
+              {image ? (
+                <div className="flex items-center justify-between bg-[#0F172A] rounded-xl px-4 py-3">
+                  <span className="text-sm text-white/60 truncate">{imageName}</span>
+                  <button
+                    onClick={() => { setImage(null); setImageName(''); setReady(false); }}
+                    className="text-red-400 hover:text-red-300 text-xs font-bold ml-3 flex-shrink-0"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  className="w-full border-2 border-dashed border-white/20 hover:border-[#F5A623]/50 rounded-xl py-8 flex flex-col items-center gap-2 text-white/40 hover:text-[#F5A623] transition-colors"
+                >
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-sm font-semibold">Click to upload JPG or PNG</span>
+                </button>
+              )}
               <input ref={fileRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp" className="hidden" onChange={handleFile} />
             </div>
 
