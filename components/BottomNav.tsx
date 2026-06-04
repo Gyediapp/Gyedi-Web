@@ -50,7 +50,13 @@ export default function BottomNav() {
       </Link>
 
       {/* Community */}
-      <Link href="/community" className={`flex-1 flex flex-col items-center py-2.5 gap-0.5 min-h-[56px] ${clr(communityActive)}`}>
+      <Link href="/my-store" className={`flex-1 flex flex-col items-center py-2.5 gap-0.5 min-h-[56px] ${clr(active(['/my-store', '/my-listings', '/wallet', '/history', '/watermark']))}`}>
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+        <span className="text-[10px] font-semibold">My Store</span>
+      </Link>
         <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
@@ -58,11 +64,11 @@ export default function BottomNav() {
       </Link>
 
       {/* Profile */}
-      <Link href="/my-store" className={`flex-1 flex flex-col items-center py-2.5 gap-0.5 min-h-[56px] ${clr(profileActive)}`}>
+      <Link href="/profile" className={`flex-1 flex flex-col items-center py-2.5 gap-0.5 min-h-[56px] ${clr(profileActive)}`}>
         <svg className="w-5 h-5" fill={profileActive ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
-        <span className="text-[10px] font-semibold">My Store</span>
+        <span className="text-[10px] font-semibold">Profile</span>
       </Link>
     </nav>
   );
