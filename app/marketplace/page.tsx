@@ -78,7 +78,7 @@ const PAGE_SIZE = 48;
         id: true, title: true, price: true, images: true,
         category: true, country: true, storeType: true,
         views: true, condition: true,
-        seller: { select: { id: true, firstName: true, lastName: true, averageRating: true } },
+        seller: { select: { id: true, firstName: true, lastName: true, averageRating: true, storeName: true } },
       },
       skip: (pageNum - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
@@ -285,7 +285,7 @@ const PAGE_SIZE = 48;
                 storeType={l.storeType}
                 views={l.views}
                 sellerId={l.seller.id}
-                sellerName={`${l.seller.firstName} ${l.seller.lastName}`}
+                sellerName={l.seller.storeName || `${l.seller.firstName} ${l.seller.lastName}`}
                 sellerRating={l.seller.averageRating ? parseFloat(l.seller.averageRating.toString()) : null}
                 condition={l.condition}
                 boosted={boostedIds.has(l.id)}
