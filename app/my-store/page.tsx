@@ -159,10 +159,13 @@ export default function MyStorePage() {
         {/* Quick actions */}
         <div className="grid grid-cols-4 gap-2">
           {[
-            { label: 'Add Listing', href: '/sell', icon: '➕' },
-            { label: 'Withdraw',    href: '/wallet', icon: '💸' },
-            { label: 'Watermark',   href: '/watermark', icon: '🖼️' },
-            { label: 'Settings',    href: '/profile', icon: '⚙️' },
+            { label: 'Add Listing',    href: '/sell',            icon: '➕' },
+           { label: 'New Escrow',     href: '/escrow/create',   icon: '🔒' },
+          { label: 'Watermark',      href: '/watermark',       icon: '🖼️' },
+          { label: 'Settings',       href: '/profile',         icon: '⚙️' },
+            
+          
+          
           ].map(a => (
             <Link key={a.href} href={a.href}
               className="bg-white/10 hover:bg-white/20 rounded-xl py-3 flex flex-col items-center gap-1 transition-colors">
