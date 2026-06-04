@@ -147,7 +147,7 @@ export default function Navbar() {
       </div>
 
       {/* TIER 2: Navigation links desktop only */}
-      <div className="hidden md:block bg-[#154028] border-t border-white/10">
+      <div className="hidden md:block bg-[#154028] border-t border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-1 h-10">
             {NAV_LINKS.map(link => (
@@ -165,7 +165,7 @@ export default function Navbar() {
       </div>
 
       {/* Mobile search bar */}
-      <div className="md:hidden bg-[#154028] px-3 py-2 border-t border-white/10">
+      <div className="md:hidden bg-[#154028] px-3 py-2 border-t border-white/20">
         <form onSubmit={handleSearch}>
           <div className="relative">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
