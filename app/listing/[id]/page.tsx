@@ -126,6 +126,15 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
     if ((auctionRows as any[]).length > 0) auctionData = (auctionRows as any[])[0];
   } catch {}
 
+  // Fetch delivery options
+  let deliveryData: any = null;
+  try {
+    const deliveryRows = await (prisma as any).$queryRawUnsafe(
+      `SELECT "deliveryOptions", "deliveryNote", "pickupLocation" FROM listings WHERE id = $1`, id
+    );
+    if ((deliveryRows as any[]).length > 0) deliveryData = (deliveryRows as any[])[0];
+  } catch {}
+
   // You Might Also Like — same category, excluding this listing
   const related = await (prisma as any).listing.findMany({
     where: { status: 'ACTIVE', category: listing.category, id: { not: id } },
@@ -397,6 +406,41 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 />
               </div>
             </div>
+
+            {/* Delivery Options */}
+            {deliveryData?.deliveryOptions?.length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                <h3 className="font-black text-gray-900 text-sm mb-3">Delivery Options</h3>
+                <div className="space-y-2">
+                  {(deliveryData.deliveryOptions as string[]).map((opt: string) => {
+                    const OPTIONS: Record<string, { icon: string; label: string }> = {
+                      personal: { icon: '🚶', label: 'Personal Delivery' },
+                      pickup:   { icon: '🏪', label: 'Pickup Only' },
+                      courier:  { icon: '📦', label: 'Courier Service' },
+                      bus:      { icon: '🚌', label: 'Bus/Sprinter' },
+                      glovo:    { icon: '🛵', label: 'Glovo / Bolt Food' },
+                    };
+                    const o = OPTIONS[opt] ?? { icon: '📦', label: opt };
+                    return (
+                      <div key={opt} className="flex items-center gap-2 text-sm text-gray-600">
+                        <span>{o.icon}</span>
+                        <span className="font-medium">{o.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {deliveryData.pickupLocation && (
+                  <p className="text-xs text-gray-400 mt-2">
+                    Pickup: {deliveryData.pickupLocation}
+                  </p>
+                )}
+                {deliveryData.deliveryNote && (
+                  <p className="text-xs text-gray-500 mt-2 bg-gray-50 rounded-lg px-3 py-2">
+                    {deliveryData.deliveryNote}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* How escrow protects you */}
             <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100">
