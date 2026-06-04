@@ -101,7 +101,7 @@ async function getTrendingListings() {
       where: { status: 'ACTIVE' },
       orderBy: { views: 'desc' },
       take: 8,
-      include: { seller: { select: { id: true, firstName: true, lastName: true, averageRating: true } } },
+      seller: { select: { id: true, firstName: true, lastName: true, averageRating: true, storeName: true } }
     });
   } catch { return []; }
 }
@@ -210,18 +210,17 @@ export default async function HomePage() {
   const subtext      = settings.heroSubtext  || 'Gyedi holds your payment securely until you confirm the deal is done. No scams, no chargebacks — just safe trades for everyone.';
 
   // Normalise listing shape for ProductCarousel
-  const toProduct = (l: any) => ({
+const toProduct = (l: any) => ({
     id: l.id, title: l.title, price: l.price.toString(),
     images: l.images, category: l.category, storeType: l.storeType,
     views: l.views,
     seller: {
       id: l.seller.id,
-      firstName: l.seller.firstName,
-      lastName: l.seller.lastName,
+      firstName: l.seller.storeName || l.seller.firstName,
+      lastName: l.seller.storeName ? '' : l.seller.lastName,
       averageRating: l.seller.averageRating ? l.seller.averageRating.toString() : null,
     },
   });
-
   return (
     <div>
 
