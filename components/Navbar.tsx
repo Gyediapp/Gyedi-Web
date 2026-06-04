@@ -70,9 +70,10 @@ export default function Navbar() {
 
             {hydrated && (navUser ? (
               <>
-                <Link href="/my-listings" className="text-white/75 hover:text-white text-base font-medium transition-colors">
-                  My Listings
+                <Link href="/my-store" className="text-white/75 hover:text-white text-base font-medium transition-colors">
+                  My Store
                 </Link>
+
                 <Link href="/profile" className="flex items-center gap-2 text-white/85 hover:text-white transition-colors">
                   <div className="w-8 h-8 rounded-full bg-[#F5A623] flex items-center justify-center text-[#1B4332] text-xs font-black">
                     {navUser.firstName[0]?.toUpperCase()}{navUser.lastName[0]?.toUpperCase()}
@@ -129,7 +130,7 @@ export default function Navbar() {
             <Link href="/pricing" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">Pricing</Link>
             <Link href="/sell" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">Sell an Item</Link>
             {hydrated && navUser && (
-              <Link href="/my-listings" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">My Listings</Link>
+              <Link href="/my-store" onClick={() => setOpen(false)} className="block px-4 py-3 text-[#F5A623] hover:text-white hover:bg-white/10 rounded-xl text-base font-bold transition-colors">🏪 My Store</Link>
             )}
             <Link href="/favourites" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">
               <svg className="w-4 h-4 text-[#F5A623]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
