@@ -42,6 +42,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-7">
             <Link href="/marketplace" className="text-white/75 hover:text-white text-base font-medium transition-colors">Marketplace</Link>
             <Link href="/#how-it-works" className="text-white/75 hover:text-white text-base font-medium transition-colors">How It Works</Link>
+            <Link href="/guide" className="text-white/75 hover:text-white text-base font-medium transition-colors">How It Works</Link>
             <Link href="/pricing" className="text-white/75 hover:text-white text-base font-medium transition-colors">Pricing</Link>
             <Link href="/referrals" className="flex items-center gap-1 text-[#F5A623] hover:text-[#F5A623]/80 text-base font-bold transition-colors">
               <span>🎁</span> Refer &amp; Earn
@@ -127,6 +128,7 @@ export default function Navbar() {
           <div className="md:hidden py-4 space-y-1 border-t border-white/10">
             <Link href="/marketplace" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">Marketplace</Link>
             <Link href="/#how-it-works" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">How It Works</Link>
+            <Link href="/guide" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">How It Works</Link>
             <Link href="/pricing" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">Pricing</Link>
             <Link href="/sell" onClick={() => setOpen(false)} className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-base font-medium transition-colors">Sell an Item</Link>
             {hydrated && navUser && (
