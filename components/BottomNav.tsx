@@ -15,7 +15,7 @@ export default function BottomNav() {
   const marketActive    = active(['/marketplace', '/listing', '/store', '/favourites', '/cart']);
   const sellActive      = active(['/sell', '/my-listings']);
   const communityActive = active(['/community', '/blog']);
-  const profileActive   = active(['/profile', '/dashboard', '/wallet', '/history', '/escrow', '/send', '/notifications', '/verify', '/referrals', '/login', '/register']);
+  const profileActive = active(['/profile', '/my-store', '/dashboard', '/wallet', '/history', '/escrow', '/send', '/notifications', '/verify', '/referrals', '/login', '/register']);
 
   const clr = (on: boolean) => on ? 'text-[#F5A623]' : 'text-white/50';
 
@@ -58,11 +58,11 @@ export default function BottomNav() {
       </Link>
 
       {/* Profile */}
-      <Link href="/profile" className={`flex-1 flex flex-col items-center py-2.5 gap-0.5 min-h-[56px] ${clr(profileActive)}`}>
+      <Link href="/my-store" className={`flex-1 flex flex-col items-center py-2.5 gap-0.5 min-h-[56px] ${clr(profileActive)}`}>
         <svg className="w-5 h-5" fill={profileActive ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
-        <span className="text-[10px] font-semibold">Profile</span>
+        <span className="text-[10px] font-semibold">My Store</span>
       </Link>
     </nav>
   );
