@@ -81,13 +81,17 @@ export async function PATCH(
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 
+  // Strip fields not in Prisma schema
+  const { deliveryOptions, deliveryNote, pickupLocation, ...prismaData } = parsed.data as any;
+
   let updated;
   try {
     updated = await prisma.listing.update({
       where: { id },
-      data: parsed.data,
+      data: prismaData,
       select: LISTING_SELECT,
     });
+
   } catch (err) {
     console.error('[PATCH /api/listings/:id] Prisma error:', err);
     return NextResponse.json({ error: 'Database error saving listing' }, { status: 500 });
