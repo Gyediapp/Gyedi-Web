@@ -374,8 +374,8 @@ const [reservePrice,   setReservePrice]   = useState('');
   images: imageUrls,
   listingType,
   deliveryOptions,
-  deliveryNote: deliveryNote.trim() || null,
-  pickupLocation: pickupLocation.trim() || null,
+   ...(deliveryNote.trim() && { deliveryNote: deliveryNote.trim() }),
+...(pickupLocation.trim() && { pickupLocation: pickupLocation.trim() }),
   ...(listingType === 'auction' && {
     auctionEndTime: new Date(auctionEndTime).toISOString(),
     startingPrice: parseFloat(startingPrice || price),
