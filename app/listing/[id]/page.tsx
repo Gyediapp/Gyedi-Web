@@ -305,6 +305,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 amount={parseFloat(listing.price.toString())}
                 description={listing.description ?? undefined}
                 listingId={listing.id}
+                deliveryOptions={deliveryData?.deliveryOptions}
               />
             </div>
 
