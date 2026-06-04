@@ -70,10 +70,11 @@ function DescriptionBlock({ text }: { text: string }) {
 
 // ── Pre-filled summary view (from listing) ─────────────────────────────────
 function SummaryView({
-  title, amount, sellerId, description, deliveryDays, listingId,
+  title, amount, sellerId, description, deliveryDays, listingId, deliveryOption,
 }: {
   title: string; amount: number; sellerId: string;
   description?: string; deliveryDays?: number; listingId?: string;
+  deliveryOption?: string;
 }) {
   const [buyerNote, setBuyerNote] = useState('');
   const [loading,   setLoading]   = useState(false);
@@ -94,6 +95,7 @@ function SummaryView({
     if (deliveryDays)         body.dueDate     = new Date(Date.now() + deliveryDays * 24 * 60 * 60 * 1000).toISOString();
     if (listingId)            body.listingId   = listingId;
     if (buyerNote.trim())     body.buyerNote   = buyerNote.trim();
+    if (deliveryOption)       body.deliveryOption = deliveryOption;
 
     try {
       const res  = await fetch(`${API}/escrows`, {
@@ -128,6 +130,11 @@ function SummaryView({
             <span className="text-4xl">🛍️</span>
             <div className="flex-1 min-w-0">
               <p className="font-black text-gray-900 text-base leading-snug">{title}</p>
+              {deliveryOption && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {({'personal':'🚶','pickup':'🏪','courier':'📦','bus':'🚌','glovo':'🛵'} as any)[deliveryOption] ?? '📦'} Delivery: <span className="font-semibold text-gray-700 capitalize">{deliveryOption}</span>
+                </p>
+              )}
               {deliveryDays && (
                 <p className="text-xs text-gray-500 mt-1">🚚 Delivery within <span className="font-semibold text-gray-700">{deliveryDays} day{deliveryDays !== 1 ? 's' : ''}</span></p>
               )}
@@ -351,6 +358,7 @@ export default function CreateEscrowPage() {
   const [prefill,  setPrefill]  = useState<{
     title: string; amount: number; sellerId: string;
     description?: string; deliveryDays?: number; listingId?: string;
+    deliveryOption?: string;
   } | null>(null);
 
   useEffect(() => {
@@ -368,9 +376,10 @@ export default function CreateEscrowPage() {
       const description = sp.get('description') ?? undefined;
       const ddStr       = sp.get('deliveryDays');
       const deliveryDays = ddStr ? parseInt(ddStr, 10) : undefined;
-      const listingId   = sp.get('listingId') ?? undefined;
+      const listingId     = sp.get('listingId') ?? undefined;
+      const deliveryOption = sp.get('deliveryOption') ?? undefined;
       if (!isNaN(amount) && amount > 0) {
-        setPrefill({ title, amount, sellerId, description, deliveryDays, listingId });
+        setPrefill({ title, amount, sellerId, description, deliveryDays, listingId, deliveryOption });
       }
     }
   }, []);
