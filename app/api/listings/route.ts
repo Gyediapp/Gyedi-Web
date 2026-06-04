@@ -14,6 +14,9 @@ const CreateListingSchema = z.object({
   auctionEndTime: z.string().optional(),
   startingPrice:  z.number().optional(),
   reservePrice:   z.number().nullable().optional(),
+  deliveryOptions:  z.array(z.string()).default(['personal']),
+  deliveryNote:     z.string().optional(),
+  pickupLocation:   z.string().optional(),
 });
 
 async function verifyToken(req: NextRequest): Promise<string | null> {
@@ -74,6 +77,17 @@ export async function POST(req: NextRequest) {
         auctionEndTime,
         startingPrice ?? listingData.price,
         reservePrice ?? null,
+        listing.id,
+      );
+    } 
+    
+    // Save delivery fields
+    if (parsed.data.deliveryOptions?.length) {
+      await (prisma as any).$executeRawUnsafe(
+        `UPDATE listings SET "deliveryOptions" = $1::jsonb, "deliveryNote" = $2, "pickupLocation" = $3 WHERE id = $4`,
+        JSON.stringify(parsed.data.deliveryOptions),
+        parsed.data.deliveryNote ?? null,
+        parsed.data.pickupLocation ?? null,
         listing.id,
       );
     }
