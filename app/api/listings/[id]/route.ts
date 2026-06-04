@@ -9,8 +9,12 @@ const UpdateListingSchema = z.object({
   price:       z.number().positive().optional(),
   category:    z.string().min(1).optional(),
   images:      z.array(z.string().url()).max(10).optional(),
-  condition:   z.string().optional(),
+  condition:       z.string().optional(),
+  deliveryOptions: z.array(z.string()).optional(),
+  deliveryNote:    z.string().nullable().optional(),
+  pickupLocation:  z.string().nullable().optional(),
 });
+
 
 async function verifyToken(req: NextRequest): Promise<string | null> {
   const auth = req.headers.get('Authorization');
@@ -88,6 +92,17 @@ export async function PATCH(
     console.error('[PATCH /api/listings/:id] Prisma error:', err);
     return NextResponse.json({ error: 'Database error saving listing' }, { status: 500 });
   }
+  
+// Save delivery fields with raw SQL
+    if ((parsed.data as any).deliveryOptions) {
+      await (prisma as any).$executeRawUnsafe(
+        `UPDATE listings SET "deliveryOptions" = $1::jsonb, "deliveryNote" = $2, "pickupLocation" = $3 WHERE id = $4`,
+        JSON.stringify((parsed.data as any).deliveryOptions),
+        (parsed.data as any).deliveryNote ?? null,
+        (parsed.data as any).pickupLocation ?? null,
+        id,
+      );
+    }
 
   return NextResponse.json({ listing: updated });
 }
