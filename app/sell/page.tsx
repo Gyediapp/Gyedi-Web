@@ -135,6 +135,9 @@ export default function SellPage() {
   const [category,     setCategory]     = useState('');
   const [condition,    setCondition]    = useState('New');
   const [listingType,    setListingType]    = useState<'fixed' | 'auction'>('fixed');
+  const [deliveryOptions, setDeliveryOptions] = useState<string[]>(['personal']);
+const [deliveryNote,    setDeliveryNote]    = useState('');
+const [pickupLocation,  setPickupLocation]  = useState('');
 const [auctionEndTime, setAuctionEndTime] = useState('');
 const [startingPrice,  setStartingPrice]  = useState('');
 const [reservePrice,   setReservePrice]   = useState('');
@@ -370,6 +373,9 @@ const [reservePrice,   setReservePrice]   = useState('');
   condition,
   images: imageUrls,
   listingType,
+  deliveryOptions,
+  deliveryNote: deliveryNote.trim() || null,
+  pickupLocation: pickupLocation.trim() || null,
   ...(listingType === 'auction' && {
     auctionEndTime: new Date(auctionEndTime).toISOString(),
     startingPrice: parseFloat(startingPrice || price),
@@ -853,6 +859,68 @@ const [reservePrice,   setReservePrice]   = useState('');
                 value={description} onChange={e => setDescription(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] transition-colors" />
             </div>
+
+{/* Delivery Options */}
+<div>
+  <label className="block text-sm font-bold text-gray-700 mb-1.5">Delivery Options *</label>
+  <p className="text-xs text-gray-400 mb-3">Select all delivery methods you offer</p>
+  <div className="space-y-2">
+    {[
+      { id: 'personal',  icon: '🚶', label: 'Personal Delivery',    desc: 'You deliver directly to buyer' },
+      { id: 'pickup',    icon: '🏪', label: 'Pickup Only',          desc: 'Buyer picks up from your location' },
+      { id: 'courier',   icon: '📦', label: 'Courier Service',      desc: 'DHL, Jumia Logistics, etc.' },
+      { id: 'bus',       icon: '🚌', label: 'Bus/Sprinter',         desc: 'Upcountry delivery via bus' },
+      { id: 'glovo',     icon: '🛵', label: 'Glovo / Bolt Food',    desc: 'Same-day delivery in Accra' },
+    ].map(opt => (
+      <label key={opt.id} className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors ${
+        deliveryOptions.includes(opt.id)
+          ? 'border-[#1B4332] bg-[#1B4332]/5'
+          : 'border-gray-200 hover:border-gray-300'
+      }`}>
+        <input
+          type="checkbox"
+          checked={deliveryOptions.includes(opt.id)}
+          onChange={e => {
+            if (e.target.checked) setDeliveryOptions(prev => [...prev, opt.id]);
+            else setDeliveryOptions(prev => prev.filter(d => d !== opt.id));
+          }}
+          className="w-4 h-4 accent-[#1B4332]"
+        />
+        <span className="text-xl">{opt.icon}</span>
+        <div className="flex-1">
+          <p className="text-sm font-bold text-gray-900">{opt.label}</p>
+          <p className="text-xs text-gray-400">{opt.desc}</p>
+        </div>
+      </label>
+    ))}
+  </div>
+</div>
+
+{/* Pickup location */}
+{deliveryOptions.includes('pickup') && (
+  <div>
+    <label className="block text-sm font-bold text-gray-700 mb-1.5">Pickup Location *</label>
+    <input
+      value={pickupLocation}
+      onChange={e => setPickupLocation(e.target.value)}
+      placeholder="e.g. Accra Mall, Spintex Road, Accra"
+      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] transition-colors"
+    />
+  </div>
+)}
+
+{/* Delivery note */}
+<div>
+  <label className="block text-sm font-bold text-gray-700 mb-1.5">
+    Delivery Note <span className="text-gray-400 font-normal">(optional)</span>
+  </label>
+  <input
+    value={deliveryNote}
+    onChange={e => setDeliveryNote(e.target.value)}
+    placeholder="e.g. Free delivery within Accra, GHS 20 outside Accra"
+    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] transition-colors"
+  />
+</div>
 
             {/* ── Escrow notice ── */}
             <div className="bg-[#F5A623]/10 rounded-xl p-4 border border-[#F5A623]/20 flex items-start gap-3">
