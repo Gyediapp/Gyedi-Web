@@ -408,7 +408,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Delivery Options */}
-            {deliveryData?.deliveryOptions?.length > 0 && (
+                         {deliveryData && (Array.isArray(deliveryData.deliveryOptions) ? deliveryData.deliveryOptions : JSON.parse(deliveryData.deliveryOptions || '[]')).length > 0 && (
               <div className="bg-white rounded-2xl border border-gray-100 p-5">
                 <h3 className="font-black text-gray-900 text-sm mb-3">Delivery Options</h3>
                 <div className="space-y-2">
