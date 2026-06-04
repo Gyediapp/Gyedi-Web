@@ -73,6 +73,9 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
   const [loading, setLoading] = useState(true);
   const [saving,  setSaving]  = useState(false);
 const [condition, setCondition] = useState('New');
+const [deliveryOptions, setDeliveryOptions] = useState<string[]>(['personal']);
+  const [deliveryNote,    setDeliveryNote]    = useState('');
+  const [pickupLocation,  setPickupLocation]  = useState('');
   const [error,   setError]   = useState('');
   const [success, setSuccess] = useState('');
 
@@ -107,6 +110,9 @@ const [condition, setCondition] = useState('New');
         setListing(data.listing);
         setImages((data.listing.images as string[]).map(url => ({ kind: 'existing' as const, url })));
         setCondition(data.listing.condition ?? 'New');
+        setDeliveryOptions(data.listing.deliveryOptions ?? ['personal']);
+        setDeliveryNote(data.listing.deliveryNote ?? '');
+        setPickupLocation(data.listing.pickupLocation ?? '');
         setLoading(false);
       })
       .catch(err => {
@@ -227,6 +233,9 @@ async function handleDelete() {
       price:       parseFloat(fd.get('price') as string),
       category:    fd.get('category'),
       condition,
+      deliveryOptions,
+      deliveryNote: deliveryNote.trim() || null,
+      pickupLocation: pickupLocation.trim() || null,
       images:      imageUrls,
     };
 
@@ -479,6 +488,44 @@ async function handleDelete() {
             <label className="block text-sm font-bold text-gray-700 mb-1.5">Description *</label>
             <textarea name="description" required rows={5} defaultValue={listing.description}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] transition-colors" />
+          </div>
+
+          {/* Delivery Options */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1.5">Delivery Options</label>
+            <div className="space-y-2">
+              {[
+                { id: 'personal', icon: '🚶', label: 'Personal Delivery',  desc: 'You deliver directly to buyer' },
+                { id: 'pickup',   icon: '🏪', label: 'Pickup Only',        desc: 'Buyer picks up from your location' },
+                { id: 'courier',  icon: '📦', label: 'Courier Service',    desc: 'DHL, Jumia Logistics, etc.' },
+                { id: 'bus',      icon: '🚌', label: 'Bus/Sprinter',       desc: 'Upcountry delivery via bus' },
+                { id: 'glovo',    icon: '🛵', label: 'Glovo / Bolt Food',  desc: 'Same-day delivery in Accra' },
+              ].map(opt => (
+                <label key={opt.id} className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors ${
+                  deliveryOptions.includes(opt.id) ? 'border-[#1B4332] bg-[#1B4332]/5' : 'border-gray-200 hover:border-gray-300'
+                }`}>
+                  <input type="checkbox" checked={deliveryOptions.includes(opt.id)}
+                    onChange={e => {
+                      if (e.target.checked) setDeliveryOptions(prev => [...prev, opt.id]);
+                      else setDeliveryOptions(prev => prev.filter(d => d !== opt.id));
+                    }}
+                    className="w-4 h-4 accent-[#1B4332]" />
+                  <span className="text-xl">{opt.icon}</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-gray-900">{opt.label}</p>
+                    <p className="text-xs text-gray-400">{opt.desc}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+            {deliveryOptions.includes('pickup') && (
+              <input value={pickupLocation} onChange={e => setPickupLocation(e.target.value)}
+                placeholder="Pickup location e.g. Accra Mall, Spintex Road"
+                className="mt-3 w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 text-sm" />
+            )}
+            <input value={deliveryNote} onChange={e => setDeliveryNote(e.target.value)}
+              placeholder="Delivery note e.g. Free delivery within Accra"
+              className="mt-3 w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 text-sm" />
           </div>
 
           {/* ── Actions ── */}
