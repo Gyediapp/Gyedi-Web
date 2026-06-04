@@ -135,6 +135,8 @@ function ActionPanel({
   const [loading, setLoading] = useState('');
   const [error, setError]     = useState('');
   const [showDispute, setShowDispute]               = useState(false);
+  const [trackingNumber, setTrackingNumber] = useState('');
+const [trackingSaved,  setTrackingSaved]  = useState(false);
   const [disputeReason, setDisputeReason]           = useState('');
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
   const [releaseChecked, setReleaseChecked]         = useState(false);
@@ -261,9 +263,35 @@ function ActionPanel({
       )}
 
       {isSeller && status === 'IN_TRANSIT' && (
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-center">
-          <p className="text-blue-700 text-sm font-semibold">Waiting for buyer to confirm receipt</p>
-          <p className="text-blue-500 text-xs mt-1">Funds will be released once confirmed</p>
+        <div className="space-y-3">
+          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-center">
+            <p className="text-blue-700 text-sm font-semibold">Waiting for buyer to confirm receipt</p>
+            <p className="text-blue-500 text-xs mt-1">Funds will be released once confirmed</p>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Add Tracking Number</p>
+            <div className="flex gap-2">
+              <input
+                value={trackingNumber}
+                onChange={e => setTrackingNumber(e.target.value)}
+                placeholder="e.g. DHL123456789"
+                className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30"
+              />
+              <button
+                onClick={async () => {
+                  if (!trackingNumber.trim()) return;
+                  await action('tracking', 'PATCH', { trackingNumber: trackingNumber.trim() });
+                  setTrackingSaved(true);
+                  setTimeout(() => setTrackingSaved(false), 3000);
+                }}
+                disabled={!!loading || !trackingNumber.trim()}
+                className="px-4 py-2.5 bg-[#1B4332] text-white text-sm font-bold rounded-xl disabled:opacity-50"
+              >
+                Save
+              </button>
+            </div>
+            {trackingSaved && <p className="text-xs text-green-600">✔ Tracking number saved!</p>}
+          </div>
         </div>
       )}
 
@@ -599,6 +627,13 @@ export default function EscrowDetailPage() {
                     <span>{({'personal':'🚶','pickup':'🏪','courier':'📦','bus':'🚌','glovo':'🛵'} as any)[escrow.deliveryOption] ?? '📦'}</span>
                     <span className="font-semibold capitalize">{escrow.deliveryOption}</span>
                   </p>
+                </div>
+              )}
+              
+              {(escrow as any).trackingNumber && (
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Tracking Number</p>
+                  <p className="text-sm font-bold text-[#1B4332]">{(escrow as any).trackingNumber}</p>
                 </div>
               )}
 
