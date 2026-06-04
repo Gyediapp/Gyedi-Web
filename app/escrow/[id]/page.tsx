@@ -16,6 +16,7 @@ type Escrow = {
   dueDate?: string; releasedAt?: string; createdAt: string;
   buyerNote?: string; sellerNote?: string; sharedNote?: string;
   buyer: Party; seller: Party;
+  deliveryOption?: string;
   disputes: Dispute[];
 };
 
@@ -581,7 +582,7 @@ export default function EscrowDetailPage() {
           </div>
 
           {/* Details */}
-          {(escrow.description || escrow.buyerNote || escrow.sharedNote) && (
+          {(escrow.description || escrow.buyerNote || escrow.sharedNote || escrow.deliveryOption) && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Details</h3>
               {escrow.description && (
@@ -590,6 +591,17 @@ export default function EscrowDetailPage() {
                   <p className="text-sm text-gray-800">{escrow.description}</p>
                 </div>
               )}
+
+               {escrow.deliveryOption && (
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Delivery Method</p>
+                  <p className="text-sm text-gray-800 flex items-center gap-2">
+                    <span>{({'personal':'🚶','pickup':'🏪','courier':'📦','bus':'🚌','glovo':'🛵'} as any)[escrow.deliveryOption] ?? '📦'}</span>
+                    <span className="font-semibold capitalize">{escrow.deliveryOption}</span>
+                  </p>
+                </div>
+              )}
+
               {escrow.buyerNote && (
                 <div>
                   <p className="text-xs text-gray-400 mb-1">Buyer note</p>
