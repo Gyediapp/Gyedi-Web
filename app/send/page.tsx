@@ -84,13 +84,21 @@ export default function SendPage() {
     <div className="min-h-screen bg-[#F4F6F8] pb-28">
       {/* Header */}
       <div className="bg-[#1B4332] px-5 pt-12 pb-6 flex items-center gap-4">
-        <Link href="/wallet" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+        <button
+          onClick={() => {
+            if (step === 'amount') { setStep('phone'); setRecipient(null); setError(''); }
+            else window.location.href = '/wallet';
+          }}
+          className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0"
+        >
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
-        </Link>
+        </button>
         <div>
-          <h1 className="text-white font-bold text-lg">Send Money</h1>
+          <h1 className="text-white font-bold text-lg">
+            {step === 'amount' ? 'Enter Amount' : 'Send Money'}
+          </h1>
           <p className="text-green-300 text-xs">Peer-to-peer transfer</p>
         </div>
       </div>
