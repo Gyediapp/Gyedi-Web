@@ -162,7 +162,7 @@ export default function MyStorePage() {
             { label: 'Add Listing',    href: '/sell',            icon: '➕' },
            { label: 'New Escrow',     href: '/escrow/create',   icon: '🔒' },
           { label: 'Watermark',      href: '/watermark',       icon: '🖼️' },
-          { label: 'Settings',       href: '/profile',         icon: '⚙️' },
+          { label: 'Settings', href: '/my-store/settings', icon: '⚙️' },
             
           
           
