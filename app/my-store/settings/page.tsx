@@ -248,12 +248,13 @@ export default function StoreSettingsPage() {
               {copied ? '✓ Copied!' : 'Copy'}
             </button>
           </div>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-5 gap-2">
             {[
-              { label: 'WhatsApp',  color: 'bg-green-500',  icon: '💬', href: `https://wa.me/?text=Check out my store on Gyedi: ${storeUrl}` },
-              { label: 'Facebook',  color: 'bg-blue-600',   icon: '📘', href: `https://www.facebook.com/sharer/sharer.php?u=${storeUrl}` },
-              { label: 'Twitter/X', color: 'bg-black',      icon: '🐦', href: `https://twitter.com/intent/tweet?text=Check out my store on Gyedi&url=${storeUrl}` },
-              { label: 'Telegram',  color: 'bg-sky-500',    icon: '✈️', href: `https://t.me/share/url?url=${storeUrl}&text=Check out my store on Gyedi` },
+             { label: 'WhatsApp',  color: 'bg-green-500',  icon: '💬', href: `https://wa.me/?text=Check out my store on Gyedi: ${storeUrl}` },
+             { label: 'Facebook',  color: 'bg-blue-600',   icon: '📘', href: `https://www.facebook.com/sharer/sharer.php?u=${storeUrl}` },
+             { label: 'Twitter/X', color: 'bg-black',      icon: '🐦', href: `https://twitter.com/intent/tweet?text=Check out my store on Gyedi&url=${storeUrl}` },
+             { label: 'Telegram',  color: 'bg-sky-500',    icon: '✈️', href: `https://t.me/share/url?url=${storeUrl}&text=Check out my store on Gyedi` },
+             { label: 'TikTok',    color: 'bg-gray-900',   icon: '🎵', href: `https://www.tiktok.com/share?url=${storeUrl}` },
             ].map(s => (
               <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
                 className={`${s.color} rounded-xl py-3 flex flex-col items-center gap-1 transition-opacity hover:opacity-80`}>
