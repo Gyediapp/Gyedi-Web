@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
 
   let listing;
   try {
-   const { listingType, auctionEndTime, startingPrice, reservePrice, ...listingData } = parsed.data;
+   const { listingType, auctionEndTime, startingPrice, reservePrice, deliveryOptions, deliveryNote, pickupLocation, ...listingData } = parsed.data;
     
     listing = await prisma.listing.create({
       data: {
