@@ -94,9 +94,9 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error('[listings] create error:', err?.message ?? err);
     return NextResponse.json(
-      { error: 'Failed to save listing — please try again.' },
-      { status: 500 },
-    );
+  { error: err?.message ?? 'Failed to save listing — please try again.' },
+  { status: 500 },
+);
   }
 
   return NextResponse.json({ listing }, { status: 201 });
