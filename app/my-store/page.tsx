@@ -196,15 +196,14 @@ export default function MyStorePage() {
                 { label: 'Add MoMo account', done: !!wallet, href: '/wallet' },
               ].map(item => (
                 <Link key={item.label} href={item.href}
-                  className="flex items-center gap-2 text-xs text-gray-600 hover:text-[#1B4332]">
+                  className="flex items-center gap-3 py-1 hover:text-[#1B4332] transition-colors">
                   <span className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${
                     item.done ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
                   }`}>
                     {item.done ? '✔' : '○'}
                   </span>
-                  <span className={item.done ? 'line-through text-gray-300' : ''}>{item.label}</span>
-                  {!item.done && <span className="ml-auto text-[#1B4332] font-semibold">→</span>}
-                </Link>
+                  <span className={`flex-1 text-sm font-semibold ${item.done ? 'line-through text-gray-300' : 'text-gray-700'}`}>{item.label}</span>
+              <svg className={`w-5 h-5 flex-shrink-0 ${item.done ? 'text-green-400' : 'text-[#1B4332]'}`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>                </Link>
               ))}
             </div>
           </div>
