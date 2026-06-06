@@ -8,21 +8,22 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.
 type Notif = { id: string; title: string; body: string; type: string; createdAt: string; isRead: boolean };
 
 const TYPE_ICON: Record<string, string> = {
-  escrow:    '🔒',
-  dispute:   '⚖️',
-  kyc:       '🪪',
-  referral:  '🎁',
-  broadcast: '📢',
-  info:      'ℹ️',
+  escrow:        '🔐',
+  dispute:       '⚠️',
+  kyc:           '🪪',
+  referral:      '🎁',
+  broadcast:     '📣',
+  info:          'ℹ️',
+  admin_message: '📩',
 };
-
 const TYPE_COLOR: Record<string, string> = {
-  escrow:    'bg-green-100 text-green-700',
-  dispute:   'bg-blue-100 text-blue-700',
-  kyc:       'bg-amber-100 text-amber-700',
-  referral:  'bg-purple-100 text-purple-700',
-  broadcast: 'bg-[#F5A623]/15 text-[#92400E]',
-  info:      'bg-gray-100 text-gray-600',
+  escrow:        'bg-green-100 text-green-700',
+  dispute:       'bg-blue-100 text-blue-700',
+  kyc:           'bg-amber-100 text-amber-700',
+  referral:      'bg-purple-100 text-purple-700',
+  broadcast:     'bg-[#F5A623]/15 text-[#92400E]',
+  info:          'bg-gray-100 text-gray-600',
+  admin_message: 'bg-blue-100 text-blue-700',
 };
 
 export default function NotificationsPage() {
