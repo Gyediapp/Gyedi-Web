@@ -7,7 +7,7 @@ import Link from 'next/link';
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 const FEE_RATE = 0.015;
 
-type Party = { id: string; firstName: string; lastName: string; phone: string; averageRating?: string; totalRatings?: number };
+type Party = { id: string; firstName: string; lastName: string; phone: string; storeName?: string | null; averageRating?: string; totalRatings?: number };
 type Dispute = { id: string; reason: string; status: string; createdAt: string };
 type Escrow = {
   id: string; code: string; title: string; description?: string;
@@ -48,6 +48,8 @@ function fmt(amount: string | number) {
   const n = typeof amount === 'string' ? parseFloat(amount) : amount;
   return `GHS ${n.toLocaleString('en-GH', { minimumFractionDigits: 2 })}`;
 }
+
+function displayName(p: Party) { return p.storeName?.trim() || `${p.firstName} ${p.lastName}`; }
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GH', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -516,8 +518,8 @@ export default function EscrowDetailPage() {
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#1B4332]/10">
               <p className="text-[#1B4332]/80 text-xs font-semibold">
                 {isBuyer
-                  ? `To: ${escrow.seller.firstName} ${escrow.seller.lastName}`
-                  : `From: ${escrow.buyer.firstName} ${escrow.buyer.lastName}`}
+                  ? `To: ${displayName(escrow.seller)}`
+                  : `From: ${displayName(escrow.buyer)}`}
               </p>
               <p className="text-[#1B4332]/60 text-xs">{fmtDate(escrow.createdAt)}</p>
             </div>
@@ -595,11 +597,11 @@ export default function EscrowDetailPage() {
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
                   label === 'Buyer' ? 'bg-blue-100 text-blue-700' : 'bg-[#F5A623]/20 text-[#92400E]'
                 }`}>
-                  {party.firstName[0]}{party.lastName[0]}
+                  {displayName(party)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-900">
-                    {party.firstName} {party.lastName}
+                    {displayName(party)}
                     {isMe && <span className="ml-1.5 text-xs bg-[#F5A623]/20 text-[#92400E] px-1.5 py-0.5 rounded-full font-bold">You</span>}
                   </p>
                   <p className="text-xs text-gray-400">{party.phone}</p>
