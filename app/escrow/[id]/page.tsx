@@ -90,7 +90,7 @@ function StatusTracker({ status }: { status: string }) {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-      <div className="flex items-center justify-between relative">
+      <div className="flex items-center justify-between relative w-full">
         <div className="absolute left-5 right-5 top-5 h-0.5 bg-gray-100 -z-0" />
         <div
           className="absolute left-5 top-5 h-0.5 bg-[#1B4332] -z-0 transition-all duration-500"
@@ -98,11 +98,11 @@ function StatusTracker({ status }: { status: string }) {
         />
 
         {STEPS.map((step, i) => {
-          const done   = i < current;
-          const active = i === current;
-          const locked = i > current;
+          const done   = status === 'COMPLETED' || i < current;
+          const active = status !== 'COMPLETED' && i === current;
+          const locked = status !== 'COMPLETED' && i > current;
           return (
-            <div key={step.key} className="flex flex-col items-center gap-1.5 z-10">
+            <div key={step.key} className="flex flex-col items-center gap-1.5 z-10 flex-1">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                 done   ? 'bg-[#1B4332]' :
                 active ? 'bg-[#F5A623] ring-4 ring-[#F5A623]/25' :
