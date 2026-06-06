@@ -25,14 +25,20 @@ async function fileToB64(file: File): Promise<string> {
 
 async function uploadPhoto(file: File, token: string): Promise<string> {
   const b64 = await fileToB64(file);
-  const res = await fetch(`${API}/users/kyc/upload`, {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('bucket', 'kyc');
+  const res = await fetch('/api/upload', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ imageBase64: b64, fileName: file.name, mimeType: file.type }),
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
   });
-  if (!res.ok) throw new Error('Upload failed');
-  const data = await res.json() as { url: string };
-  return data.url;
+  if (!res.ok) {
+    const err = await res.json() as { error?: string };
+    throw new Error(err.error ?? 'Upload failed');
+  }
+  const data = await res.json() as { publicUrl: string };
+  return data.publicUrl;
 }
 
 function PhotoInput({

@@ -230,7 +230,7 @@ async function handlePost(req: NextRequest) {
   }
 
   const bucket = (fd.get('bucket') as string | null) ?? 'listings';
-  if (!new Set(['listings', 'banners']).has(bucket)) {
+  if (!new Set(['listings', 'banners', 'kyc']).has(bucket)) {
     return NextResponse.json({ error: 'Invalid bucket' }, { status: 400 });
   }
 
