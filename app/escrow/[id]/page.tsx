@@ -58,13 +58,14 @@ function fmtDate(iso: string) {
 // ── Status tracker ─────────────────────────────────────────────────────────
 
 const STEPS = [
-  { key: 'FUNDED',      label: 'Funded',    desc: 'Funds held in escrow' },
-  { key: 'IN_TRANSIT',  label: 'Shipped',   desc: 'Item on the way' },
-  { key: 'COMPLETED',   label: 'Delivered', desc: 'Receipt confirmed' },
+  { key: 'FUNDED',     label: 'Escrow Created & Funded', desc: 'Funds securely held in escrow' },
+  { key: 'IN_TRANSIT', label: 'Package in Transit',      desc: 'Item on the way to buyer' },
+  { key: 'COMPLETED',  label: 'Delivery Confirmed',      desc: 'Buyer confirmed receipt' },
+  { key: 'SETTLED',    label: 'Transaction Completed',   desc: 'Seller receives funds' },
 ];
 
 const STATUS_ORDER: Record<string, number> = {
-  FUNDED: 0, IN_TRANSIT: 1, COMPLETED: 2, DISPUTED: -1, CANCELLED: -1, PENDING: -1,
+  PENDING: 0, FUNDED: 1, IN_TRANSIT: 2, COMPLETED: 3, DISPUTED: -1, CANCELLED: -1,
 };
 
 function StatusTracker({ status }: { status: string }) {
@@ -93,7 +94,7 @@ function StatusTracker({ status }: { status: string }) {
         <div className="absolute left-5 right-5 top-5 h-0.5 bg-gray-100 -z-0" />
         <div
           className="absolute left-5 top-5 h-0.5 bg-[#1B4332] -z-0 transition-all duration-500"
-          style={{ width: current === 0 ? '0%' : current === 1 ? '50%' : '100%' }}
+          style={{ width: current === 0 ? '0%' : current === 1 ? '33%' : current === 2 ? '66%' : '100%' }}
         />
 
         {STEPS.map((step, i) => {
