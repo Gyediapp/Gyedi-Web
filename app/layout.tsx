@@ -9,14 +9,50 @@ import { getSiteSettings } from '@/lib/site-settings';
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
 
 export const metadata: Metadata = {
-  title: 'Gyedi — Secure Escrow',
-  description: "Ghana's trusted escrow marketplace. Trade safely with buyer protection on every deal.",
+
+  title: {
+    default: 'Gyedi — Secure Escrow Marketplace Ghana',
+    template: '%s | Gyedi',
+  },
+  description: "Ghana's trusted escrow marketplace. Buy and sell safely with escrow protection on every deal. MTN MoMo payments, KYC verified sellers.",
+  keywords: ['escrow', 'marketplace', 'Ghana', 'buy sell', 'MoMo', 'safe trading', 'Accra', 'Kumasi','Koforidua','Takoradi','Cape Coast','online shopping Ghana','trusted marketplace','Gyedi'],
+  authors: [{ name: 'Gyedi Technologies' }],
+  creator: 'Gyedi Technologies',
+  publisher: 'Gyedi Technologies',
+  metadataBase: new URL('https://gyedi.app'),
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    locale: 'en_GH',
+    url: 'https://gyedi.app',
+    siteName: 'Gyedi',
+    title: 'Gyedi — Secure Escrow Marketplace Ghana',
+    description: "Ghana's trusted escrow marketplace. Buy and sell safely with escrow protection on every deal.",
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Gyedi Secure Marketplace' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Gyedi — Secure Escrow Marketplace Ghana',
+    description: "Ghana's trusted escrow marketplace.",
+    images: ['/og-image.png'],
+  },
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Gyedi',
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  verification: {
+    google: 'I_0o4wGr1bUDMjKWNX52VQ7o0fiQndspQEIhPf7RBPw',
+  },
+
+  
+
 };
 
 export const viewport: Viewport = {
