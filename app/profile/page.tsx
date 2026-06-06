@@ -322,6 +322,8 @@ export default function ProfilePage() {
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">More</p>
               </div>
               {[
+                
+                { label: 'Notifications',        href: '/notifications',     icon: '🔔' },
                 { label: 'Store Settings',       href: '/my-store/settings', icon: '🏪' },
                 { label: 'Transaction History',  href: '/history',           icon: '📋' },
                 { label: 'Wallet & MoMo',        href: '/wallet',            icon: '💰' },
