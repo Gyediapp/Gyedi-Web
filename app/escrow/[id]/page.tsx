@@ -90,40 +90,86 @@ function StatusTracker({ status }: { status: string }) {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-      <div className="flex items-center justify-between relative w-full">
-        <div className="absolute left-5 right-5 top-5 h-0.5 bg-gray-100 -z-0" />
+
+      {/* ── MOBILE: vertical tracker ── */}
+      <div className="flex flex-col gap-0 md:hidden">
+        {STEPS.map((step, i) => {
+          const done   = status === 'COMPLETED' || i < current;
+          const active = status !== 'COMPLETED' && i === current;
+          const locked = status !== 'COMPLETED' && i > current;
+          const isLast = i === STEPS.length - 1;
+          return (
+            <div key={step.key} className="flex gap-3">
+              {/* Left: circle + line */}
+              <div className="flex flex-col items-center">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                  done   ? 'bg-[#1B4332]' :
+                  active ? 'bg-[#F5A623] ring-4 ring-[#F5A623]/25' :
+                           'bg-gray-100'
+                }`}>
+                  {done ? (
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <span className={`text-xs font-bold ${active ? 'text-[#1B4332]' : locked ? 'text-gray-300' : 'text-gray-500'}`}>{i + 1}</span>
+                  )}
+                </div>
+                {!isLast && (
+                  <div className={`w-0.5 flex-1 min-h-[24px] my-1 ${done ? 'bg-[#1B4332]' : 'bg-gray-100'}`} />
+                )}
+              </div>
+              {/* Right: label + desc */}
+              <div className="pb-5 flex-1">
+                <p className={`text-sm font-bold leading-tight ${done || active ? 'text-gray-900' : 'text-gray-300'}`}>
+                  {step.label}
+                </p>
+                <p className={`text-xs mt-0.5 ${done || active ? 'text-gray-400' : 'text-gray-200'}`}>
+                  {step.desc}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── DESKTOP: horizontal tracker ── */}
+      <div className="hidden md:flex items-start justify-between relative">
+        {/* Background line */}
+        <div className="absolute left-5 right-5 top-4 h-0.5 bg-gray-100 -z-0" />
+        {/* Progress line */}
         <div
-          className="absolute left-5 top-5 h-0.5 bg-[#1B4332] -z-0 transition-all duration-500"
+          className="absolute left-5 top-4 h-0.5 bg-[#1B4332] -z-0 transition-all duration-500"
           style={{ width: current === 0 ? '0%' : current === 1 ? '33%' : current === 2 ? '66%' : '100%' }}
         />
-
         {STEPS.map((step, i) => {
           const done   = status === 'COMPLETED' || i < current;
           const active = status !== 'COMPLETED' && i === current;
           const locked = status !== 'COMPLETED' && i > current;
           return (
             <div key={step.key} className="flex flex-col items-center gap-1.5 z-10 flex-1">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                 done   ? 'bg-[#1B4332]' :
                 active ? 'bg-[#F5A623] ring-4 ring-[#F5A623]/25' :
                          'bg-gray-100'
               }`}>
                 {done ? (
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 ) : (
                   <span className={`text-xs font-bold ${active ? 'text-[#1B4332]' : locked ? 'text-gray-300' : 'text-gray-500'}`}>{i + 1}</span>
                 )}
               </div>
-              <div className="text-center">
-                <p className={`text-xs font-bold ${done || active ? 'text-gray-800' : 'text-gray-300'}`}>{step.label}</p>
-                <p className={`text-[10px] ${done || active ? 'text-gray-400' : 'text-gray-200'}`}>{step.desc}</p>
+              <div className="text-center px-1">
+                <p className={`text-xs font-bold leading-tight ${done || active ? 'text-gray-800' : 'text-gray-300'}`}>{step.label}</p>
+                <p className={`text-[10px] mt-0.5 ${done || active ? 'text-gray-400' : 'text-gray-200'}`}>{step.desc}</p>
               </div>
             </div>
           );
         })}
       </div>
+
     </div>
   );
 }
