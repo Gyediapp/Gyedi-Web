@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { COUNTRIES, normalizePhone, validatePhone } from '@/lib/phone';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? '';
 
 type SupportedCountry = {
   code: string; name: string; flag: string; dialCode: string;
@@ -35,6 +36,14 @@ function RegisterContent() {
   const [rewardAmt, setRewardAmt]     = useState('5.00');
 
   useEffect(() => {
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`;
+    script.async = true;
+    document.head.appendChild(script);
+    return () => { document.head.removeChild(script); };
+  }, []);
+
+  useEffect(() => {
     fetch(`${API}/countries`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.countries?.length) setSupportedCountries(d.countries); })
@@ -47,6 +56,16 @@ function RegisterContent() {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    let recaptchaToken = '';
+    try {
+      recaptchaToken = await (window as any).grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'register' });
+    } catch {
+      setError('Security check failed. Please refresh and try again.');
+      setLoading(false);
+      return;
+    }
+
     const fd = new FormData(e.currentTarget);
 
     const pin        = fd.get('pin') as string;
@@ -74,6 +93,7 @@ function RegisterContent() {
         pin,
         country:  residenceCountry,
         language: 'en',
+        recaptchaToken,
       };
       if (refCode) body.refCode = refCode.toUpperCase();
 
