@@ -7,6 +7,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.
 
 type User = {
   id: string; firstName: string; lastName: string; phone: string;
+  email?: string | null;
   kycStatus: string; language: string;
   averageRating: number | null; totalRatings: number;
   storeType: string;
@@ -71,6 +72,10 @@ export default function ProfilePage() {
     pushEnabled: true, smsEnabled: false, whatsAppEnabled: false,
     escrowUpdates: true, referralUpdates: true, marketingUpdates: false,
   });
+  const [email,        setEmail]        = useState('');
+  const [savingEmail,  setSavingEmail]  = useState(false);
+  const [emailSuccess, setEmailSuccess] = useState('');
+  const [emailError,   setEmailError]   = useState('');
   const [savingPrefs,  setSavingPrefs]  = useState(false);
   const [prefsSuccess, setPrefsSuccess] = useState('');
 
@@ -87,6 +92,7 @@ export default function ProfilePage() {
         if (d.user) {
           setUser(d.user);
           localStorage.setItem('gyedi_user', JSON.stringify(d.user));
+          setEmail(d.user.email ?? '');
         } else {
           setError('Could not load profile');
         }
@@ -104,6 +110,27 @@ export default function ProfilePage() {
       .then(d => { if (d) setNotifPrefs(p => ({ ...p, ...d })); })
       .catch(() => {});
   }, []);
+
+  async function saveEmail() {
+  const token = localStorage.getItem('gyedi_token');
+  if (!token) return;
+  setSavingEmail(true); setEmailError(''); setEmailSuccess('');
+  try {
+    const res = await fetch(`${API}/users`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ email: email.trim() || null }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? 'Failed to save');
+    setEmailSuccess('Email saved ✓');
+    setTimeout(() => setEmailSuccess(''), 2500);
+  } catch (err: unknown) {
+    setEmailError(err instanceof Error ? err.message : 'Failed to save');
+  } finally {
+    setSavingEmail(false);
+  }
+}
 
   function logout() {
     localStorage.removeItem('gyedi_token');
@@ -225,6 +252,25 @@ export default function ProfilePage() {
                 </div>
               ))}
             </div>
+
+                {/* Email */}
+<div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+  <p className="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">Email Address</p>
+  <p className="text-xs text-gray-400 mb-3">Optional · used for payment receipts and notifications</p>
+  <input
+    type="email"
+    value={email}
+    onChange={e => setEmail(e.target.value)}
+    placeholder="e.g. yourname@gmail.com"
+    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 focus:border-[#1B4332] mb-3"
+  />
+  {emailError   && <p className="text-xs text-red-500 mb-2">{emailError}</p>}
+  {emailSuccess && <p className="text-xs text-green-600 mb-2">{emailSuccess}</p>}
+  <button onClick={saveEmail} disabled={savingEmail}
+    className="w-full bg-[#1B4332] text-white font-bold py-3 rounded-xl text-sm hover:bg-[#0F2B1F] transition-colors disabled:opacity-50">
+    {savingEmail ? 'Saving…' : 'Save Email'}
+  </button>
+</div>
 
             {/* Notification Preferences */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
