@@ -56,7 +56,7 @@ const PAGE_SIZE = 48;
       where: {
         status: 'ACTIVE',
         AND: [
-          { OR: [{ auctionEndTime: null }, { auctionEndTime: { gt: new Date() } }] } as any,
+          
           category  ? { category }  : {},
           country   ? { country }   : {},
           condition ? { condition } : {},
