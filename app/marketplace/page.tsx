@@ -41,7 +41,7 @@ const CONDITION_OPTIONS = [
 export default async function MarketplacePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string; country?: string; sort?: string; condition?: string }>;
+  searchParams: Promise<{ q?: string; category?: string; country?: string; sort?: string; condition?: string; page?: string }>;
 }) {
   const { q, category, country, sort, condition, page } = await searchParams;
 const pageNum = Math.max(1, parseInt(page ?? '1', 10));
@@ -56,6 +56,7 @@ const PAGE_SIZE = 48;
       where: {
         status: 'ACTIVE',
         AND: [
+          { OR: [{ auctionEndTime: null }, { auctionEndTime: { gt: new Date() } }] } as any,
           category  ? { category }  : {},
           country   ? { country }   : {},
           condition ? { condition } : {},
