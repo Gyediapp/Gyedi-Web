@@ -233,6 +233,7 @@ export default function ChatPage() {
 
             const { msg } = item;
             const mine = msg.senderId === myId;
+            const isBuyerMsg = escrow ? msg.senderId === escrow.buyerId : false;
 
             return (
               <div key={msg.id} className={`flex items-end gap-2 mb-2 ${mine ? 'justify-end' : 'justify-start'}`}>
@@ -243,16 +244,16 @@ export default function ChatPage() {
                 )}
                 <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm ${
                   mine
-                    ? 'bg-[#F5A623] rounded-br-sm'
-                    : 'bg-white rounded-bl-sm border border-gray-100'
+                    ? 'bg-[#1B4332] rounded-br-sm'
+                    : 'bg-[#F5A623] rounded-b1-sm'
                 }`}>
                   {!mine && (
                     <p className="text-[#1B4332] text-xs font-bold mb-1">{msg.senderName}</p>
                   )}
-                  <p className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${mine ? 'text-[#1B4332]' : 'text-gray-800'}`}>
+                  <p className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${isBuyerMsg ? 'text-white' : 'text-[#1B4332]'}`}>
                     {msg.text}
                   </p>
-                  <p className={`text-[10px] mt-1 text-right ${mine ? 'text-[#1B4332]/50' : 'text-gray-400'}`}>
+                  <p className={`text-[10px] mt-1 text-right ${isBuyerMsg ? 'text-white/50' : 'text-[#1B4332]/60'}`}>
                     {formatTime(msg.createdAt)}
                   </p>
                 </div>
