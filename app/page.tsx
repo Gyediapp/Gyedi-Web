@@ -65,15 +65,15 @@ const STATIC_TESTIMONIALS = [
 const PLANS = [
   {
     name: 'Basic', price: 'Free', period: 'forever', highlight: false,
-    features: ['Up to 3 active listings', 'Standard store page', 'Escrow on every sale', 'Gyedi trust badge'],
+    features: ['5 active listings', 'Standard store page', 'Escrow on every sale', 'Gyedi trust badge'],
   },
   {
-    name: 'Pro', price: 'GHS 50', period: 'per month', highlight: true,
-    features: ['Unlimited listings', 'Custom store URL', 'Priority placement', 'Sales analytics', 'Pro seller badge', 'Email support'],
+    name: 'Pro', price: 'GHS 20', period: 'per month', highlight: true,
+    features: ['20 active listings', 'Priority placement', 'Custom store banner', 'Pro seller badge', '1 free boost/month', 'Sales analytics'],
   },
   {
-    name: 'Business', price: 'GHS 150', period: 'per month', highlight: false,
-    features: ['Everything in Pro', 'Homepage featured', 'Business verification', 'Bulk listing tools', 'Dedicated manager', 'API access'],
+    name: 'Business', price: 'GHS 50', period: 'per month', highlight: false,
+    features: ['Unlimited listings', 'Homepage featured', 'Business verification', 'Bulk listing tools', 'Dedicated manager', '3 free boosts/month'],
   },
 ];
 
@@ -539,6 +539,11 @@ const toProduct = (l: any) => ({
             ))}
           </div>
         </div>
+             <div className="text-center mt-8">
+            <Link href="/pricing" className="text-[#1B4332] font-bold text-sm hover:underline">
+              See all plans including Enterprise →
+            </Link>
+          </div>
       </section>
 
       {/* ── TESTIMONIALS ── */}
