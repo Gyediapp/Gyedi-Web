@@ -135,7 +135,7 @@ export default function SellPage() {
   const [category,     setCategory]     = useState('');
   const [condition,    setCondition]    = useState('New');
   const [listingType,    setListingType]    = useState<'fixed' | 'auction'>('fixed');
-  const [deliveryOptions, setDeliveryOptions] = useState<string[]>(['personal']);
+  const [deliveryOptions, setDeliveryOptions] = useState<string[]>([]);
 const [deliveryNote,    setDeliveryNote]    = useState('');
 const [pickupLocation,  setPickupLocation]  = useState('');
 const [auctionEndTime, setAuctionEndTime] = useState('');
@@ -862,7 +862,7 @@ const [reservePrice,   setReservePrice]   = useState('');
 
 {/* Delivery Options */}
 <div>
-  <label className="block text-sm font-bold text-gray-700 mb-1.5">Delivery Options *</label>
+  <label className="block text-sm font-bold text-gray-700 mb-1.5">Delivery Options <span className="text-gray-400 font-normal">(optional — can be discussed with buyer)</span></label>
   <p className="text-xs text-gray-400 mb-3">Select all delivery methods you offer</p>
   <div className="space-y-2">
     {[
