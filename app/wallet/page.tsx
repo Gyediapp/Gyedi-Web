@@ -134,11 +134,15 @@ export default function WalletPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <Link
-                href="/send"
-                className="bg-[#1B4332] hover:bg-[#0F2B1F] text-white font-bold py-3 rounded-xl transition-colors text-sm text-center"
-              >
-                Pay / Receive
-              </Link>
+            href="/send"
+            className={`font-bold py-3 rounded-xl transition-colors text-sm text-center ${
+            balance <= 0
+            ? 'bg-[#1B4332]/40 text-white/50 pointer-events-none'
+            : 'bg-[#1B4332] hover:bg-[#0F2B1F] text-white'
+        }`}
+>
+  Pay / Receive
+</Link>
               <button
                 onClick={() => { setShowWithdraw(true); setActionError(''); }}
                 disabled={balance <= 0 || !wallet.accounts.length}
