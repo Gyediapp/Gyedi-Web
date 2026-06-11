@@ -351,7 +351,7 @@ const toProduct = (l: any) => ({
                   className="group rounded-2xl overflow-hidden hover:-translate-y-1 transition-all duration-200 shadow-sm hover:shadow-md"
                 >
                   <div className={`bg-gradient-to-br ${cat.grad} p-5 flex flex-col items-center text-center gap-2`}>
-                    <span className="text-3xl">{cat.icon}</span>
+                    Replace: <span className="text-2xl leading-none">{cat.icon}</span>
                     <p className="text-white font-black text-sm leading-tight">{cat.label}</p>
                     {count > 0 && (
                       <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{count} listings</span>
@@ -480,7 +480,7 @@ const toProduct = (l: any) => ({
               { icon: '⚖️', title: '24/7 Dispute Help', desc: 'Our team resolves disputes fast and fairly' },
             ].map(b => (
               <div key={b.title} className="bg-white rounded-2xl p-5 md:p-6 text-center border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                <div className="w-14 h-14 bg-[#F5A623]/15 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 text-3xl">{b.icon}</div>
+                <div className="w-14 h-14 bg-[#F5A623]/15 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4"><span className="text-2xl leading-none">{b.icon}</span></div>
                 <h3 className="font-black text-gray-900 text-base md:text-lg">{b.title}</h3>
                 <p className="text-gray-500 text-sm md:text-base mt-1.5 leading-relaxed">{b.desc}</p>
               </div>
