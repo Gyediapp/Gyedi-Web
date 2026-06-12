@@ -25,6 +25,9 @@ export default function WalletPage() {
   const [error, setError]         = useState('');
   const [showAdd, setShowAdd]     = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
+  const [autoPhone, setAutoPhone] = useState('');
+  const [autoNetwork, setAutoNetwork] = useState('MTN');
+  const [autoName, setAutoName] = useState('');
   const [actionError, setActionError]   = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [withdrawAccountId, setWithdrawAccountId] = useState('');
@@ -51,6 +54,26 @@ export default function WalletPage() {
   }
 
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('gyedi_user');
+      if (stored) {
+        const user = JSON.parse(stored);
+        const phone = user.phone ?? '';
+        const name = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim();
+        setAutoName(name);
+        // Convert +233XXXXXXXXX to 0XXXXXXXXX
+        const local = phone.startsWith('+233') ? '0' + phone.slice(4) : phone;
+        setAutoPhone(local);
+        // Auto-detect network
+        const prefix = local.slice(0, 3);
+        if (['024', '054', '055', '059', '025'].includes(prefix)) setAutoNetwork('MTN');
+        else if (['020', '050'].includes(prefix)) setAutoNetwork('VODAFONE');
+        else if (['027', '057', '026', '056'].includes(prefix)) setAutoNetwork('AIRTELTIGO');
+      }
+    } catch {}
+  }, []);
 
   async function handleAddAccount(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -143,13 +166,24 @@ export default function WalletPage() {
 >
   Pay / Receive
 </Link>
-              <button
-                onClick={() => { setShowWithdraw(true); setActionError(''); }}
-                disabled={balance <= 0 || !wallet.accounts.length}
-                className="bg-[#F5A623] hover:bg-[#D4881A] disabled:opacity-40 text-[#1B4332] font-bold py-3 rounded-xl transition-colors text-sm"
-              >
-                Withdraw to MoMo
-              </button>
+              {wallet.accounts.length === 0 ? (
+                <Link
+                  href="/wallet#add-momo"
+                  onClick={() => setShowAdd(true)}
+                  className="bg-[#F5A623]/40 text-[#1B4332] font-bold py-3 rounded-xl text-sm text-center flex flex-col items-center"
+                >
+                  <span>Withdraw to MoMo</span>
+                  <span className="text-[10px] font-normal opacity-70">+ Add MoMo account to enable</span>
+                </Link>
+              ) : (
+                <button
+                  onClick={() => { setShowWithdraw(true); setActionError(''); }}
+                  disabled={balance <= 0}
+                  className="bg-[#F5A623] hover:bg-[#D4881A] disabled:opacity-40 text-[#1B4332] font-bold py-3 rounded-xl transition-colors text-sm"
+                >
+                  Withdraw to MoMo
+                </button>
+              )}
             </div>
           </div>
         ) : (
@@ -181,7 +215,7 @@ export default function WalletPage() {
               <form onSubmit={handleAddAccount} className="space-y-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Network</label>
-                  <select name="network" required className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F5A623]">
+                  <select name="network" required defaultValue={autoNetwork} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F5A623]">
                     <option value="MTN">MTN MoMo</option>
                     <option value="VODAFONE">Vodafone Cash</option>
                     <option value="AIRTELTIGO">AirtelTigo Money</option>
@@ -190,12 +224,14 @@ export default function WalletPage() {
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Phone Number</label>
                   <input name="phone" type="tel" required placeholder="0241234567"
+                    defaultValue={autoPhone}
                     className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F5A623]" />
                   <p className="mt-1 text-xs text-gray-400">Ghana local format: 0XXXXXXXXX</p>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Account Name</label>
                   <input name="name" required placeholder="Name on account"
+                    defaultValue={autoName}
                     className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F5A623]" />
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer">
