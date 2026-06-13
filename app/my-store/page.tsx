@@ -296,7 +296,7 @@ export default function MyStorePage() {
           {[
             { label: 'Manage Listings',      href: '/my-listings',  icon: '📋', desc: 'Edit, delete, mark sold' },
             { label: 'Transaction History',  href: '/history',      icon: '📊', desc: 'All escrows and transfers' },
-            { label: 'Wallet & Payouts',     href: '/wallet',       icon: '💰', desc: 'Balance and MoMo accounts' },
+            { label: 'Wallet & MoMo',     href: '/wallet',       icon: '💰', desc: 'Balance and MoMo accounts' },
             { label: 'Image Watermark Tool', href: '/watermark',    icon: '🖼️', desc: 'Protect your photos' },
             { label: 'Store Profile',        href: '/profile',      icon: '⚙️', desc: 'Edit store name, bio, theme' },
             { label: 'Community Forum',      href: '/community',    icon: '💬', desc: 'Connect with other sellers' },

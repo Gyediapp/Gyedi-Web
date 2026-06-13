@@ -179,7 +179,7 @@ export default function WalletPage() {
                 <button
                   onClick={() => { setShowWithdraw(true); setActionError(''); }}
                   disabled={balance <= 0}
-                  className="bg-[#F5A623] hover:bg-[#D4881A] disabled:opacity-40 text-[#1B4332] font-bold py-3 rounded-xl transition-colors text-sm"
+                  className="bg-[#1B4332] hover:bg-[#0F2B1F] disabled:opacity-40 text-white font-bold py-3 rounded-xl transition-colors text-sm"
                 >
                   Withdraw to MoMo
                 </button>
