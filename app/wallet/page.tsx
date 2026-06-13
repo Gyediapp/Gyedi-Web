@@ -295,7 +295,7 @@ export default function WalletPage() {
       {showWithdraw && wallet && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end">
           <div className="absolute inset-0 bg-black/50" onClick={() => { setShowWithdraw(false); setActionError(''); }} />
-          <div className="relative bg-white rounded-t-3xl p-6 space-y-5 max-h-[85vh] overflow-y-auto">
+          <div className="relative bg-white rounded-t-3xl p-6 space-y-5 max-h-[85vh] overflow-y-auto pb-24">
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto -mt-2 mb-1" />
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-gray-900 text-lg">Withdraw Funds</h3>
