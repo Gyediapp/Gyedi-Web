@@ -36,6 +36,7 @@ function RegisterContent() {
   const [rewardAmt, setRewardAmt]     = useState('5.00');
 
   useEffect(() => {
+    if (!RECAPTCHA_SITE_KEY) return;
     const script = document.createElement('script');
     script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`;
     script.async = true;
@@ -58,12 +59,14 @@ function RegisterContent() {
     setError('');
 
     let recaptchaToken = '';
-    try {
-      recaptchaToken = await (window as any).grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'register' });
-    } catch {
-      setError('Security check failed. Please refresh and try again.');
-      setLoading(false);
-      return;
+    if (RECAPTCHA_SITE_KEY) {
+      try {
+        recaptchaToken = await (window as any).grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'register' });
+      } catch {
+        setError('Security check failed. Please refresh and try again.');
+        setLoading(false);
+        return;
+      }
     }
 
     const fd = new FormData(e.currentTarget);
