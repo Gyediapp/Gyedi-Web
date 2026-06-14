@@ -178,6 +178,26 @@ export default function ProfilePage() {
       </div>
 
       <div className="px-4 py-5 space-y-4">
+        {/* My Store */}
+        <Link
+          href="/my-store"
+          className="flex items-center gap-4 bg-[#F5A623] rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-transform"
+        >
+          <div className="w-12 h-12 rounded-xl bg-[#1B4332]/15 flex items-center justify-center flex-shrink-0">
+            <svg className="w-6 h-6 text-[#1B4332]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="font-black text-[#1B4332] text-base">My Store</p>
+            <p className="text-[#1B4332]/70 text-xs font-medium mt-0.5">Manage your listings &amp; store</p>
+          </div>
+          <svg className="w-5 h-5 text-[#1B4332]/50 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+
         {error && (
           <div className="bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl px-4 py-3">{error}</div>
         )}
