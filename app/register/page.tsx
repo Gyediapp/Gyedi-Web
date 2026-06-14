@@ -130,7 +130,7 @@ function RegisterContent() {
   }
 
   if (myCode) {
-    const link = `https://gyedi-web.vercel.app/join?ref=${myCode}`;
+    const link = `https://gyedi.app/join?ref=${myCode}`;
     const waText = encodeURIComponent(`Join me on Gyedi! Use my code ${myCode} to sign up: ${link}`);
     return (
       <div className="min-h-screen bg-[#F4F6F8] flex flex-col items-center justify-center px-4 py-12">

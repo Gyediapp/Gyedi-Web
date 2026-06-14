@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 const FEE_RATE = 0.015;
 
-type User = { id: string; firstName: string; lastName: string; phone: string };
+type User = { id: string; firstName: string; lastName: string; phone: string; kycStatus?: string };
 
 function fmt(n: number) {
   return n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -353,6 +353,8 @@ function ManualForm({ user }: { user: User | null }) {
 }
 
 // ── Page ───────────────────────────────────────────────────────────────────
+type KycPhase = 'loading' | 'gate' | 'pending' | 'momo_setup' | 'done';
+
 export default function CreateEscrowPage() {
   const [user,     setUser]     = useState<User | null>(null);
   const [prefill,  setPrefill]  = useState<{
@@ -361,34 +363,292 @@ export default function CreateEscrowPage() {
     deliveryOption?: string;
   } | null>(null);
 
+  const [kycPhase,   setKycPhase]   = useState<KycPhase>('loading');
+  const [kycCard,    setKycCard]    = useState('');
+  const [kycFront,   setKycFront]   = useState<File | null>(null);
+  const [kycBack,    setKycBack]    = useState<File | null>(null);
+  const [kycSelfie,  setKycSelfie]  = useState<File | null>(null);
+  const [kycLoading, setKycLoading] = useState(false);
+  const [kycError,   setKycError]   = useState('');
+  const [momoMsg,    setMomoMsg]    = useState('');
+
   useEffect(() => {
     const token = localStorage.getItem('gyedi_token');
     if (!token) { window.location.href = '/login'; return; }
     const stored = localStorage.getItem('gyedi_user');
-    if (stored) setUser(JSON.parse(stored));
+    let cachedUser: User | null = null;
+    if (stored) {
+      try { cachedUser = JSON.parse(stored); setUser(cachedUser); } catch {}
+    }
 
     const sp = new URLSearchParams(window.location.search);
     const sellerId = sp.get('sellerId');
     const title    = sp.get('title');
     const amtStr   = sp.get('amount');
     if (sellerId && title && amtStr) {
-      const amount      = parseFloat(amtStr);
-      const description = sp.get('description') ?? undefined;
-      const ddStr       = sp.get('deliveryDays');
-      const deliveryDays = ddStr ? parseInt(ddStr, 10) : undefined;
+      const amount        = parseFloat(amtStr);
+      const description   = sp.get('description') ?? undefined;
+      const ddStr         = sp.get('deliveryDays');
+      const deliveryDays  = ddStr ? parseInt(ddStr, 10) : undefined;
       const listingId     = sp.get('listingId') ?? undefined;
       const deliveryOption = sp.get('deliveryOption') ?? undefined;
       if (!isNaN(amount) && amount > 0) {
         setPrefill({ title, amount, sellerId, description, deliveryDays, listingId, deliveryOption });
       }
     }
+
+    (async () => {
+      let kycStatus = cachedUser?.kycStatus;
+      try {
+        const res = await fetch(`${API}/users/me`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) {
+          const data = await res.json();
+          const fresh = (data.user ?? data) as User;
+          kycStatus = fresh.kycStatus;
+          localStorage.setItem('gyedi_user', JSON.stringify(fresh));
+          setUser(fresh);
+        }
+      } catch {}
+
+      if (kycStatus === 'VERIFIED' || kycStatus === 'APPROVED') {
+        if (!localStorage.getItem('gyedi_momo_setup')) {
+          setKycPhase('momo_setup');
+          try {
+            const u = JSON.parse(localStorage.getItem('gyedi_user') ?? '{}');
+            await fetch(`${API}/momo-accounts`, {
+              method:  'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body:    JSON.stringify({ phone: u.phone, network: 'MTN' }),
+            });
+          } catch {}
+          localStorage.setItem('gyedi_momo_setup', '1');
+          setMomoMsg("Identity verified! Your MoMo account has been set up automatically. You're ready to trade safely on Gyedi!");
+          await new Promise(r => setTimeout(r, 2500));
+        }
+        setKycPhase('done');
+      } else {
+        setKycPhase('gate');
+      }
+    })();
   }, []);
+
+  async function handleKycSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setKycLoading(true);
+    setKycError('');
+    const token = localStorage.getItem('gyedi_token');
+    const fd = new FormData();
+    fd.set('cardNumber', kycCard);
+    if (kycFront)  fd.set('cardFront',  kycFront,  kycFront.name);
+    if (kycBack)   fd.set('cardBack',   kycBack,   kycBack.name);
+    if (kycSelfie) fd.set('selfie',     kycSelfie, kycSelfie.name);
+    try {
+      const res = await fetch(`${API}/kyc`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body:    fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message ?? data.error ?? 'Submission failed');
+      setKycPhase('pending');
+    } catch (err: unknown) {
+      setKycError(err instanceof Error ? err.message : 'Submission failed. Please try again.');
+    } finally {
+      setKycLoading(false);
+    }
+  }
 
   const isSummaryMode = prefill !== null;
 
+  if (kycPhase === 'loading') {
+    return (
+      <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[#1B4332] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (kycPhase === 'momo_setup') {
+    return (
+      <div className="min-h-screen bg-[#F4F6F8] flex flex-col items-center justify-center px-5">
+        <div className="w-full max-w-sm text-center space-y-5">
+          <div className="w-16 h-16 mx-auto rounded-full bg-[#1B4332]/10 flex items-center justify-center">
+            <svg className="w-8 h-8 text-[#1B4332]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          {momoMsg ? (
+            <>
+              <h2 className="text-lg font-black text-[#1B4332]">Account Ready!</h2>
+              <p className="text-sm text-gray-600 leading-relaxed">{momoMsg}</p>
+            </>
+          ) : (
+            <>
+              <h2 className="text-lg font-black text-gray-900">Setting Up Your Account</h2>
+              <div className="w-8 h-8 mx-auto border-4 border-[#1B4332] border-t-transparent rounded-full animate-spin" />
+              <p className="text-sm text-gray-500">Setting up your MoMo account…</p>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (kycPhase === 'pending') {
+    return (
+      <div className="min-h-screen bg-[#F4F6F8] flex flex-col">
+        <div className="bg-[#1B4332] px-5 pt-12 pb-6">
+          <h1 className="text-white font-bold text-lg">Identity Verification</h1>
+          <p className="text-green-300 text-xs">Documents submitted</p>
+        </div>
+        <div className="flex-1 flex items-center justify-center px-5 py-10">
+          <div className="w-full max-w-sm text-center space-y-5">
+            <div className="text-5xl">⏳</div>
+            <h2 className="text-xl font-black text-gray-900">Documents Under Review</h2>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              Your documents are under review. We&apos;ll notify you once verified — usually within 24 hours.
+            </p>
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 text-left space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-full bg-[#1B4332] flex items-center justify-center text-white text-xs font-black flex-shrink-0">✓</div>
+                <span className="text-sm font-semibold text-[#1B4332]">Verify Identity</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs font-black flex-shrink-0">2</div>
+                <span className="text-sm font-semibold text-gray-400">Auto-setup MoMo</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs font-black flex-shrink-0">3</div>
+                <span className="text-sm font-semibold text-gray-400">Start Trading</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (kycPhase === 'gate') {
+    return (
+      <div className="min-h-screen bg-[#F4F6F8] pb-16">
+        <div className="bg-[#1B4332] px-5 pt-12 pb-6 flex items-center gap-4">
+          <button
+            onClick={() => history.back()}
+            className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0"
+          >
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div>
+            <h1 className="text-white font-bold text-lg">Verify Your Identity First</h1>
+            <p className="text-green-300 text-xs">Required before any transaction</p>
+          </div>
+        </div>
+
+        <div className="px-5 py-6 space-y-4">
+          <div className="bg-white rounded-2xl border border-gray-100 p-5">
+            <p className="text-sm text-gray-600 leading-relaxed">
+              For everyone&apos;s safety, Gyedi requires identity verification before any transaction. This protects both buyers and sellers.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-100 p-5">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Steps</p>
+            <div className="space-y-3">
+              {[
+                { n: 1, label: 'Verify Identity', active: true  },
+                { n: 2, label: 'Auto-setup MoMo', active: false },
+                { n: 3, label: 'Start Trading',   active: false },
+              ].map(s => (
+                <div key={s.n} className="flex items-center gap-3">
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${
+                    s.active ? 'bg-[#1B4332] text-white' : 'bg-gray-100 text-gray-400'
+                  }`}>{s.n}</div>
+                  <span className={`text-sm font-semibold ${s.active ? 'text-[#1B4332]' : 'text-gray-400'}`}>{s.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <form onSubmit={handleKycSubmit} className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Your Documents</p>
+
+            {kycError && (
+              <div className="bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl px-4 py-3">{kycError}</div>
+            )}
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Ghana Card Number</label>
+              <input
+                type="text"
+                required
+                value={kycCard}
+                onChange={e => setKycCard(e.target.value.toUpperCase())}
+                placeholder="GHA-XXXXXXXXX-X"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332] font-mono tracking-wider"
+              />
+              <p className="text-xs text-gray-400 mt-1">Format: GHA-XXXXXXXXX-X</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Upload Card Front</label>
+              <label className={`flex items-center gap-3 p-3 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${
+                kycFront ? 'border-[#1B4332] bg-[#1B4332]/5' : 'border-gray-200 hover:border-[#1B4332]'
+              }`}>
+                <input type="file" accept="image/*" className="hidden" onChange={e => setKycFront(e.target.files?.[0] ?? null)} />
+                <span className="text-2xl">{kycFront ? '✅' : '📄'}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-700 truncate">{kycFront ? kycFront.name : 'Choose file'}</p>
+                  <p className="text-xs text-gray-400">Front of your Ghana Card</p>
+                </div>
+              </label>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Upload Card Back</label>
+              <label className={`flex items-center gap-3 p-3 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${
+                kycBack ? 'border-[#1B4332] bg-[#1B4332]/5' : 'border-gray-200 hover:border-[#1B4332]'
+              }`}>
+                <input type="file" accept="image/*" className="hidden" onChange={e => setKycBack(e.target.files?.[0] ?? null)} />
+                <span className="text-2xl">{kycBack ? '✅' : '🔃'}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-700 truncate">{kycBack ? kycBack.name : 'Choose file'}</p>
+                  <p className="text-xs text-gray-400">Back of your Ghana Card</p>
+                </div>
+              </label>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Take Selfie</label>
+              <label className={`flex items-center gap-3 p-3 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${
+                kycSelfie ? 'border-[#1B4332] bg-[#1B4332]/5' : 'border-gray-200 hover:border-[#1B4332]'
+              }`}>
+                <input type="file" accept="image/*" capture="user" className="hidden" onChange={e => setKycSelfie(e.target.files?.[0] ?? null)} />
+                <span className="text-2xl">{kycSelfie ? '✅' : '🤳'}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-700 truncate">{kycSelfie ? kycSelfie.name : 'Take a selfie'}</p>
+                  <p className="text-xs text-gray-400">Clear photo of your face</p>
+                </div>
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={kycLoading || !kycCard || !kycFront || !kycBack || !kycSelfie}
+              className="w-full bg-[#1B4332] hover:bg-[#0F2B1F] disabled:opacity-50 text-white font-black py-4 rounded-2xl transition-colors text-sm"
+            >
+              {kycLoading ? 'Submitting…' : 'Submit for Verification'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // kycPhase === 'done' — normal escrow form
   return (
     <div className="min-h-screen bg-[#F4F6F8] pb-28">
-      {/* Header */}
       <div className="bg-[#1B4332] px-5 pt-12 pb-6 flex items-center gap-4">
         <button
           onClick={() => history.back()}
@@ -404,6 +664,15 @@ export default function CreateEscrowPage() {
         </div>
       </div>
 
+      {momoMsg && (
+        <div className="px-4 pt-4">
+          <div className="bg-green-50 border border-green-200 text-[#1B4332] text-sm rounded-xl px-4 py-3 flex gap-2 items-start">
+            <span className="flex-shrink-0">✓</span>
+            <p>{momoMsg}</p>
+          </div>
+        </div>
+      )}
+
       <div className="px-4 py-5">
         {isSummaryMode ? (
           <SummaryView {...prefill!} />
@@ -411,7 +680,6 @@ export default function CreateEscrowPage() {
           <ManualForm user={user} />
         )}
       </div>
-
     </div>
   );
 }

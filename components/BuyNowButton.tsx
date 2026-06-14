@@ -38,6 +38,17 @@ export default function BuyNowButton({
     const token = localStorage.getItem('gyedi_token');
     if (!token) { window.location.href = '/login'; return; }
 
+    try {
+      const stored = localStorage.getItem('gyedi_user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        if (u.kycStatus !== 'VERIFIED' && u.kycStatus !== 'APPROVED') {
+          window.location.href = '/escrow/create';
+          return;
+        }
+      }
+    } catch {}
+
     // If delivery options exist and none selected, show picker
     if (options.length > 0 && !selectedDelivery) {
       setShowOptions(true);

@@ -122,6 +122,8 @@ async function getCroppedBlob(imageSrc: string, pixelCrop: Area, mimeType = 'ima
 
 export default function SellPage() {
   const [token,        setToken]        = useState<string | null>(null);
+  const [kycReady,    setKycReady]    = useState(false);
+  const [kycVerified, setKycVerified] = useState(false);
   const [images,       setImages]       = useState<ImageItem[]>([]);
   const [cropQueue,    setCropQueue]    = useState<CropEntry[]>([]);
   const [cropSession,  setCropSession]  = useState<CropSession | null>(null);
@@ -153,7 +155,20 @@ const [reservePrice,   setReservePrice]   = useState('');
   const [preview,     setPreview]     = useState<{ src: string; id: string; index: number } | null>(null);
 
   useEffect(() => {
-    setToken(localStorage.getItem('gyedi_token'));
+    const tok = localStorage.getItem('gyedi_token');
+    setToken(tok);
+
+    const stored = localStorage.getItem('gyedi_user');
+    if (tok && stored) {
+      try {
+        const u = JSON.parse(stored);
+        setKycVerified(u.kycStatus === 'VERIFIED' || u.kycStatus === 'APPROVED');
+      } catch { setKycVerified(false); }
+    } else {
+      setKycVerified(!tok);
+    }
+    setKycReady(true);
+
     fetch('/api/categories').then(r => r.json()).then(d => {
       if (Array.isArray(d.categories) && d.categories.length > 0) setCategories(d.categories);
     }).catch(() => {});
@@ -495,6 +510,41 @@ const [reservePrice,   setReservePrice]   = useState('');
   const totalSlots   = MAX_IMAGES - images.length - (cropSession ? 1 : 0) - cropQueue.length;
   const isSubmitting = loading;
   const anyUploading = images.some(i => i.progress !== undefined);
+
+  if (kycReady && !kycVerified) {
+    return (
+      <div className="min-h-screen bg-[#F4F6F8] flex flex-col items-center justify-center px-5 py-16">
+        <div className="w-full max-w-sm text-center space-y-5">
+          <div className="text-5xl">🪪</div>
+          <h1 className="text-2xl font-black text-gray-900">Verify Your Identity First</h1>
+          <p className="text-sm text-gray-500 leading-relaxed">
+            For everyone&apos;s safety, Gyedi requires identity verification before you can list items for sale. This protects both buyers and sellers.
+          </p>
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 text-left space-y-3">
+            {[
+              { n: 1, label: 'Verify Identity', active: true  },
+              { n: 2, label: 'Auto-setup MoMo', active: false },
+              { n: 3, label: 'Start Trading',   active: false },
+            ].map(s => (
+              <div key={s.n} className="flex items-center gap-3">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${
+                  s.active ? 'bg-[#1B4332] text-white' : 'bg-gray-100 text-gray-400'
+                }`}>{s.n}</div>
+                <span className={`text-sm font-semibold ${s.active ? 'text-[#1B4332]' : 'text-gray-400'}`}>{s.label}</span>
+              </div>
+            ))}
+          </div>
+          <a
+            href="/escrow/create"
+            className="block w-full bg-[#1B4332] hover:bg-[#0F2B1F] text-white font-black py-4 rounded-2xl text-sm text-center transition-colors"
+          >
+            Verify Now →
+          </a>
+          <p className="text-xs text-gray-400">Verification takes just a few minutes. You&apos;ll be able to list items right after.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
