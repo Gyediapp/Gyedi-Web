@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
-const ACTIVE_STATUSES = new Set(['FUNDED', 'IN_TRANSIT']);
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -29,13 +28,13 @@ export default function BottomNav() {
     const token = localStorage.getItem('gyedi_token');
     if (!token) return;
     try {
-      const res = await fetch(`${API}/escrows?limit=100`, {
+      const res = await fetch(`${API}/escrows?status=active`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) return;
       const data = await res.json();
-      const list: { status: string }[] = data.escrows ?? data.transactions ?? [];
-      setOrdersCount(list.filter(e => ACTIVE_STATUSES.has(e.status)).length);
+      const list: unknown[] = data.escrows ?? data.transactions ?? [];
+      setOrdersCount(list.length);
     } catch {}
   }
 

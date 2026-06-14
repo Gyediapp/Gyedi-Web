@@ -191,7 +191,7 @@ export default function ProfilePage() {
           </div>
           <div className="flex-1">
             <p className="font-black text-[#1B4332] text-base">My Store</p>
-            <p className="text-[#1B4332]/70 text-xs font-medium mt-0.5">Manage your listings &amp; store</p>
+            <p className="text-[#1B4332]/70 text-xs font-medium mt-0.5">Manage your listings &amp; orders</p>
           </div>
           <svg className="w-5 h-5 text-[#1B4332]/50 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
