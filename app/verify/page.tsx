@@ -3,7 +3,8 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
+const API        = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
+const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? 'root';
 
 const DOC_TYPES = [
   { id: 'ghana_card',      label: 'Ghana Card',       emoji: '🪪', hasBack: true  },
@@ -12,33 +13,20 @@ const DOC_TYPES = [
   { id: 'drivers_licence', label: "Driver's Licence", emoji: '🚗', hasBack: true  },
 ];
 
-type PhotoState = { file: File; url: string; b64: string } | null;
+type PhotoState = { file: File; url: string } | null;
 
-async function fileToB64(file: File): Promise<string> {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res((r.result as string).split(',')[1]);
-    r.onerror = rej;
-    r.readAsDataURL(file);
-  });
-}
-
-async function uploadPhoto(file: File, token: string): Promise<string> {
-  const b64 = await fileToB64(file);
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('bucket', 'kyc');
-  const res = await fetch('/api/upload', {
+async function uploadPhoto(file: File): Promise<string> {
+  const fd = new FormData();
+  fd.set('file', file);
+  fd.set('upload_preset', 'gyedi_kyc');
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
-    body: formData,
+    body: fd,
   });
-  if (!res.ok) {
-    const err = await res.json() as { error?: string };
-    throw new Error(err.error ?? 'Upload failed');
-  }
-  const data = await res.json() as { publicUrl: string };
-  return data.publicUrl;
+  if (!res.ok) throw new Error('Image upload failed. Please check your connection and try again.');
+  const data = await res.json() as { secure_url?: string };
+  if (!data.secure_url) throw new Error('Upload succeeded but no URL returned.');
+  return data.secure_url;
 }
 
 function PhotoInput({
@@ -49,11 +37,10 @@ function PhotoInput({
 }) {
   const ref = useRef<HTMLInputElement>(null);
 
-  async function handle(e: React.ChangeEvent<HTMLInputElement>) {
+  function handle(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const b64 = await fileToB64(file);
-    onChange({ file, url: URL.createObjectURL(file), b64 });
+    onChange({ file, url: URL.createObjectURL(file) });
     e.target.value = '';
   }
 
@@ -145,18 +132,18 @@ export default function VerifyPage() {
     setError('');
     try {
       setUploadMsg('Uploading front document…');
-      const frontUrl = await uploadPhoto(frontPhoto!.file, token);
+      const frontUrl = await uploadPhoto(frontPhoto!.file);
 
       let backUrl: string | null = null;
       if (hasBack && backPhoto) {
         setUploadMsg('Uploading back of document…');
-        backUrl = await uploadPhoto(backPhoto.file, token);
+        backUrl = await uploadPhoto(backPhoto.file);
       }
 
       let selfieUrl: string | null = null;
       if (selfiePhoto) {
         setUploadMsg('Uploading selfie…');
-        selfieUrl = await uploadPhoto(selfiePhoto.file, token);
+        selfieUrl = await uploadPhoto(selfiePhoto.file);
       }
 
       setUploadMsg('Submitting verification…');
