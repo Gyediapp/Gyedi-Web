@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import ReviewsSection from '@/components/ReviewsSection';
+import StoreRatings from '@/components/StoreRatings';
 import StoreProductCarousel from '@/components/StoreProductCarousel';
 import StoreActions from './StoreActions';
 import StoreOwnerBar from './StoreOwnerBar';
@@ -320,6 +321,11 @@ export default async function StorePage({ params }: { params: Promise<{ username
             }))}
             sellerRating={rating}
           />
+        </div>
+
+        {/* ──────────────── TRANSACTION RATINGS ──────────────── */}
+        <div className={`border-t ${t.sectionBorder} pt-8 mb-10`}>
+          <StoreRatings userId={seller.id as string} />
         </div>
 
         {/* ──────────────── REVIEWS ──────────────── */}

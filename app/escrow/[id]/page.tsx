@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
@@ -170,6 +170,145 @@ function StatusTracker({ status }: { status: string }) {
         })}
       </div>
 
+    </div>
+  );
+}
+
+// ── Rating modal ───────────────────────────────────────────────────────────
+
+const BUYER_TAGS  = ['Item as described', 'Fast delivery', 'Great packaging', 'Trustworthy'];
+const SELLER_TAGS = ['Paid quickly', 'Good communication', 'Trustworthy', 'Smooth transaction'];
+
+function RatingModal({
+  escrowId, ratedUserId, isBuyer, token, onSkip,
+}: {
+  escrowId: string; ratedUserId: string; isBuyer: boolean; token: string;
+  onSkip: () => void;
+}) {
+  const router = useRouter();
+  const [phase, setPhase]               = useState<'form' | 'success'>('form');
+  const [stars, setStars]               = useState(0);
+  const [hovered, setHovered]           = useState(0);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [comment, setComment]           = useState('');
+  const [submitting, setSubmitting]     = useState(false);
+  const [error, setError]               = useState('');
+
+  const tags = isBuyer ? BUYER_TAGS : SELLER_TAGS;
+
+  function toggleTag(tag: string) {
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag],
+    );
+  }
+
+  async function submit() {
+    if (!stars) { setError('Please select a star rating'); return; }
+    setSubmitting(true); setError('');
+    try {
+      const res = await fetch(`${API}/ratings`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body:    JSON.stringify({
+          escrowId, ratedUserId, stars,
+          tags:    selectedTags,
+          comment: comment.trim() || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.message ?? 'Failed to submit rating');
+      }
+      setPhase('success');
+    } catch (err: any) {
+      setError(err.message ?? 'Something went wrong. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden">
+        {phase === 'success' ? (
+          <div className="p-8 text-center">
+            <div className="text-6xl mb-4">⭐</div>
+            <h2 className="text-xl font-black text-[#1B4332] mb-2">Thanks for your rating!</h2>
+            <p className="text-sm text-gray-400 mb-6">Your feedback helps keep Gyedi trustworthy.</p>
+            <button
+              onClick={() => router.push(isBuyer ? '/marketplace' : '/sell')}
+              className="w-full bg-[#F5A623] text-[#1B4332] font-black py-3.5 rounded-2xl text-sm hover:bg-[#e6961f] transition-colors"
+            >
+              {isBuyer ? 'Continue Shopping →' : 'Create New Listing →'}
+            </button>
+          </div>
+        ) : (
+          <div className="p-6">
+            <div className="text-center mb-5">
+              <h2 className="text-xl font-black text-[#1B4332]">How was your experience?</h2>
+              <p className="text-xs text-gray-400 mt-1">Rate the {isBuyer ? 'seller' : 'buyer'}</p>
+            </div>
+
+            {/* Stars */}
+            <div className="flex justify-center gap-2 mb-5">
+              {[1, 2, 3, 4, 5].map(s => (
+                <button
+                  key={s}
+                  onMouseEnter={() => setHovered(s)}
+                  onMouseLeave={() => setHovered(0)}
+                  onClick={() => setStars(s)}
+                  className="text-4xl transition-transform hover:scale-110 active:scale-95"
+                >
+                  <span className={(hovered || stars) >= s ? 'text-[#F5A623]' : 'text-gray-200'}>★</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Quick tags */}
+            <div className="flex flex-wrap gap-2 justify-center mb-5">
+              {tags.map(tag => (
+                <button
+                  key={tag}
+                  onClick={() => toggleTag(tag)}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                    selectedTags.includes(tag)
+                      ? 'bg-[#1B4332] text-white border-[#1B4332]'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B4332] hover:text-[#1B4332]'
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+
+            {/* Comment */}
+            <textarea
+              value={comment}
+              onChange={e => setComment(e.target.value.slice(0, 150))}
+              placeholder="Add a comment (optional)…"
+              rows={3}
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]/30 resize-none mb-1"
+            />
+            <p className="text-[10px] text-gray-300 text-right mb-4">{comment.length}/150</p>
+
+            {error && <p className="text-xs text-red-600 text-center mb-3">{error}</p>}
+
+            <button
+              onClick={submit}
+              disabled={submitting || !stars}
+              className="w-full bg-[#1B4332] text-white font-bold py-3.5 rounded-2xl text-sm disabled:opacity-50 transition-colors hover:bg-[#0F2B1F] mb-2"
+            >
+              {submitting ? 'Submitting…' : 'Submit Rating'}
+            </button>
+            <button
+              onClick={onSkip}
+              className="w-full text-gray-400 text-sm py-2 hover:text-gray-600 transition-colors"
+            >
+              Skip
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -409,6 +548,8 @@ export default function EscrowDetailPage() {
   const [error, setError]   = useState('');
   const [myId, setMyId]     = useState('');
   const [token, setToken]   = useState('');
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [ratingChecked,   setRatingChecked]   = useState(false);
 
   function load(tok: string) {
     setLoading(true);
@@ -433,6 +574,18 @@ export default function EscrowDetailPage() {
     load(tok);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
+
+  useEffect(() => {
+    if (!escrow || escrow.status !== 'COMPLETED' || !token || !myId || ratingChecked) return;
+    setRatingChecked(true);
+    fetch(`${API}/ratings/mine?escrowId=${escrow.id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d && !d.rated) setShowRatingModal(true); })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [escrow?.id, escrow?.status, token, myId]);
 
   const isBuyer = escrow ? myId === escrow.buyerId : false;
   const fee     = escrow ? parseFloat(escrow.amount) * FEE_RATE : 0;
@@ -682,6 +835,16 @@ export default function EscrowDetailPage() {
       )}
 
       </div>
+
+      {showRatingModal && escrow && (
+        <RatingModal
+          escrowId={escrow.id}
+          ratedUserId={isBuyer ? escrow.sellerId : escrow.buyerId}
+          isBuyer={isBuyer}
+          token={token}
+          onSkip={() => setShowRatingModal(false)}
+        />
+      )}
     </div>
   );
 }
