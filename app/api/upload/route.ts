@@ -204,9 +204,13 @@ async function uploadOne(
 export async function POST(req: NextRequest) {
   try {
     return await handlePost(req);
-  } catch (err) {
-    console.error('[upload] UNHANDLED EXCEPTION:', err instanceof Error ? err.stack : String(err));
-    return NextResponse.json({ error: 'Internal server error during upload' }, { status: 500 });
+  } catch (error: any) {
+    console.error('[upload] FAILED:', {
+      message: error?.message,
+      status:  error?.status,
+      body:    error?.response?.body ?? error?.response,
+    });
+    return NextResponse.json({ error: error?.message ?? 'Upload failed' }, { status: 500 });
   }
 }
 
