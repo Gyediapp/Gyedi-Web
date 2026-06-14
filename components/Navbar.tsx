@@ -49,6 +49,7 @@ export default function Navbar() {
   const NAV_LINKS = [
     { label: 'Marketplace', href: '/marketplace' },
     { label: 'Community',   href: '/community'   },
+    { label: 'Orders',      href: '/history'     },
     { label: 'Guide & FAQ', href: '/guide'        },
     { label: 'Pricing',     href: '/pricing'      },
   ];
