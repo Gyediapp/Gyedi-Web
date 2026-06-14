@@ -55,6 +55,7 @@ function RegisterContent() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = e.currentTarget;
     setLoading(true);
     setError('');
 
@@ -69,7 +70,7 @@ function RegisterContent() {
       }
     }
 
-    const fd = new FormData(e.currentTarget);
+    const fd = new FormData(form);
 
     const pin        = fd.get('pin') as string;
     const confirmPin = fd.get('confirmPin') as string;
