@@ -2,27 +2,94 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
-type Notif = { id: string; title: string; body: string; type: string; createdAt: string; isRead: boolean };
+type Notif = {
+  id: string;
+  title: string;
+  body: string;
+  type: string;
+  createdAt: string;
+  isRead: boolean;
+  transactionId?: string;
+  listingId?: string;
+};
+
+function deepLink(n: Notif): string {
+  switch (n.type) {
+    case 'escrow':
+      return n.transactionId ? `/escrow/${n.transactionId}` : '/notifications';
+    case 'dispute':
+      return n.transactionId ? `/escrow/${n.transactionId}?tab=dispute` : '/notifications';
+    case 'order':
+      return n.transactionId ? `/escrow/${n.transactionId}` : '/notifications';
+    case 'rating':
+      return '/profile';
+    case 'listing':
+      return n.listingId ? `/listing/${n.listingId}` : '/notifications';
+    default:
+      return '/notifications';
+  }
+}
 
 export default function NotificationBell() {
+  const router = useRouter();
   const [count, setCount]     = useState(0);
   const [open, setOpen]       = useState(false);
   const [notifs, setNotifs]   = useState<Notif[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetched, setFetched] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const ref      = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
+  function connect() {
+    abortRef.current?.abort();
     const token = localStorage.getItem('gyedi_token');
     if (!token) return;
 
-    fetch(`${API}/notifications/unread-count`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.count !== undefined) setCount(d.count); })
-      .catch(() => {});
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
+    (async () => {
+      try {
+        const res = await fetch(`${API}/notifications/stream`, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal:  ctrl.signal,
+        });
+        if (!res.ok || !res.body) return;
+
+        const reader  = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer    = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() ?? '';
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            try {
+              const payload = JSON.parse(line.slice(6));
+              if (typeof payload.count === 'number') setCount(payload.count);
+            } catch {}
+          }
+        }
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+      }
+      // Reconnect after 5 s on unexpected close
+      setTimeout(connect, 5000);
+    })();
+  }
+
+  useEffect(() => {
+    connect();
+    return () => abortRef.current?.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -51,6 +118,11 @@ export default function NotificationBell() {
       setFetched(true);
     } catch {}
     setLoading(false);
+  }
+
+  function handleNotifClick(n: Notif) {
+    router.push(deepLink(n));
+    setOpen(false);
   }
 
   const typeIcon: Record<string, string> = {
@@ -97,7 +169,11 @@ export default function NotificationBell() {
           ) : (
             <div className="divide-y divide-gray-50 max-h-80 overflow-y-auto">
               {notifs.map(n => (
-                <div key={n.id} className="px-4 py-3 hover:bg-gray-50 transition-colors flex gap-3">
+                <button
+                  key={n.id}
+                  onClick={() => handleNotifClick(n)}
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex gap-3"
+                >
                   <span className="text-base flex-shrink-0 mt-0.5">{typeIcon[n.type] ?? 'ℹ️'}</span>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-gray-900 leading-tight">{n.title}</p>
@@ -106,7 +182,7 @@ export default function NotificationBell() {
                       {new Date(n.createdAt).toLocaleDateString('en-GH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           )}
