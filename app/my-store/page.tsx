@@ -10,12 +10,6 @@ type Listing = {
   images: string[]; status: string; views: number; category: string;
 };
 
-type Escrow = {
-  id: string; shortCode: string; agreedAmount: string | number;
-  status: string; createdAt: string; sellerPhone: string;
-  buyerId: string; sellerId: string;
-};
-
 type User = {
   id: string; firstName: string; lastName: string;
   storeName: string | null; storeType: string;
@@ -45,7 +39,6 @@ function StatCard({ label, value, sub, color, icon }: {
 export default function MyStorePage() {
   const [user,         setUser]         = useState<User | null>(null);
   const [listings,     setListings]     = useState<Listing[]>([]);
-  const [escrows,      setEscrows]      = useState<Escrow[]>([]);
   const [wallet,       setWallet]       = useState<{ balance: string; inEscrow: string } | null>(null);
   const [loading,      setLoading]      = useState(true);
   const [userId,       setUserId]       = useState('');
@@ -63,12 +56,10 @@ export default function MyStorePage() {
     Promise.all([
       fetch(`${API}/users/me`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
       fetch(`${API}/listings/my-listings`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-      fetch(`${API}/transactions`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({ transactions: [] })),
       fetch(`${API}/wallet`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => null),
-    ]).then(([userData, listingsData, txData, walletData]) => {
+    ]).then(([userData, listingsData, walletData]) => {
       if (userData.user) setUser(userData.user);
       if (listingsData.listings) setListings(listingsData.listings);
-      if (txData.transactions) setEscrows(txData.transactions);
       if (walletData) setWallet(walletData);
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
@@ -76,10 +67,7 @@ export default function MyStorePage() {
   const activeListings  = listings.filter(l => l.status === 'ACTIVE').length;
   const soldListings    = listings.filter(l => l.status === 'SOLD').length;
   const totalViews      = listings.reduce((acc, l) => acc + (l.views ?? 0), 0);
-  const pendingEscrows  = escrows.filter(e => ['FUNDED', 'SELLER_CONFIRMED', 'IN_TRANSIT'].includes(e.status)).length;
-  const completedEscrows = escrows.filter(e => e.status === 'COMPLETED').length;
   const topListings     = [...listings].sort((a, b) => (b.views ?? 0) - (a.views ?? 0)).slice(0, 3);
-  const recentEscrows   = escrows.slice(0, 3);
   const storeName       = user?.storeName || `${user?.firstName} ${user?.lastName}`;
 
   // Profile completion
@@ -90,17 +78,6 @@ export default function MyStorePage() {
     !!wallet,
   ];
   const completion = Math.round((checks.filter(Boolean).length / checks.length) * 100);
-
-  const ESCROW_STATUS: Record<string, { label: string; color: string }> = {
-    DRAFT:            { label: 'Draft',      color: 'bg-gray-100 text-gray-500'   },
-    FUNDED:           { label: 'Funded',     color: 'bg-blue-100 text-blue-700'   },
-    SELLER_CONFIRMED: { label: 'Confirmed',  color: 'bg-purple-100 text-purple-700' },
-    IN_TRANSIT:       { label: 'Shipped',    color: 'bg-amber-100 text-amber-700' },
-    DELIVERED:        { label: 'Delivered',  color: 'bg-teal-100 text-teal-700'   },
-    COMPLETED:        { label: 'Completed',  color: 'bg-green-100 text-green-700' },
-    DISPUTED:         { label: 'Disputed',   color: 'bg-red-100 text-red-700'     },
-    CANCELLED:        { label: 'Cancelled',  color: 'bg-gray-100 text-gray-400'   },
-  };
 
   if (loading) {
     return (
@@ -211,25 +188,11 @@ export default function MyStorePage() {
 
         {/* Stats grid */}
         <div className="grid grid-cols-2 gap-3">
-          <StatCard label="Active"   value={activeListings}  sub="listings live"        color="bg-green-100 text-green-700"  icon="🟢" />
-          <StatCard label="Views"    value={totalViews}       sub="total across listings" color="bg-blue-100 text-blue-700"    icon="👁️" />
-          <StatCard label="Sold"     value={soldListings}     sub="listings sold"         color="bg-amber-100 text-amber-700"  icon="✅" />
-          <StatCard label="Escrows"  value={completedEscrows} sub="completed safely"      color="bg-purple-100 text-purple-700" icon="🔒" />
+          <StatCard label="Active"  value={activeListings}  sub="listings live"        color="bg-green-100 text-green-700"  icon="🟢" />
+          <StatCard label="Views"   value={totalViews}       sub="total across listings" color="bg-blue-100 text-blue-700"    icon="👁️" />
+          <StatCard label="Sold"    value={soldListings}     sub="listings sold"         color="bg-amber-100 text-amber-700"  icon="✅" />
+          <StatCard label="Total"   value={listings.length}  sub="all listings"          color="bg-purple-100 text-purple-700" icon="📋" />
         </div>
-
-        {/* Pending escrows */}
-        {pendingEscrows > 0 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3">
-            <span className="text-2xl">⚡</span>
-            <div className="flex-1">
-              <p className="text-sm font-black text-amber-800">{pendingEscrows} Active Escrow{pendingEscrows > 1 ? 's' : ''}</p>
-              <p className="text-xs text-amber-600">Require your attention</p>
-            </div>
-            <Link href="/history" className="text-xs font-bold text-amber-700 bg-amber-100 px-3 py-1.5 rounded-xl">
-              View →
-            </Link>
-          </div>
-        )}
 
         {/* Top listings */}
         {topListings.length > 0 && (
@@ -261,42 +224,14 @@ export default function MyStorePage() {
           </div>
         )}
 
-        {/* Recent escrows */}
-        {recentEscrows.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Recent Escrows</p>
-              <Link href="/history" className="text-xs text-[#1B4332] font-bold">See all →</Link>
-            </div>
-            {recentEscrows.map(e => {
-              const s = ESCROW_STATUS[e.status] ?? { label: e.status, color: 'bg-gray-100 text-gray-500' };
-              const isBuyer = e.buyerId === userId;
-              return (
-                <Link key={e.id} href={`/escrow/${e.id}`}
-                  className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
-                  <div className="w-10 h-10 rounded-xl bg-[#1B4332]/5 flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg">{isBuyer ? '🛒' : '📦'}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">#{e.shortCode}</p>
-                    <p className="text-xs text-gray-400">{isBuyer ? 'Buying' : 'Selling'} · {fmt(e.agreedAmount)}</p>
-                  </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${s.color}`}>{s.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-
         {/* Quick links */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-50">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Store Tools</p>
           </div>
           {[
-            { label: 'Manage Listings',      href: '/my-listings',  icon: '📋', desc: 'Edit, delete, mark sold' },
-            { label: 'Transaction History',  href: '/history',      icon: '📊', desc: 'All escrows and transfers' },
-            { label: 'Wallet & MoMo',     href: '/wallet',       icon: '💰', desc: 'Balance and MoMo accounts' },
+            { label: 'Manage Listings',  href: '/my-listings',  icon: '📋', desc: 'Edit, delete, mark sold' },
+            { label: 'Wallet & MoMo',    href: '/wallet',       icon: '💰', desc: 'Balance and MoMo accounts' },
             { label: 'Image Watermark Tool', href: '/watermark',    icon: '🖼️', desc: 'Protect your photos' },
             { label: 'Store Profile',        href: '/profile',      icon: '⚙️', desc: 'Edit store name, bio, theme' },
             { label: 'Community Forum',      href: '/community',    icon: '💬', desc: 'Connect with other sellers' },
