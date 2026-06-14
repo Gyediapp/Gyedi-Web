@@ -1,5 +1,6 @@
-const CACHE = 'gyedi-v1';
-const PRECACHE = ['/', '/dashboard', '/login', '/manifest.json'];
+const CACHE = 'gyedi-v2';
+const PRECACHE = ['/', '/login', '/manifest.json'];
+// Never precache authenticated routes — SW has no cookie context during install
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)));
