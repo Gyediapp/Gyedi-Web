@@ -3,7 +3,21 @@
 import { useState, useEffect } from 'react';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
+const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? 'root';
 const FEE_RATE = 0.015;
+
+async function uploadToCloudinary(file: File): Promise<string> {
+  const fd = new FormData();
+  fd.set('file', file);
+  fd.set('upload_preset', 'gyedi_kyc');
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+    method: 'POST',
+    body: fd,
+  });
+  if (!res.ok) throw new Error('upload_failed');
+  const data = await res.json();
+  return data.secure_url as string;
+}
 
 type User = { id: string; firstName: string; lastName: string; phone: string; kycStatus?: string };
 
@@ -434,19 +448,25 @@ export default function CreateEscrowPage() {
 
   async function handleKycSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!kycFront || !kycBack || !kycSelfie) return;
     setKycLoading(true);
     setKycError('');
     const token = localStorage.getItem('gyedi_token');
-    const fd = new FormData();
-    fd.set('cardNumber', kycCard);
-    if (kycFront)  fd.set('cardFront',  kycFront,  kycFront.name);
-    if (kycBack)   fd.set('cardBack',   kycBack,   kycBack.name);
-    if (kycSelfie) fd.set('selfie',     kycSelfie, kycSelfie.name);
     try {
-      const res = await fetch(`${API}/kyc`, {
+      let cardFrontUrl: string, cardBackUrl: string, selfieUrl: string;
+      try {
+        [cardFrontUrl, cardBackUrl, selfieUrl] = await Promise.all([
+          uploadToCloudinary(kycFront),
+          uploadToCloudinary(kycBack),
+          uploadToCloudinary(kycSelfie),
+        ]);
+      } catch {
+        throw new Error('Image upload failed. Please check your connection and try again.');
+      }
+      const res = await fetch(`${API}/kyc/submit`, {
         method:  'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body:    fd,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body:    JSON.stringify({ ghanaCard: kycCard, cardFrontUrl, cardBackUrl, selfieUrl }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? data.error ?? 'Submission failed');
@@ -638,7 +658,7 @@ export default function CreateEscrowPage() {
               disabled={kycLoading || !kycCard || !kycFront || !kycBack || !kycSelfie}
               className="w-full bg-[#1B4332] hover:bg-[#0F2B1F] disabled:opacity-50 text-white font-black py-4 rounded-2xl transition-colors text-sm"
             >
-              {kycLoading ? 'Submitting…' : 'Submit for Verification'}
+              {kycLoading ? 'Uploading & Submitting…' : 'Submit for Verification'}
             </button>
           </form>
         </div>
