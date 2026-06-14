@@ -92,7 +92,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
-      <body className="min-h-screen flex flex-col bg-white text-gray-900 overflow-x-hidden">
+      <body className="min-h-screen flex flex-col bg-[#F4F6F8] text-gray-900 overflow-x-hidden">
         <SiteBanner banner={banner} />
         <LayoutShell>{children}</LayoutShell>
         <Script id="sw-register" strategy="afterInteractive">{`

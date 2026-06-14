@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
+import { clearAuthCookie } from '@/lib/auth-cookie';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
@@ -72,7 +73,7 @@ export default function HistoryPage() {
 
     fetch(`${API}/escrows`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => {
-        if (r.status === 401) { localStorage.removeItem('gyedi_token'); window.location.href = '/login'; }
+        if (r.status === 401) { localStorage.removeItem('gyedi_token'); clearAuthCookie(); window.location.href = '/login'; }
         return r.json();
       })
       .then(d => setEscrows(d.escrows ?? []))

@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { COUNTRIES, normalizePhone, validatePhone } from '@/lib/phone';
+import { setAuthCookie } from '@/lib/auth-cookie';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? '';
@@ -110,6 +111,7 @@ function RegisterContent() {
       if (!res.ok) throw new Error(data.message ?? 'Registration failed');
       localStorage.setItem('gyedi_token', data.token);
       localStorage.setItem('gyedi_user', JSON.stringify(data.user));
+      setAuthCookie(data.token);
       // Fetch referral code + public config to show on success screen
       try {
         const [codeRes, cfgRes] = await Promise.all([

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { clearAuthCookie } from '@/lib/auth-cookie';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
@@ -39,7 +40,7 @@ export default function MyListingsPage() {
       const res = await fetch(`${API}/listings/my-listings`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.status === 401) { localStorage.removeItem('gyedi_token'); window.location.href = '/login'; return; }
+      if (res.status === 401) { localStorage.removeItem('gyedi_token'); clearAuthCookie(); window.location.href = '/login'; return; }
       const data = await res.json() as { listings: Listing[] };
       setListings(data.listings ?? []);
     } catch {

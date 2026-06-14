@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { clearAuthCookie } from '@/lib/auth-cookie';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 const FEE_RATE = 0.015;
@@ -557,7 +558,7 @@ export default function EscrowDetailPage() {
       headers: { Authorization: `Bearer ${tok}` },
     })
       .then(r => {
-        if (r.status === 401) { localStorage.removeItem('gyedi_token'); window.location.href = '/login'; }
+        if (r.status === 401) { localStorage.removeItem('gyedi_token'); clearAuthCookie(); window.location.href = '/login'; }
         return r.json();
       })
       .then(d => { setEscrow(d.escrow ?? null); if (!d.escrow) setError('Escrow not found'); })

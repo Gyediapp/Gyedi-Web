@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { clearAuthCookie } from '@/lib/auth-cookie';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
@@ -45,7 +46,7 @@ export default function WalletPage() {
     setLoading(true);
     try {
       const res  = await fetch(`${API}/wallet`, { headers: { Authorization: `Bearer ${token}` } });
-      if (res.status === 401) { localStorage.removeItem('gyedi_token'); window.location.href = '/login'; return; }
+      if (res.status === 401) { localStorage.removeItem('gyedi_token'); clearAuthCookie(); window.location.href = '/login'; return; }
       const data = await res.json();
       setWallet(data);
       if (data.accounts?.length) setWithdrawAccountId(data.accounts.find((a: MomoAccount) => a.isDefault)?.id ?? data.accounts[0].id);

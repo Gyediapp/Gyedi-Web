@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import NotificationBell from '@/components/NotificationBell';
+import { clearAuthCookie } from '@/lib/auth-cookie';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.railway.app/api';
 
@@ -72,6 +73,7 @@ export default function DashboardPage() {
         clearTimeout(timer);
         if (wRes.status === 401 || eRes.status === 401) {
           localStorage.removeItem('gyedi_token');
+          clearAuthCookie();
           window.location.href = '/login';
           return;
         }

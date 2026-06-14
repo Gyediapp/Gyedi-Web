@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { COUNTRIES, normalizePhone, validatePhone } from '@/lib/phone';
+import { setAuthCookie } from '@/lib/auth-cookie';
 
 export default function LoginPage() {
   const [tab, setTab]           = useState<'login' | 'register'>('login');
@@ -43,6 +44,7 @@ export default function LoginPage() {
       if (!res.ok) throw new Error(data.message ?? 'Login failed');
       localStorage.setItem('gyedi_token', data.token);
       localStorage.setItem('gyedi_user', JSON.stringify(data.user));
+      setAuthCookie(data.token);
       window.location.href = '/dashboard';
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');
@@ -77,6 +79,7 @@ export default function LoginPage() {
       if (!res.ok) throw new Error(data.message ?? 'Registration failed');
       localStorage.setItem('gyedi_token', data.token);
       localStorage.setItem('gyedi_user', JSON.stringify(data.user));
+      setAuthCookie(data.token);
       setSuccess('Account created! Redirecting…');
       setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
     } catch (err: unknown) {
