@@ -23,7 +23,7 @@ async function uploadPhoto(file: File): Promise<string> {
     method: 'POST',
     body: fd,
   });
-  if (!res.ok) throw new Error('Image upload failed. Please check your connection and try again.');
+  if (!res.ok) throw new Error(`upload_failed: HTTP ${res.status} ${res.statusText}`);
   const data = await res.json() as { secure_url?: string };
   if (!data.secure_url) throw new Error('Upload succeeded but no URL returned.');
   return data.secure_url;

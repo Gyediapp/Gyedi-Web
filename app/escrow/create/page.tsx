@@ -14,7 +14,7 @@ async function uploadToCloudinary(file: File): Promise<string> {
     method: 'POST',
     body: fd,
   });
-  if (!res.ok) throw new Error('upload_failed');
+  if (!res.ok) throw new Error(`upload_failed: HTTP ${res.status} ${res.statusText}`);
   const data = await res.json();
   return data.secure_url as string;
 }
@@ -460,7 +460,8 @@ export default function CreateEscrowPage() {
           uploadToCloudinary(kycBack),
           uploadToCloudinary(kycSelfie),
         ]);
-      } catch {
+      } catch (err) {
+        console.error('[KYC upload] Error uploading to Cloudinary:', err);
         throw new Error('Image upload failed. Please check your connection and try again.');
       }
       const res = await fetch(`${API}/kyc/submit`, {
