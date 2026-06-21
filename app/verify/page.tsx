@@ -15,18 +15,22 @@ const DOC_TYPES = [
 
 type PhotoState = { file: File; url: string } | null;
 
-async function uploadPhoto(file: File): Promise<string> {
+async function uploadPhoto(file: File, token: string): Promise<string> {
   const fd = new FormData();
-  fd.set('file', file);
-  fd.set('upload_preset', 'gyedi_kyc');
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+  fd.append('file', file);
+  fd.append('bucket', 'kyc');
+  const res = await fetch('/api/upload', {
     method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
     body: fd,
   });
-  if (!res.ok) throw new Error(`upload_failed: HTTP ${res.status} ${res.statusText}`);
-  const data = await res.json() as { secure_url?: string };
-  if (!data.secure_url) throw new Error('Upload succeeded but no URL returned.');
-  return data.secure_url;
+  if (!res.ok) {
+    let raw = `Upload failed (${res.status})`;
+    try { const b = await res.json() as Record<string, string>; if (b.error) raw = b.error; } catch {}
+    throw new Error(raw);
+  }
+  const data = await res.json() as { publicUrl: string };
+  return data.publicUrl;
 }
 
 function PhotoInput({
@@ -132,18 +136,18 @@ export default function VerifyPage() {
     setError('');
     try {
       setUploadMsg('Uploading front document…');
-      const frontUrl = await uploadPhoto(frontPhoto!.file);
+      const frontUrl = await uploadPhoto(frontPhoto!.file, token);
 
       let backUrl: string | null = null;
       if (hasBack && backPhoto) {
         setUploadMsg('Uploading back of document…');
-        backUrl = await uploadPhoto(backPhoto.file);
+        backUrl = await uploadPhoto(backPhoto.file, token);
       }
 
       let selfieUrl: string | null = null;
       if (selfiePhoto) {
         setUploadMsg('Uploading selfie…');
-        selfieUrl = await uploadPhoto(selfiePhoto.file);
+        selfieUrl = await uploadPhoto(selfiePhoto.file, token);
       }
 
       setUploadMsg('Submitting verification…');

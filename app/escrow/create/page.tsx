@@ -6,17 +6,22 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://gyedi-api-production.up.
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? 'root';
 const FEE_RATE = 0.015;
 
-async function uploadToCloudinary(file: File): Promise<string> {
+async function uploadToCloudinary(file: File, token: string): Promise<string> {
   const fd = new FormData();
-  fd.set('file', file);
-  fd.set('upload_preset', 'gyedi_kyc');
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+  fd.append('file', file);
+  fd.append('bucket', 'kyc');
+  const res = await fetch('/api/upload', {
     method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
     body: fd,
   });
-  if (!res.ok) throw new Error(`upload_failed: HTTP ${res.status} ${res.statusText}`);
-  const data = await res.json();
-  return data.secure_url as string;
+  if (!res.ok) {
+    let raw = `Upload failed (${res.status})`;
+    try { const b = await res.json() as Record<string, string>; if (b.error) raw = b.error; } catch {}
+    throw new Error(raw);
+  }
+  const data = await res.json() as { publicUrl: string };
+  return data.publicUrl;
 }
 
 type User = { id: string; firstName: string; lastName: string; phone: string; kycStatus?: string };
@@ -456,9 +461,9 @@ export default function CreateEscrowPage() {
       let cardFrontUrl: string, cardBackUrl: string, selfieUrl: string;
       try {
         [cardFrontUrl, cardBackUrl, selfieUrl] = await Promise.all([
-          uploadToCloudinary(kycFront),
-          uploadToCloudinary(kycBack),
-          uploadToCloudinary(kycSelfie),
+          uploadToCloudinary(kycFront, token!),
+          uploadToCloudinary(kycBack, token!),
+          uploadToCloudinary(kycSelfie, token!),
         ]);
       } catch (err) {
         console.error('[KYC upload] Error uploading to Cloudinary:', err);
