@@ -472,7 +472,7 @@ export default function CreateEscrowPage() {
       const res = await fetch(`${API}/kyc/submit`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body:    JSON.stringify({ ghanaCard: kycCard, cardFrontUrl, cardBackUrl, selfieUrl }),
+        body:    JSON.stringify({ documentType: 'ghana_card', documentNumber: kycCard, documentFront: cardFrontUrl, documentBack: cardBackUrl, selfieUrl }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? data.error ?? 'Submission failed');
